@@ -2,7 +2,7 @@
     "name": "Daily Overwhelm",
     "short_name": "Overwhelm",
     "description": "Capture thoughts, focus on one thing",
-    "start_url": "/",
+    "start_url": "./",
     "display": "standalone",
     "background_color": "#f5f5f5",
     "theme_color": "#4a90a4",
