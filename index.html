@@ -137,6 +137,33 @@
             background-color: #ccc;
             cursor: not-allowed;
         }
+
+        #completed-section {
+            margin-top: 30px;
+        }
+
+        #completed-header {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        #completed-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #completed-list li {
+            padding: 10px 12px;
+            background-color: white;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            color: #666;
+            font-size: 14px;
+            border-left: 3px solid #5cb85c;
+        }
     </style>
 </head>
 <body>
@@ -156,11 +183,17 @@
         <button id="done-button">Done</button>
     </div>
 
+    <div id="completed-section">
+        <div id="completed-header"></div>
+        <ul id="completed-list"></ul>
+    </div>
+
     <script>
         // This is where the "brain" of the app lives
 
         // Load saved thoughts from localStorage, or start with empty array
         let thoughts = JSON.parse(localStorage.getItem('thoughts')) || [];
+        let completed = JSON.parse(localStorage.getItem('completed')) || [];
 
         // Find the elements on the page so we can interact with them
         const input = document.getElementById('thought-input');
@@ -169,14 +202,22 @@
         const confirmation = document.getElementById('capture-confirmation');
         const countDisplay = document.getElementById('thought-count');
         const doneButton = document.getElementById('done-button');
+        const completedHeader = document.getElementById('completed-header');
+        const completedList = document.getElementById('completed-list');
 
         // Function to save thoughts to localStorage
         function saveThoughts() {
             localStorage.setItem('thoughts', JSON.stringify(thoughts));
         }
 
+        // Function to save completed items to localStorage
+        function saveCompleted() {
+            localStorage.setItem('completed', JSON.stringify(completed));
+        }
+
         // Function to update what's displayed on screen
         function updateDisplay() {
+            // Update the focus item
             if (thoughts.length > 0) {
                 todayText.textContent = thoughts[0];
                 countDisplay.textContent = thoughts.length + ' thought' + (thoughts.length === 1 ? '' : 's') + ' captured';
@@ -185,6 +226,21 @@
                 todayText.textContent = 'Nothing yet - add something above';
                 countDisplay.textContent = '';
                 doneButton.disabled = true;
+            }
+
+            // Update the completed list
+            if (completed.length > 0) {
+                completedHeader.textContent = completed.length + ' completed';
+                completedList.innerHTML = '';
+                // Show most recent first, limit to 10
+                completed.slice(-10).reverse().forEach(function(item) {
+                    const li = document.createElement('li');
+                    li.textContent = item;
+                    completedList.appendChild(li);
+                });
+            } else {
+                completedHeader.textContent = '';
+                completedList.innerHTML = '';
             }
         }
 
@@ -223,16 +279,18 @@
         // When the Done button is clicked
         doneButton.addEventListener('click', function() {
             if (thoughts.length > 0) {
-                // Remove the first thought (the one we just completed)
-                thoughts.shift();
+                // Move the first thought to completed
+                const doneThought = thoughts.shift();
+                completed.push(doneThought);
 
-                // Save the updated list
+                // Save both lists
                 saveThoughts();
+                saveCompleted();
 
-                // Update the display (will show next thought, or empty state)
+                // Update the display
                 updateDisplay();
 
-                console.log('Completed! Remaining thoughts:', thoughts);
+                console.log('Completed:', doneThought);
             }
         });
 
