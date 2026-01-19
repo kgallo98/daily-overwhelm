@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate App Icons</title>
+</head>
+<body>
+    <h1>Click buttons to download icons</h1>
+    <p>Save these to your daily-overwhelm folder</p>
+    <button onclick="generateIcon(192)">Download 192x192 icon</button>
+    <button onclick="generateIcon(512)">Download 512x512 icon</button>
+
+    <script>
+        function generateIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            // Background with rounded corners
+            ctx.fillStyle = '#4a90a4';
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size, size * 0.2);
+            ctx.fill();
+
+            // White circle
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, size * 0.26, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Center dot
+            ctx.fillStyle = '#4a90a4';
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, size * 0.04, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Download
+            const link = document.createElement('a');
+            link.download = 'icon-' + size + '.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+    </script>
+</body>
+</html>

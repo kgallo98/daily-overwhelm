@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Overwhelm</title>
+
+    <!-- PWA setup -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4a90a4">
+    <!-- iOS specific -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Overwhelm">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        #thought-input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        #add-button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            font-size: 16px;
+            background-color: #4a90a4;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        #add-button:hover {
+            background-color: #3a7a94;
+        }
+
+        #today-item {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #today-label {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        #today-text {
+            font-size: 18px;
+            color: #333;
+        }
+
+        #capture-confirmation {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #d4edda;
+            color: #155724;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+        }
+
+        #thought-count {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #888;
+        }
+
+        #done-button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 15px;
+            font-size: 16px;
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        #done-button:hover {
+            background-color: #4cae4c;
+        }
+
+        #done-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <h1>Daily Overwhelm</h1>
+
+    <input type="text" id="thought-input" placeholder="What's on your mind?">
+    <button id="add-button">Capture</button>
+    <div id="capture-confirmation">Captured! You can let that one go.</div>
+    <div id="thought-count"></div>
+
+    <div id="today-item">
+        <div id="today-label">Your focus for today:</div>
+        <div id="today-text">Nothing yet - add something above</div>
+        <button id="done-button">Done</button>
+    </div>
+
+    <script>
+        // This is where the "brain" of the app lives
+
+        // Load saved thoughts from localStorage, or start with empty array
+        let thoughts = JSON.parse(localStorage.getItem('thoughts')) || [];
+
+        // Find the elements on the page so we can interact with them
+        const input = document.getElementById('thought-input');
+        const button = document.getElementById('add-button');
+        const todayText = document.getElementById('today-text');
+        const confirmation = document.getElementById('capture-confirmation');
+        const countDisplay = document.getElementById('thought-count');
+        const doneButton = document.getElementById('done-button');
+
+        // Function to save thoughts to localStorage
+        function saveThoughts() {
+            localStorage.setItem('thoughts', JSON.stringify(thoughts));
+        }
+
+        // Function to update what's displayed on screen
+        function updateDisplay() {
+            if (thoughts.length > 0) {
+                todayText.textContent = thoughts[0];
+                countDisplay.textContent = thoughts.length + ' thought' + (thoughts.length === 1 ? '' : 's') + ' captured';
+                doneButton.disabled = false;
+            } else {
+                todayText.textContent = 'Nothing yet - add something above';
+                countDisplay.textContent = '';
+                doneButton.disabled = true;
+            }
+        }
+
+        // Function to show brief confirmation message
+        function showConfirmation() {
+            confirmation.style.display = 'block';
+            setTimeout(function() {
+                confirmation.style.display = 'none';
+            }, 2000); // Hide after 2 seconds
+        }
+
+        // When the button is clicked, run this function
+        button.addEventListener('click', function() {
+            // Get whatever the user typed
+            const thought = input.value;
+
+            // Only add if they actually typed something
+            if (thought.trim() !== '') {
+                // Add the thought to our list
+                thoughts.push(thought);
+
+                // Save to localStorage (persists even after closing browser)
+                saveThoughts();
+
+                // Clear the input box
+                input.value = '';
+
+                // Update the display
+                updateDisplay();
+
+                // Show confirmation message
+                showConfirmation();
+
+                // Log to console so you can see what's happening
+                console.log('All thoughts:', thoughts);
+            }
+        });
+
+        // When the Done button is clicked
+        doneButton.addEventListener('click', function() {
+            if (thoughts.length > 0) {
+                // Remove the first thought (the one we just completed)
+                thoughts.shift();
+
+                // Save the updated list
+                saveThoughts();
+
+                // Update the display (will show next thought, or empty state)
+                updateDisplay();
+
+                console.log('Completed! Remaining thoughts:', thoughts);
+            }
+        });
+
+        // When the page loads, show any saved thoughts
+        updateDisplay();
+
+        // Register the service worker for PWA functionality
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(function(registration) {
+                    console.log('Service Worker registered');
+                })
+                .catch(function(error) {
+                    console.log('Service Worker registration failed:', error);
+                });
+        }
+    </script>
+</body>
+</html>
