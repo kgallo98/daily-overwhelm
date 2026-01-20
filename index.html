@@ -266,12 +266,16 @@
 
         #swipe-bg-left {
             background-color: #f0ad4e;
-            justify-content: flex-start;
+            justify-content: flex-end;
+            opacity: 0;
+            transition: opacity 0.15s;
         }
 
         #swipe-bg-right {
             background-color: #5cb85c;
-            justify-content: flex-end;
+            justify-content: flex-start;
+            opacity: 0;
+            transition: opacity 0.15s;
         }
 
         .swipe-label {
@@ -881,16 +885,24 @@
             // Move the card
             todayItem.style.transform = 'translateX(' + diff + 'px)';
 
-            // Show hint labels based on direction
+            // Show background and label based on direction
             if (diff > 30) {
-                // Swiping right - show "done" label
-                swipeLabelRight.style.opacity = Math.min(1, (diff - 30) / 50);
+                // Swiping right - show green "done" background
+                const opacity = Math.min(1, (diff - 30) / 50);
+                swipeBgRight.style.opacity = opacity;
+                swipeLabelRight.style.opacity = opacity;
+                swipeBgLeft.style.opacity = 0;
                 swipeLabelLeft.style.opacity = 0;
             } else if (diff < -30) {
-                // Swiping left - show "later" label
-                swipeLabelLeft.style.opacity = Math.min(1, (-diff - 30) / 50);
+                // Swiping left - show orange "later" background
+                const opacity = Math.min(1, (-diff - 30) / 50);
+                swipeBgLeft.style.opacity = opacity;
+                swipeLabelLeft.style.opacity = opacity;
+                swipeBgRight.style.opacity = 0;
                 swipeLabelRight.style.opacity = 0;
             } else {
+                swipeBgLeft.style.opacity = 0;
+                swipeBgRight.style.opacity = 0;
                 swipeLabelLeft.style.opacity = 0;
                 swipeLabelRight.style.opacity = 0;
             }
@@ -940,6 +952,8 @@
         function resetSwipeState() {
             todayItem.style.transform = '';
             todayItem.classList.remove('swipe-away-left', 'swipe-away-right', 'swiping');
+            swipeBgLeft.style.opacity = 0;
+            swipeBgRight.style.opacity = 0;
             swipeLabelLeft.style.opacity = 0;
             swipeLabelRight.style.opacity = 0;
             touchStartX = 0;
