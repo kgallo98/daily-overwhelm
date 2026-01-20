@@ -117,10 +117,15 @@
             color: #888;
         }
 
-        #done-button {
-            width: 100%;
-            padding: 12px;
+        #button-row {
+            display: flex;
+            gap: 10px;
             margin-top: 15px;
+        }
+
+        #done-button {
+            flex: 1;
+            padding: 12px;
             font-size: 16px;
             background-color: #5cb85c;
             color: white;
@@ -136,6 +141,32 @@
         #done-button:disabled {
             background-color: #ccc;
             cursor: not-allowed;
+        }
+
+        #skip-button {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            background-color: #f0ad4e;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        #skip-button:hover {
+            background-color: #ec971f;
+        }
+
+        #skip-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        #skip-count {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
         }
 
         #completed-section {
@@ -180,7 +211,11 @@
     <div id="today-item">
         <div id="today-label">Your focus for today:</div>
         <div id="today-text">Nothing yet - add something above</div>
-        <button id="done-button">Done</button>
+        <div id="skip-count"></div>
+        <div id="button-row">
+            <button id="done-button">Done</button>
+            <button id="skip-button">Later</button>
+        </div>
     </div>
 
     <div id="completed-section">
@@ -195,6 +230,14 @@
         let thoughts = JSON.parse(localStorage.getItem('thoughts')) || [];
         let completed = JSON.parse(localStorage.getItem('completed')) || [];
 
+        // Migrate old string format to new object format { text, skips }
+        thoughts = thoughts.map(function(item) {
+            if (typeof item === 'string') {
+                return { text: item, skips: 0 };
+            }
+            return item;
+        });
+
         // Find the elements on the page so we can interact with them
         const input = document.getElementById('thought-input');
         const button = document.getElementById('add-button');
@@ -202,6 +245,8 @@
         const confirmation = document.getElementById('capture-confirmation');
         const countDisplay = document.getElementById('thought-count');
         const doneButton = document.getElementById('done-button');
+        const skipButton = document.getElementById('skip-button');
+        const skipCountDisplay = document.getElementById('skip-count');
         const completedHeader = document.getElementById('completed-header');
         const completedList = document.getElementById('completed-list');
 
@@ -219,13 +264,24 @@
         function updateDisplay() {
             // Update the focus item
             if (thoughts.length > 0) {
-                todayText.textContent = thoughts[0];
+                const current = thoughts[0];
+                todayText.textContent = current.text;
                 countDisplay.textContent = thoughts.length + ' thought' + (thoughts.length === 1 ? '' : 's') + ' captured';
                 doneButton.disabled = false;
+                skipButton.disabled = false;
+
+                // Show skip count if item has been skipped before
+                if (current.skips > 0) {
+                    skipCountDisplay.textContent = 'Skipped ' + current.skips + ' time' + (current.skips === 1 ? '' : 's');
+                } else {
+                    skipCountDisplay.textContent = '';
+                }
             } else {
                 todayText.textContent = 'Nothing yet - add something above';
                 countDisplay.textContent = '';
+                skipCountDisplay.textContent = '';
                 doneButton.disabled = true;
+                skipButton.disabled = true;
             }
 
             // Update the completed list
@@ -257,7 +313,8 @@
             const thought = input.value;
 
             if (thought.trim() !== '') {
-                thoughts.push(thought);
+                // Store as object with text and skip count
+                thoughts.push({ text: thought, skips: 0 });
                 saveThoughts();
                 input.value = '';
                 updateDisplay();
@@ -279,9 +336,9 @@
         // When the Done button is clicked
         doneButton.addEventListener('click', function() {
             if (thoughts.length > 0) {
-                // Move the first thought to completed
+                // Move the first thought to completed (store just the text)
                 const doneThought = thoughts.shift();
-                completed.push(doneThought);
+                completed.push(doneThought.text);
 
                 // Save both lists
                 saveThoughts();
@@ -290,7 +347,29 @@
                 // Update the display
                 updateDisplay();
 
-                console.log('Completed:', doneThought);
+                console.log('Completed:', doneThought.text);
+            }
+        });
+
+        // When the Skip/Later button is clicked
+        skipButton.addEventListener('click', function() {
+            if (thoughts.length > 1) {
+                // Remove from front, increment skips, add to back
+                const skippedThought = thoughts.shift();
+                skippedThought.skips += 1;
+                thoughts.push(skippedThought);
+
+                // Save and update
+                saveThoughts();
+                updateDisplay();
+
+                console.log('Skipped:', skippedThought.text, '- total skips:', skippedThought.skips);
+            } else if (thoughts.length === 1) {
+                // Can't skip if it's the only item - just increment skip count
+                thoughts[0].skips += 1;
+                saveThoughts();
+                updateDisplay();
+                console.log('Only one item - nowhere to skip to');
             }
         });
 
