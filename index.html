@@ -195,11 +195,71 @@
             padding-top: 40px;
         }
 
+        #today-item-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+        }
+
+        #swipe-hint {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            font-size: 14px;
+            color: white;
+            pointer-events: none;
+        }
+
+        #swipe-hint-left {
+            background-color: #f0ad4e;
+        }
+
+        #swipe-hint-right {
+            background-color: #5cb85c;
+        }
+
+        .swipe-label {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
         #today-item {
             padding: 20px;
             background-color: var(--card-bg);
             border-radius: 12px;
             box-shadow: 0 2px 8px var(--shadow);
+            position: relative;
+            transition: transform 0.1s ease-out;
+            touch-action: pan-y pinch-zoom;
+        }
+
+        #today-item.swiping {
+            transition: none;
+        }
+
+        #today-item.swipe-away-right {
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        #today-item.swipe-away-left {
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+
+        #swipe-instruction {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 10px;
+            opacity: 0.6;
         }
 
         #today-label {
@@ -441,20 +501,27 @@
 
     <!-- TASKS TAB -->
     <div id="tasks-tab" class="tab-content">
-        <div id="today-item">
-            <div id="today-label">your focus for today</div>
-            <div id="today-text">nothing yet</div>
-            <div id="skip-count"></div>
-            <div id="thought-count"></div>
-            <div id="button-row">
-                <button id="done-button">done</button>
-                <button id="skip-button">later</button>
+        <div id="today-item-container">
+            <div id="swipe-hint">
+                <span class="swipe-label" id="swipe-label-left">later</span>
+                <span class="swipe-label" id="swipe-label-right">done</span>
             </div>
-            <div id="secondary-actions">
-                <button id="edit-btn" class="secondary-btn">edit</button>
-                <button id="remove-btn" class="secondary-btn">remove</button>
+            <div id="today-item">
+                <div id="today-label">your focus for today</div>
+                <div id="today-text">nothing yet</div>
+                <div id="skip-count"></div>
+                <div id="thought-count"></div>
+                <div id="button-row">
+                    <button id="done-button">done</button>
+                    <button id="skip-button">later</button>
+                </div>
+                <div id="secondary-actions">
+                    <button id="edit-btn" class="secondary-btn">edit</button>
+                    <button id="remove-btn" class="secondary-btn">remove</button>
+                </div>
             </div>
         </div>
+        <div id="swipe-instruction">swipe right to complete, left for later</div>
 
         <div id="completed-section">
             <div id="completed-header"></div>
@@ -550,6 +617,10 @@
         const editInput = document.getElementById('edit-input');
         const editCancel = document.getElementById('edit-cancel');
         const editSave = document.getElementById('edit-save');
+        const todayItem = document.getElementById('today-item');
+        const swipeLabelLeft = document.getElementById('swipe-label-left');
+        const swipeLabelRight = document.getElementById('swipe-label-right');
+        const swipeHint = document.getElementById('swipe-hint');
 
         // ===== FUNCTIONS =====
         function saveThoughts() {
@@ -728,6 +799,92 @@
                 console.log('Removed:', removed.text);
             }
         });
+
+        // ===== SWIPE GESTURES =====
+        let touchStartX = 0;
+        let touchCurrentX = 0;
+        let isSwiping = false;
+        const swipeThreshold = 80;
+
+        todayItem.addEventListener('touchstart', function(e) {
+            if (thoughts.length === 0) return;
+            touchStartX = e.touches[0].clientX;
+            isSwiping = true;
+            todayItem.classList.add('swiping');
+        }, { passive: true });
+
+        todayItem.addEventListener('touchmove', function(e) {
+            if (!isSwiping || thoughts.length === 0) return;
+            touchCurrentX = e.touches[0].clientX;
+            const diff = touchCurrentX - touchStartX;
+
+            // Move the card
+            todayItem.style.transform = 'translateX(' + diff + 'px)';
+
+            // Show hint labels based on direction
+            if (diff > 30) {
+                swipeLabelRight.style.opacity = Math.min(1, (diff - 30) / 50);
+                swipeLabelLeft.style.opacity = 0;
+                swipeHint.style.background = '#5cb85c';
+            } else if (diff < -30) {
+                swipeLabelLeft.style.opacity = Math.min(1, (-diff - 30) / 50);
+                swipeLabelRight.style.opacity = 0;
+                swipeHint.style.background = '#f0ad4e';
+            } else {
+                swipeLabelLeft.style.opacity = 0;
+                swipeLabelRight.style.opacity = 0;
+            }
+        }, { passive: true });
+
+        todayItem.addEventListener('touchend', function(e) {
+            if (!isSwiping || thoughts.length === 0) return;
+            isSwiping = false;
+            todayItem.classList.remove('swiping');
+
+            const diff = touchCurrentX - touchStartX;
+
+            if (diff > swipeThreshold) {
+                // Swipe right - Done
+                todayItem.classList.add('swipe-away-right');
+                haptic('medium');
+                setTimeout(function() {
+                    const doneThought = thoughts.shift();
+                    completed.push(doneThought.text);
+                    saveThoughts();
+                    saveCompleted();
+                    resetSwipeState();
+                    updateDisplay();
+                }, 300);
+            } else if (diff < -swipeThreshold) {
+                // Swipe left - Later
+                todayItem.classList.add('swipe-away-left');
+                haptic('light');
+                setTimeout(function() {
+                    if (thoughts.length > 1) {
+                        const skipped = thoughts.shift();
+                        skipped.skips += 1;
+                        thoughts.push(skipped);
+                    } else if (thoughts.length === 1) {
+                        thoughts[0].skips += 1;
+                    }
+                    saveThoughts();
+                    resetSwipeState();
+                    updateDisplay();
+                }, 300);
+            } else {
+                // Not enough to trigger action
+                resetSwipeState();
+            }
+        });
+
+        function resetSwipeState() {
+            todayItem.style.transform = '';
+            todayItem.classList.remove('swipe-away-left', 'swipe-away-right', 'swiping');
+            swipeLabelLeft.style.opacity = 0;
+            swipeLabelRight.style.opacity = 0;
+            touchStartX = 0;
+            touchCurrentX = 0;
+        }
 
         // ===== VOICE CAPTURE =====
         let recognition = null;
