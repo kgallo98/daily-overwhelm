@@ -69,6 +69,156 @@
             opacity: 1;
         }
 
+        /* Settings button */
+        #settings-toggle {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            z-index: 50;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            padding: 8px;
+        }
+
+        #settings-toggle:hover {
+            opacity: 1;
+        }
+
+        /* Settings panel */
+        #settings-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--bg-color);
+            z-index: 200;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-out;
+            overflow-y: auto;
+            padding: 20px;
+            padding-top: 60px;
+        }
+
+        #settings-panel.visible {
+            transform: translateX(0);
+        }
+
+        #settings-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        #settings-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            color: var(--text-color);
+        }
+
+        .settings-section {
+            margin-bottom: 30px;
+        }
+
+        .settings-section-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+        }
+
+        .settings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+
+        .settings-item-label {
+            font-size: 16px;
+            color: var(--text-color);
+        }
+
+        .settings-item-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Toggle switch */
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border-color);
+            transition: 0.3s;
+            border-radius: 28px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: var(--accent);
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(22px);
+        }
+
+        .toggle-switch input:disabled + .toggle-slider {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .settings-coming-soon {
+            font-size: 11px;
+            color: var(--accent);
+            margin-left: 10px;
+        }
+
         /* Hide text input in bedtime mode */
         body.bedtime-mode #text-input-section {
             display: none;
@@ -471,6 +621,120 @@
             border-left: 3px solid #5cb85c;
         }
 
+        /* ===== BOTTOM SHEET ===== */
+        #sheet-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0);
+            z-index: 150;
+            pointer-events: none;
+            transition: background-color 0.3s;
+        }
+
+        #sheet-overlay.visible {
+            background-color: rgba(0, 0, 0, 0.5);
+            pointer-events: auto;
+        }
+
+        #bottom-sheet {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 60px;
+            background-color: var(--card-bg);
+            border-radius: 20px 20px 0 0;
+            z-index: 160;
+            transform: translateY(calc(100% + 10px));
+            transition: transform 0.3s ease-out;
+            max-height: 60vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        #bottom-sheet.peek {
+            transform: translateY(calc(100% - 45px));
+        }
+
+        #bottom-sheet.expanded {
+            transform: translateY(0);
+        }
+
+        #sheet-handle {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: grab;
+        }
+
+        #sheet-handle:active {
+            cursor: grabbing;
+        }
+
+        .handle-pill {
+            width: 36px;
+            height: 4px;
+            background-color: var(--text-muted);
+            border-radius: 2px;
+            opacity: 0.5;
+        }
+
+        #sheet-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            opacity: 0.7;
+        }
+
+        #bottom-sheet.expanded #sheet-hint {
+            display: none;
+        }
+
+        #sheet-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 20px 20px;
+            display: none;
+        }
+
+        #bottom-sheet.expanded #sheet-content {
+            display: block;
+        }
+
+        #sheet-title {
+            font-size: 16px;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+        }
+
+        .sheet-task-item {
+            padding: 15px;
+            background-color: var(--bg-color);
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .sheet-task-text {
+            font-size: 16px;
+            color: var(--text-color);
+        }
+
+        .sheet-task-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        .sheet-empty {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 30px 0;
+        }
+
         /* ===== TAB BAR ===== */
         #tab-bar {
             display: flex;
@@ -504,8 +768,71 @@
     </style>
 </head>
 <body>
+    <!-- SETTINGS TOGGLE -->
+    <button id="settings-toggle" title="Settings">⚙️</button>
+
     <!-- BEDTIME TOGGLE -->
     <button id="bedtime-toggle" title="Toggle bedtime mode">🌙</button>
+
+    <!-- SETTINGS PANEL -->
+    <div id="settings-panel">
+        <button id="settings-close">×</button>
+        <div id="settings-title">settings</div>
+
+        <div class="settings-section">
+            <div class="settings-section-title">Notifications</div>
+
+            <div class="settings-item">
+                <div>
+                    <div class="settings-item-label">Bedtime reminder<span class="settings-coming-soon">coming soon</span></div>
+                    <div class="settings-item-desc">Prompt to capture thoughts before sleep</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="setting-bedtime-notif" disabled>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <div class="settings-item">
+                <div>
+                    <div class="settings-item-label">Morning focus<span class="settings-coming-soon">coming soon</span></div>
+                    <div class="settings-item-desc">Daily reminder of your focus item</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="setting-morning-notif" disabled>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <div class="settings-item">
+                <div>
+                    <div class="settings-item-label">Periodic reminders<span class="settings-coming-soon">coming soon</span></div>
+                    <div class="settings-item-desc">Gentle nudges throughout the day</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="setting-periodic-notif" disabled>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-section-title">Display</div>
+
+            <div class="settings-item">
+                <div>
+                    <div class="settings-item-label">Daily focus items</div>
+                    <div class="settings-item-desc">How many tasks to show each day</div>
+                </div>
+                <select id="setting-daily-items" style="padding: 8px 12px; font-size: 16px; background: var(--input-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 8px;">
+                    <option value="1" selected>1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="5">5</option>
+                </select>
+            </div>
+        </div>
+    </div>
 
     <!-- CAPTURE TAB -->
     <div id="capture-tab" class="tab-content active">
@@ -560,6 +887,19 @@
         </div>
     </div>
 
+    <!-- BOTTOM SHEET -->
+    <div id="sheet-overlay"></div>
+    <div id="bottom-sheet">
+        <div id="sheet-handle">
+            <div class="handle-pill"></div>
+            <div id="sheet-hint">pull up to see all</div>
+        </div>
+        <div id="sheet-content">
+            <div id="sheet-title">all thoughts</div>
+            <div id="sheet-list"></div>
+        </div>
+    </div>
+
     <!-- TAB BAR -->
     <div id="tab-bar">
         <button class="tab-button active" data-tab="capture-tab">
@@ -587,8 +927,110 @@
 
                 this.classList.add('active');
                 document.getElementById(tabId).classList.add('active');
+
+                // Show/hide bottom sheet peek based on tab
+                const bottomSheet = document.getElementById('bottom-sheet');
+                if (tabId === 'tasks-tab') {
+                    bottomSheet.classList.add('peek');
+                } else {
+                    bottomSheet.classList.remove('peek');
+                    bottomSheet.classList.remove('expanded');
+                    document.getElementById('sheet-overlay').classList.remove('visible');
+                }
             });
         });
+
+        // ===== SETTINGS PANEL =====
+        const settingsToggle = document.getElementById('settings-toggle');
+        const settingsPanel = document.getElementById('settings-panel');
+        const settingsClose = document.getElementById('settings-close');
+        const settingDailyItems = document.getElementById('setting-daily-items');
+
+        settingsToggle.addEventListener('click', function() {
+            settingsPanel.classList.add('visible');
+        });
+
+        settingsClose.addEventListener('click', function() {
+            settingsPanel.classList.remove('visible');
+        });
+
+        // Load saved settings
+        const savedDailyItems = localStorage.getItem('dailyFocusItems') || '1';
+        settingDailyItems.value = savedDailyItems;
+
+        settingDailyItems.addEventListener('change', function() {
+            localStorage.setItem('dailyFocusItems', this.value);
+        });
+
+        // ===== BOTTOM SHEET =====
+        const bottomSheet = document.getElementById('bottom-sheet');
+        const sheetOverlay = document.getElementById('sheet-overlay');
+        const sheetHandle = document.getElementById('sheet-handle');
+        const sheetList = document.getElementById('sheet-list');
+        let sheetExpanded = false;
+
+        function toggleSheet(expand) {
+            sheetExpanded = expand;
+            if (expand) {
+                bottomSheet.classList.remove('peek');
+                bottomSheet.classList.add('expanded');
+                sheetOverlay.classList.add('visible');
+                renderSheetList();
+            } else {
+                bottomSheet.classList.remove('expanded');
+                bottomSheet.classList.add('peek');
+                sheetOverlay.classList.remove('visible');
+            }
+        }
+
+        function renderSheetList() {
+            if (thoughts.length === 0) {
+                sheetList.innerHTML = '<div class="sheet-empty">no thoughts captured yet</div>';
+                return;
+            }
+
+            sheetList.innerHTML = '';
+            thoughts.forEach(function(item, index) {
+                const div = document.createElement('div');
+                div.className = 'sheet-task-item';
+
+                let meta = '';
+                if (index === 0) {
+                    meta = 'current focus';
+                } else if (item.skips > 0) {
+                    meta = 'skipped ' + item.skips + ' time' + (item.skips === 1 ? '' : 's');
+                }
+
+                div.innerHTML = '<div class="sheet-task-text">' + item.text + '</div>' +
+                    (meta ? '<div class="sheet-task-meta">' + meta + '</div>' : '');
+
+                sheetList.appendChild(div);
+            });
+        }
+
+        sheetHandle.addEventListener('click', function() {
+            toggleSheet(!sheetExpanded);
+        });
+
+        sheetOverlay.addEventListener('click', function() {
+            toggleSheet(false);
+        });
+
+        // Swipe down to close
+        let sheetTouchStartY = 0;
+        bottomSheet.addEventListener('touchstart', function(e) {
+            if (sheetExpanded) {
+                sheetTouchStartY = e.touches[0].clientY;
+            }
+        }, { passive: true });
+
+        bottomSheet.addEventListener('touchmove', function(e) {
+            if (!sheetExpanded) return;
+            const diff = e.touches[0].clientY - sheetTouchStartY;
+            if (diff > 50) {
+                toggleSheet(false);
+            }
+        }, { passive: true });
 
         // ===== CONFIRMATION MESSAGES =====
         const confirmationMessages = [
