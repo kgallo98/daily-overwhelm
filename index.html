@@ -271,7 +271,9 @@
 
         // Dark mode setup
         const themeToggle = document.getElementById('theme-toggle');
-        let darkMode = localStorage.getItem('darkMode') === 'true';
+        // Default to dark mode if no preference saved
+        const savedPref = localStorage.getItem('darkMode');
+        let darkMode = savedPref === null ? true : savedPref === 'true';
 
         function applyTheme() {
             if (darkMode) {
