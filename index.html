@@ -30,6 +30,50 @@
             --accent: #4a90a4;
         }
 
+        /* Bedtime mode - warmer, softer colors */
+        body.bedtime-mode {
+            --bg-color: #1a1610;
+            --card-bg: #2a2018;
+            --text-color: #e8dcc8;
+            --text-muted: #a89880;
+            --text-light: #c8b8a0;
+            --border-color: #3a3028;
+            --input-bg: #1a1610;
+            --accent: #c4956a;
+        }
+
+        body.bedtime-mode #big-mic-button {
+            box-shadow: 0 4px 20px rgba(196, 149, 106, 0.3);
+        }
+
+        body.bedtime-mode .ripple {
+            border-color: var(--accent);
+        }
+
+        /* Bedtime toggle */
+        #bedtime-toggle {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 50;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            padding: 8px;
+        }
+
+        #bedtime-toggle:hover {
+            opacity: 1;
+        }
+
+        /* Hide text input in bedtime mode */
+        body.bedtime-mode #text-input-section {
+            display: none;
+        }
+
         html, body {
             height: 100%;
             margin: 0;
@@ -452,6 +496,9 @@
     </style>
 </head>
 <body>
+    <!-- BEDTIME TOGGLE -->
+    <button id="bedtime-toggle" title="Toggle bedtime mode">🌙</button>
+
     <!-- CAPTURE TAB -->
     <div id="capture-tab" class="tab-content active">
         <div id="mic-container">
@@ -546,10 +593,91 @@
             "Won't forget."
         ];
 
+        const bedtimeMessages = [
+            "Captured.",
+            "It's safe.",
+            "Letting go.",
+            "Held for you.",
+            "Set aside.",
+            "Tomorrow's ready.",
+            "Tucked away."
+        ];
+
         function getRandomConfirmation() {
-            const index = Math.floor(Math.random() * confirmationMessages.length);
-            return confirmationMessages[index];
+            const messages = isBedtimeMode ? bedtimeMessages : confirmationMessages;
+            const index = Math.floor(Math.random() * messages.length);
+            return messages[index];
         }
+
+        // ===== BEDTIME MODE =====
+        const bedtimeToggle = document.getElementById('bedtime-toggle');
+        let isBedtimeMode = false;
+        const bedtimeStart = 21; // 9pm
+        const bedtimeEnd = 6;    // 6am
+
+        function checkBedtimeTime() {
+            const hour = new Date().getHours();
+            return hour >= bedtimeStart || hour < bedtimeEnd;
+        }
+
+        function setBedtimeMode(enabled) {
+            isBedtimeMode = enabled;
+            if (enabled) {
+                document.body.classList.add('bedtime-mode');
+                bedtimeToggle.textContent = '☀️';
+                bedtimeToggle.title = 'Switch to day mode';
+            } else {
+                document.body.classList.remove('bedtime-mode');
+                bedtimeToggle.textContent = '🌙';
+                bedtimeToggle.title = 'Switch to bedtime mode';
+            }
+            localStorage.setItem('bedtimeManualOverride', 'true');
+            localStorage.setItem('bedtimeMode', enabled.toString());
+        }
+
+        function initBedtimeMode() {
+            const manualOverride = localStorage.getItem('bedtimeManualOverride');
+            const savedMode = localStorage.getItem('bedtimeMode');
+
+            if (manualOverride === 'true' && savedMode !== null) {
+                // User manually set a preference
+                isBedtimeMode = savedMode === 'true';
+            } else {
+                // Auto-detect based on time
+                isBedtimeMode = checkBedtimeTime();
+            }
+
+            if (isBedtimeMode) {
+                document.body.classList.add('bedtime-mode');
+                bedtimeToggle.textContent = '☀️';
+                bedtimeToggle.title = 'Switch to day mode';
+            }
+        }
+
+        // Check time periodically and reset manual override at mode boundaries
+        function checkBedtimeSchedule() {
+            const shouldBeBedtime = checkBedtimeTime();
+            const hour = new Date().getHours();
+
+            // Reset manual override at 6am or 9pm
+            if (hour === bedtimeEnd || hour === bedtimeStart) {
+                localStorage.removeItem('bedtimeManualOverride');
+                if (shouldBeBedtime !== isBedtimeMode) {
+                    setBedtimeMode(shouldBeBedtime);
+                    localStorage.removeItem('bedtimeManualOverride');
+                }
+            }
+        }
+
+        bedtimeToggle.addEventListener('click', function() {
+            setBedtimeMode(!isBedtimeMode);
+        });
+
+        // Initialize bedtime mode
+        initBedtimeMode();
+
+        // Check schedule every minute
+        setInterval(checkBedtimeSchedule, 60000);
 
         // ===== DATA =====
         let thoughts = JSON.parse(localStorage.getItem('thoughts')) || [];
