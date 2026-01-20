@@ -201,31 +201,34 @@
             border-radius: 12px;
         }
 
-        #swipe-hint {
+        .swipe-background {
             position: absolute;
             top: 0;
             bottom: 0;
             width: 100%;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            font-size: 14px;
+            padding: 0 30px;
+            font-size: 18px;
+            font-weight: 500;
             color: white;
             pointer-events: none;
+            text-transform: lowercase;
         }
 
-        #swipe-hint-left {
+        #swipe-bg-left {
             background-color: #f0ad4e;
+            justify-content: flex-start;
         }
 
-        #swipe-hint-right {
+        #swipe-bg-right {
             background-color: #5cb85c;
+            justify-content: flex-end;
         }
 
         .swipe-label {
             opacity: 0;
-            transition: opacity 0.2s;
+            transition: opacity 0.15s;
         }
 
         #today-item {
@@ -286,47 +289,10 @@
             margin-top: 15px;
         }
 
-        #button-row {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        #done-button, #skip-button {
-            flex: 1;
-            padding: 14px;
-            font-size: 16px;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        #done-button {
-            background-color: #5cb85c;
-        }
-
-        #done-button:hover {
-            background-color: #4cae4c;
-        }
-
-        #skip-button {
-            background-color: #f0ad4e;
-        }
-
-        #skip-button:hover {
-            background-color: #ec971f;
-        }
-
-        #done-button:disabled, #skip-button:disabled {
-            background-color: #444;
-            cursor: not-allowed;
-        }
-
         #secondary-actions {
             display: flex;
             gap: 10px;
-            margin-top: 10px;
+            margin-top: 20px;
         }
 
         .secondary-btn {
@@ -502,8 +468,10 @@
     <!-- TASKS TAB -->
     <div id="tasks-tab" class="tab-content">
         <div id="today-item-container">
-            <div id="swipe-hint">
+            <div id="swipe-bg-left" class="swipe-background">
                 <span class="swipe-label" id="swipe-label-left">later</span>
+            </div>
+            <div id="swipe-bg-right" class="swipe-background">
                 <span class="swipe-label" id="swipe-label-right">done</span>
             </div>
             <div id="today-item">
@@ -511,10 +479,6 @@
                 <div id="today-text">nothing yet</div>
                 <div id="skip-count"></div>
                 <div id="thought-count"></div>
-                <div id="button-row">
-                    <button id="done-button">done</button>
-                    <button id="skip-button">later</button>
-                </div>
                 <div id="secondary-actions">
                     <button id="edit-btn" class="secondary-btn">edit</button>
                     <button id="remove-btn" class="secondary-btn">remove</button>
@@ -606,8 +570,6 @@
         const confirmation = document.getElementById('capture-confirmation');
         const todayText = document.getElementById('today-text');
         const countDisplay = document.getElementById('thought-count');
-        const doneButton = document.getElementById('done-button');
-        const skipButton = document.getElementById('skip-button');
         const skipCountDisplay = document.getElementById('skip-count');
         const completedHeader = document.getElementById('completed-header');
         const completedList = document.getElementById('completed-list');
@@ -620,7 +582,8 @@
         const todayItem = document.getElementById('today-item');
         const swipeLabelLeft = document.getElementById('swipe-label-left');
         const swipeLabelRight = document.getElementById('swipe-label-right');
-        const swipeHint = document.getElementById('swipe-hint');
+        const swipeBgLeft = document.getElementById('swipe-bg-left');
+        const swipeBgRight = document.getElementById('swipe-bg-right');
 
         // ===== FUNCTIONS =====
         function saveThoughts() {
@@ -637,8 +600,6 @@
                 const current = thoughts[0];
                 todayText.textContent = current.text;
                 countDisplay.textContent = thoughts.length + ' thought' + (thoughts.length === 1 ? '' : 's') + ' captured';
-                doneButton.disabled = false;
-                skipButton.disabled = false;
                 editBtn.disabled = false;
                 removeBtn.disabled = false;
 
@@ -651,8 +612,6 @@
                 todayText.textContent = 'nothing yet';
                 countDisplay.textContent = '';
                 skipCountDisplay.textContent = '';
-                doneButton.disabled = true;
-                skipButton.disabled = true;
                 editBtn.disabled = true;
                 removeBtn.disabled = true;
             }
@@ -713,37 +672,6 @@
         input.addEventListener('keydown', function(event) {
             if (event.key === 'Enter') {
                 captureThought();
-            }
-        });
-
-        // Done button
-        doneButton.addEventListener('click', function() {
-            if (thoughts.length > 0) {
-                const doneThought = thoughts.shift();
-                completed.push(doneThought.text);
-                saveThoughts();
-                saveCompleted();
-                updateDisplay();
-                haptic('medium');
-                console.log('Completed:', doneThought.text);
-            }
-        });
-
-        // Skip button
-        skipButton.addEventListener('click', function() {
-            if (thoughts.length > 1) {
-                const skippedThought = thoughts.shift();
-                skippedThought.skips += 1;
-                thoughts.push(skippedThought);
-                saveThoughts();
-                updateDisplay();
-                haptic('light');
-                console.log('Skipped:', skippedThought.text);
-            } else if (thoughts.length === 1) {
-                thoughts[0].skips += 1;
-                saveThoughts();
-                updateDisplay();
-                haptic('light');
             }
         });
 
@@ -823,13 +751,13 @@
 
             // Show hint labels based on direction
             if (diff > 30) {
+                // Swiping right - show "done" label
                 swipeLabelRight.style.opacity = Math.min(1, (diff - 30) / 50);
                 swipeLabelLeft.style.opacity = 0;
-                swipeHint.style.background = '#5cb85c';
             } else if (diff < -30) {
+                // Swiping left - show "later" label
                 swipeLabelLeft.style.opacity = Math.min(1, (-diff - 30) / 50);
                 swipeLabelRight.style.opacity = 0;
-                swipeHint.style.background = '#f0ad4e';
             } else {
                 swipeLabelLeft.style.opacity = 0;
                 swipeLabelRight.style.opacity = 0;
