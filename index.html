@@ -2,30 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Daily Overwhelm</title>
 
     <!-- PWA setup -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#4a90a4">
+    <meta name="theme-color" content="#1a1a2e">
     <!-- iOS specific -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Overwhelm">
     <link rel="apple-touch-icon" href="icon-192.png">
     <style>
-        :root {
-            --bg-color: #f5f5f5;
-            --card-bg: white;
-            --text-color: #333;
-            --text-muted: #888;
-            --text-light: #666;
-            --border-color: #ccc;
-            --input-bg: white;
-            --shadow: rgba(0,0,0,0.1);
+        * {
+            box-sizing: border-box;
         }
 
-        .dark-mode {
+        :root {
             --bg-color: #1a1a2e;
             --card-bg: #16213e;
             --text-color: #eee;
@@ -34,179 +27,192 @@
             --border-color: #333;
             --input-bg: #0f0f23;
             --shadow: rgba(0,0,0,0.3);
+            --accent: #4a90a4;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            max-width: 400px;
-            margin: 50px auto;
-            padding: 20px;
             background-color: var(--bg-color);
-            transition: background-color 0.3s;
-        }
-
-        #header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        h1 {
             color: var(--text-color);
-            font-size: 24px;
-            margin: 0;
-        }
-
-        #theme-toggle {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 5px;
-        }
-
-        #input-row {
             display: flex;
-            gap: 8px;
+            flex-direction: column;
         }
 
-        #thought-input {
+        /* Tab content area */
+        .tab-content {
             flex: 1;
-            padding: 12px;
-            font-size: 16px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-sizing: border-box;
-            background-color: var(--input-bg);
-            color: var(--text-color);
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
         }
 
-        #voice-button {
-            padding: 12px 16px;
-            font-size: 16px;
-            background-color: #666;
-            color: white;
+        .tab-content.active {
+            display: flex;
+        }
+
+        /* ===== CAPTURE TAB ===== */
+        #capture-tab {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        #big-mic-button {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background-color: var(--accent);
             border: none;
-            border-radius: 8px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: white;
+            box-shadow: 0 4px 20px rgba(74, 144, 164, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        #voice-button:hover {
-            background-color: #555;
+        #big-mic-button:hover {
+            transform: scale(1.05);
         }
 
-        #voice-button.listening {
+        #big-mic-button:active {
+            transform: scale(0.98);
+        }
+
+        #big-mic-button.listening {
             background-color: #e74c3c;
+            box-shadow: 0 4px 30px rgba(231, 76, 60, 0.5);
             animation: pulse 1s infinite;
         }
 
         @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
 
-        #add-button {
+        #mic-label {
+            margin-top: 20px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        #capture-confirmation {
+            margin-top: 30px;
+            padding: 15px 25px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border-radius: 12px;
+            font-size: 16px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        #capture-confirmation.visible {
+            opacity: 1;
+        }
+
+        #text-input-section {
+            margin-top: 40px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        #thought-input {
             width: 100%;
             padding: 12px;
-            margin-top: 10px;
             font-size: 16px;
-            background-color: #4a90a4;
-            color: white;
-            border: none;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
-            cursor: pointer;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            text-align: center;
         }
 
-        #add-button:hover {
-            background-color: #3a7a94;
+        #thought-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* ===== TASKS TAB ===== */
+        #tasks-tab {
+            padding-top: 40px;
         }
 
         #today-item {
-            margin-top: 30px;
             padding: 20px;
             background-color: var(--card-bg);
-            border-radius: 8px;
-            box-shadow: 0 2px 4px var(--shadow);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px var(--shadow);
         }
 
         #today-label {
             font-size: 14px;
             color: var(--text-muted);
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         #today-text {
-            font-size: 18px;
+            font-size: 20px;
             color: var(--text-color);
+            line-height: 1.4;
         }
 
-        #capture-confirmation {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #d4edda;
-            color: #155724;
-            border-radius: 8px;
-            text-align: center;
-            display: none;
+        #skip-count {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 8px;
         }
 
         #thought-count {
-            margin-top: 15px;
             font-size: 14px;
             color: var(--text-muted);
+            margin-top: 15px;
         }
 
         #button-row {
             display: flex;
             gap: 10px;
-            margin-top: 15px;
+            margin-top: 20px;
         }
 
-        #done-button {
+        #done-button, #skip-button {
             flex: 1;
-            padding: 12px;
+            padding: 14px;
             font-size: 16px;
-            background-color: #5cb85c;
             color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
+        }
+
+        #done-button {
+            background-color: #5cb85c;
         }
 
         #done-button:hover {
             background-color: #4cae4c;
         }
 
-        #done-button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-
         #skip-button {
-            flex: 1;
-            padding: 12px;
-            font-size: 16px;
             background-color: #f0ad4e;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
         }
 
         #skip-button:hover {
             background-color: #ec971f;
         }
 
-        #skip-button:disabled {
-            background-color: #ccc;
+        #done-button:disabled, #skip-button:disabled {
+            background-color: #444;
             cursor: not-allowed;
-        }
-
-        #skip-count {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 5px;
         }
 
         #completed-section {
@@ -217,7 +223,6 @@
             font-size: 14px;
             color: var(--text-muted);
             margin-bottom: 10px;
-            cursor: pointer;
         }
 
         #completed-list {
@@ -227,74 +232,124 @@
         }
 
         #completed-list li {
-            padding: 10px 12px;
+            padding: 12px 14px;
             background-color: var(--card-bg);
-            border-radius: 6px;
-            margin-bottom: 6px;
+            border-radius: 8px;
+            margin-bottom: 8px;
             color: var(--text-light);
             font-size: 14px;
             border-left: 3px solid #5cb85c;
         }
+
+        /* ===== TAB BAR ===== */
+        #tab-bar {
+            display: flex;
+            background-color: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 10px 0;
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
+        }
+
+        .tab-button {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 12px;
+            padding: 8px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .tab-button .tab-icon {
+            font-size: 24px;
+        }
+
+        .tab-button.active {
+            color: var(--accent);
+        }
     </style>
 </head>
 <body>
-    <div id="header-row">
-        <h1>Daily Overwhelm</h1>
-        <button id="theme-toggle" title="Toggle dark mode"></button>
-    </div>
-
-    <div id="input-row">
-        <input type="text" id="thought-input" placeholder="What's on your mind?">
-        <button id="voice-button" title="Voice capture">Mic</button>
-    </div>
-    <button id="add-button">Capture</button>
-    <div id="capture-confirmation">Captured! You can let that one go.</div>
-    <div id="thought-count"></div>
-
-    <div id="today-item">
-        <div id="today-label">Your focus for today:</div>
-        <div id="today-text">Nothing yet - add something above</div>
-        <div id="skip-count"></div>
-        <div id="button-row">
-            <button id="done-button">Done</button>
-            <button id="skip-button">Later</button>
+    <!-- CAPTURE TAB -->
+    <div id="capture-tab" class="tab-content active">
+        <button id="big-mic-button">🎤</button>
+        <div id="mic-label">Tap to capture</div>
+        <div id="capture-confirmation"></div>
+        <div id="text-input-section">
+            <input type="text" id="thought-input" placeholder="or type here">
         </div>
     </div>
 
-    <div id="completed-section">
-        <div id="completed-header"></div>
-        <ul id="completed-list"></ul>
+    <!-- TASKS TAB -->
+    <div id="tasks-tab" class="tab-content">
+        <div id="today-item">
+            <div id="today-label">Your focus for today</div>
+            <div id="today-text">Nothing yet</div>
+            <div id="skip-count"></div>
+            <div id="thought-count"></div>
+            <div id="button-row">
+                <button id="done-button">Done</button>
+                <button id="skip-button">Later</button>
+            </div>
+        </div>
+
+        <div id="completed-section">
+            <div id="completed-header"></div>
+            <ul id="completed-list"></ul>
+        </div>
+    </div>
+
+    <!-- TAB BAR -->
+    <div id="tab-bar">
+        <button class="tab-button active" data-tab="capture-tab">
+            <span class="tab-icon">+</span>
+            <span>Capture</span>
+        </button>
+        <button class="tab-button" data-tab="tasks-tab">
+            <span class="tab-icon">☰</span>
+            <span>Tasks</span>
+        </button>
     </div>
 
     <script>
-        // This is where the "brain" of the app lives
+        // ===== TAB SWITCHING =====
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
 
-        // Dark mode setup
-        const themeToggle = document.getElementById('theme-toggle');
-        // Default to dark mode if no preference saved
-        const savedPref = localStorage.getItem('darkMode');
-        let darkMode = savedPref === null ? true : savedPref === 'true';
+        tabButtons.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
 
-        function applyTheme() {
-            if (darkMode) {
-                document.body.classList.add('dark-mode');
-                themeToggle.textContent = '☀️';
-            } else {
-                document.body.classList.remove('dark-mode');
-                themeToggle.textContent = '🌙';
-            }
-        }
+                // Update active states
+                tabButtons.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(t => t.classList.remove('active'));
 
-        themeToggle.addEventListener('click', function() {
-            darkMode = !darkMode;
-            localStorage.setItem('darkMode', darkMode);
-            applyTheme();
+                this.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
         });
 
-        // Apply theme immediately
-        applyTheme();
+        // ===== CONFIRMATION MESSAGES =====
+        const confirmationMessages = [
+            "Got it.",
+            "Noted.",
+            "Saved.",
+            "Done.",
+            "All yours.",
+            "On the list.",
+            "Won't forget."
+        ];
 
-        // Load saved thoughts from localStorage, or start with empty array
+        function getRandomConfirmation() {
+            const index = Math.floor(Math.random() * confirmationMessages.length);
+            return confirmationMessages[index];
+        }
+
+        // ===== DATA =====
         let thoughts = JSON.parse(localStorage.getItem('thoughts')) || [];
         let completed = JSON.parse(localStorage.getItem('completed')) || [];
 
@@ -306,11 +361,12 @@
             return item;
         });
 
-        // Find the elements on the page so we can interact with them
+        // ===== ELEMENTS =====
         const input = document.getElementById('thought-input');
-        const button = document.getElementById('add-button');
-        const todayText = document.getElementById('today-text');
+        const bigMicButton = document.getElementById('big-mic-button');
+        const micLabel = document.getElementById('mic-label');
         const confirmation = document.getElementById('capture-confirmation');
+        const todayText = document.getElementById('today-text');
         const countDisplay = document.getElementById('thought-count');
         const doneButton = document.getElementById('done-button');
         const skipButton = document.getElementById('skip-button');
@@ -318,17 +374,15 @@
         const completedHeader = document.getElementById('completed-header');
         const completedList = document.getElementById('completed-list');
 
-        // Function to save thoughts to localStorage
+        // ===== FUNCTIONS =====
         function saveThoughts() {
             localStorage.setItem('thoughts', JSON.stringify(thoughts));
         }
 
-        // Function to save completed items to localStorage
         function saveCompleted() {
             localStorage.setItem('completed', JSON.stringify(completed));
         }
 
-        // Function to update what's displayed on screen
         function updateDisplay() {
             // Update the focus item
             if (thoughts.length > 0) {
@@ -338,14 +392,13 @@
                 doneButton.disabled = false;
                 skipButton.disabled = false;
 
-                // Show skip count if item has been skipped before
                 if (current.skips > 0) {
                     skipCountDisplay.textContent = 'Skipped ' + current.skips + ' time' + (current.skips === 1 ? '' : 's');
                 } else {
                     skipCountDisplay.textContent = '';
                 }
             } else {
-                todayText.textContent = 'Nothing yet - add something above';
+                todayText.textContent = 'Nothing yet';
                 countDisplay.textContent = '';
                 skipCountDisplay.textContent = '';
                 doneButton.disabled = true;
@@ -356,7 +409,6 @@
             if (completed.length > 0) {
                 completedHeader.textContent = completed.length + ' completed';
                 completedList.innerHTML = '';
-                // Show most recent first, limit to 10
                 completed.slice(-10).reverse().forEach(function(item) {
                     const li = document.createElement('li');
                     li.textContent = item;
@@ -368,139 +420,117 @@
             }
         }
 
-        // Function to show brief confirmation message
-        function showConfirmation() {
-            confirmation.style.display = 'block';
+        function showConfirmation(message) {
+            confirmation.textContent = message || getRandomConfirmation();
+            confirmation.classList.add('visible');
             setTimeout(function() {
-                confirmation.style.display = 'none';
-            }, 2000); // Hide after 2 seconds
+                confirmation.classList.remove('visible');
+            }, 2000);
         }
 
-        // Function to capture a thought (reusable)
-        function captureThought() {
-            const thought = input.value;
+        function captureThought(text) {
+            const thought = text || input.value;
 
             if (thought.trim() !== '') {
-                // Store as object with text and skip count
                 thoughts.push({ text: thought, skips: 0 });
                 saveThoughts();
                 input.value = '';
                 updateDisplay();
                 showConfirmation();
-                console.log('All thoughts:', thoughts);
+                console.log('Captured:', thought);
             }
         }
 
-        // When the button is clicked
-        button.addEventListener('click', captureThought);
+        // ===== EVENT LISTENERS =====
 
-        // When Enter is pressed in the input field
+        // Text input - Enter key
         input.addEventListener('keydown', function(event) {
             if (event.key === 'Enter') {
                 captureThought();
             }
         });
 
-        // When the Done button is clicked
+        // Done button
         doneButton.addEventListener('click', function() {
             if (thoughts.length > 0) {
-                // Move the first thought to completed (store just the text)
                 const doneThought = thoughts.shift();
                 completed.push(doneThought.text);
-
-                // Save both lists
                 saveThoughts();
                 saveCompleted();
-
-                // Update the display
                 updateDisplay();
-
                 console.log('Completed:', doneThought.text);
             }
         });
 
-        // When the Skip/Later button is clicked
+        // Skip button
         skipButton.addEventListener('click', function() {
             if (thoughts.length > 1) {
-                // Remove from front, increment skips, add to back
                 const skippedThought = thoughts.shift();
                 skippedThought.skips += 1;
                 thoughts.push(skippedThought);
-
-                // Save and update
                 saveThoughts();
                 updateDisplay();
-
-                console.log('Skipped:', skippedThought.text, '- total skips:', skippedThought.skips);
+                console.log('Skipped:', skippedThought.text);
             } else if (thoughts.length === 1) {
-                // Can't skip if it's the only item - just increment skip count
                 thoughts[0].skips += 1;
                 saveThoughts();
                 updateDisplay();
-                console.log('Only one item - nowhere to skip to');
             }
         });
 
-        // Voice capture setup
-        const voiceButton = document.getElementById('voice-button');
+        // ===== VOICE CAPTURE =====
         let recognition = null;
         let isListening = false;
 
-        // Check if browser supports speech recognition
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            // Create speech recognition instance
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
 
-            // Settings
-            recognition.continuous = false;      // Stop after one phrase
-            recognition.interimResults = false;  // Only final results
-            recognition.lang = 'en-US';          // Language
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
 
-            // When speech is recognized
             recognition.onresult = function(event) {
                 const transcript = event.results[0][0].transcript;
-                input.value = transcript;
-                recognition.stop();  // Explicitly stop the microphone
-                captureThought();  // Auto-capture after voice input
+                recognition.stop();
+                captureThought(transcript);
             };
 
-            // When recognition ends
             recognition.onend = function() {
                 isListening = false;
-                voiceButton.classList.remove('listening');
-                voiceButton.textContent = 'Mic';
+                bigMicButton.classList.remove('listening');
+                bigMicButton.textContent = '🎤';
+                micLabel.textContent = 'Tap to capture';
             };
 
-            // Handle errors
             recognition.onerror = function(event) {
                 console.log('Speech recognition error:', event.error);
                 isListening = false;
-                voiceButton.classList.remove('listening');
-                voiceButton.textContent = 'Mic';
+                bigMicButton.classList.remove('listening');
+                bigMicButton.textContent = '🎤';
+                micLabel.textContent = 'Tap to capture';
             };
 
-            // Toggle listening when button clicked
-            voiceButton.addEventListener('click', function() {
+            bigMicButton.addEventListener('click', function() {
                 if (isListening) {
                     recognition.stop();
                 } else {
                     recognition.start();
                     isListening = true;
-                    voiceButton.classList.add('listening');
-                    voiceButton.textContent = '...';
+                    bigMicButton.classList.add('listening');
+                    bigMicButton.textContent = '...';
+                    micLabel.textContent = 'Listening...';
                 }
             });
         } else {
-            // Browser doesn't support speech recognition
-            voiceButton.disabled = true;
-            voiceButton.title = 'Voice not supported in this browser';
+            bigMicButton.disabled = true;
+            micLabel.textContent = 'Voice not supported';
         }
 
-        // When the page loads, show any saved thoughts
+        // ===== INIT =====
         updateDisplay();
 
-        // Register the service worker for PWA functionality
+        // Register service worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('service-worker.js')
                 .then(function(registration) {
