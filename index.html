@@ -14,17 +14,55 @@
     <meta name="apple-mobile-web-app-title" content="Overwhelm">
     <link rel="apple-touch-icon" href="icon-192.png">
     <style>
+        :root {
+            --bg-color: #f5f5f5;
+            --card-bg: white;
+            --text-color: #333;
+            --text-muted: #888;
+            --text-light: #666;
+            --border-color: #ccc;
+            --input-bg: white;
+            --shadow: rgba(0,0,0,0.1);
+        }
+
+        .dark-mode {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --text-muted: #aaa;
+            --text-light: #bbb;
+            --border-color: #333;
+            --input-bg: #0f0f23;
+            --shadow: rgba(0,0,0,0.3);
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             max-width: 400px;
             margin: 50px auto;
             padding: 20px;
-            background-color: #f5f5f5;
+            background-color: var(--bg-color);
+            transition: background-color 0.3s;
+        }
+
+        #header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         h1 {
-            color: #333;
+            color: var(--text-color);
             font-size: 24px;
+            margin: 0;
+        }
+
+        #theme-toggle {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
         }
 
         #input-row {
@@ -36,9 +74,11 @@
             flex: 1;
             padding: 12px;
             font-size: 16px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             box-sizing: border-box;
+            background-color: var(--input-bg);
+            color: var(--text-color);
         }
 
         #voice-button {
@@ -85,20 +125,20 @@
         #today-item {
             margin-top: 30px;
             padding: 20px;
-            background-color: white;
+            background-color: var(--card-bg);
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px var(--shadow);
         }
 
         #today-label {
             font-size: 14px;
-            color: #888;
+            color: var(--text-muted);
             margin-bottom: 8px;
         }
 
         #today-text {
             font-size: 18px;
-            color: #333;
+            color: var(--text-color);
         }
 
         #capture-confirmation {
@@ -114,7 +154,7 @@
         #thought-count {
             margin-top: 15px;
             font-size: 14px;
-            color: #888;
+            color: var(--text-muted);
         }
 
         #button-row {
@@ -165,7 +205,7 @@
 
         #skip-count {
             font-size: 12px;
-            color: #999;
+            color: var(--text-muted);
             margin-top: 5px;
         }
 
@@ -175,7 +215,7 @@
 
         #completed-header {
             font-size: 14px;
-            color: #888;
+            color: var(--text-muted);
             margin-bottom: 10px;
             cursor: pointer;
         }
@@ -188,17 +228,20 @@
 
         #completed-list li {
             padding: 10px 12px;
-            background-color: white;
+            background-color: var(--card-bg);
             border-radius: 6px;
             margin-bottom: 6px;
-            color: #666;
+            color: var(--text-light);
             font-size: 14px;
             border-left: 3px solid #5cb85c;
         }
     </style>
 </head>
 <body>
-    <h1>Daily Overwhelm</h1>
+    <div id="header-row">
+        <h1>Daily Overwhelm</h1>
+        <button id="theme-toggle" title="Toggle dark mode"></button>
+    </div>
 
     <div id="input-row">
         <input type="text" id="thought-input" placeholder="What's on your mind?">
@@ -225,6 +268,29 @@
 
     <script>
         // This is where the "brain" of the app lives
+
+        // Dark mode setup
+        const themeToggle = document.getElementById('theme-toggle');
+        let darkMode = localStorage.getItem('darkMode') === 'true';
+
+        function applyTheme() {
+            if (darkMode) {
+                document.body.classList.add('dark-mode');
+                themeToggle.textContent = '☀️';
+            } else {
+                document.body.classList.remove('dark-mode');
+                themeToggle.textContent = '🌙';
+            }
+        }
+
+        themeToggle.addEventListener('click', function() {
+            darkMode = !darkMode;
+            localStorage.setItem('darkMode', darkMode);
+            applyTheme();
+        });
+
+        // Apply theme immediately
+        applyTheme();
 
         // Load saved thoughts from localStorage, or start with empty array
         let thoughts = JSON.parse(localStorage.getItem('thoughts')) || [];
