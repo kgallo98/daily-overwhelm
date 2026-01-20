@@ -263,6 +263,110 @@
             cursor: not-allowed;
         }
 
+        #secondary-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .secondary-btn {
+            flex: 1;
+            padding: 10px;
+            font-size: 14px;
+            background-color: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .secondary-btn:hover {
+            background-color: var(--border-color);
+        }
+
+        .secondary-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        #remove-btn {
+            color: #e74c3c;
+            border-color: #e74c3c40;
+        }
+
+        #remove-btn:hover {
+            background-color: #e74c3c20;
+        }
+
+        /* Edit modal */
+        #edit-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.8);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        #edit-modal.visible {
+            display: flex;
+        }
+
+        #edit-modal-content {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        #edit-modal-title {
+            font-size: 16px;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+        }
+
+        #edit-input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            margin-bottom: 15px;
+        }
+
+        #edit-modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        #edit-modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        #edit-cancel {
+            background-color: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+        }
+
+        #edit-save {
+            background-color: var(--accent);
+            color: white;
+        }
+
         #completed-section {
             margin-top: 30px;
         }
@@ -338,19 +442,35 @@
     <!-- TASKS TAB -->
     <div id="tasks-tab" class="tab-content">
         <div id="today-item">
-            <div id="today-label">Your focus for today</div>
-            <div id="today-text">Nothing yet</div>
+            <div id="today-label">your focus for today</div>
+            <div id="today-text">nothing yet</div>
             <div id="skip-count"></div>
             <div id="thought-count"></div>
             <div id="button-row">
-                <button id="done-button">Done</button>
-                <button id="skip-button">Later</button>
+                <button id="done-button">done</button>
+                <button id="skip-button">later</button>
+            </div>
+            <div id="secondary-actions">
+                <button id="edit-btn" class="secondary-btn">edit</button>
+                <button id="remove-btn" class="secondary-btn">remove</button>
             </div>
         </div>
 
         <div id="completed-section">
             <div id="completed-header"></div>
             <ul id="completed-list"></ul>
+        </div>
+    </div>
+
+    <!-- EDIT MODAL -->
+    <div id="edit-modal">
+        <div id="edit-modal-content">
+            <div id="edit-modal-title">edit thought</div>
+            <input type="text" id="edit-input" placeholder="update your thought">
+            <div id="edit-modal-buttons">
+                <button id="edit-cancel">cancel</button>
+                <button id="edit-save">save</button>
+            </div>
         </div>
     </div>
 
@@ -424,6 +544,12 @@
         const skipCountDisplay = document.getElementById('skip-count');
         const completedHeader = document.getElementById('completed-header');
         const completedList = document.getElementById('completed-list');
+        const editBtn = document.getElementById('edit-btn');
+        const removeBtn = document.getElementById('remove-btn');
+        const editModal = document.getElementById('edit-modal');
+        const editInput = document.getElementById('edit-input');
+        const editCancel = document.getElementById('edit-cancel');
+        const editSave = document.getElementById('edit-save');
 
         // ===== FUNCTIONS =====
         function saveThoughts() {
@@ -442,18 +568,22 @@
                 countDisplay.textContent = thoughts.length + ' thought' + (thoughts.length === 1 ? '' : 's') + ' captured';
                 doneButton.disabled = false;
                 skipButton.disabled = false;
+                editBtn.disabled = false;
+                removeBtn.disabled = false;
 
                 if (current.skips > 0) {
-                    skipCountDisplay.textContent = 'Skipped ' + current.skips + ' time' + (current.skips === 1 ? '' : 's');
+                    skipCountDisplay.textContent = 'skipped ' + current.skips + ' time' + (current.skips === 1 ? '' : 's');
                 } else {
                     skipCountDisplay.textContent = '';
                 }
             } else {
-                todayText.textContent = 'Nothing yet';
+                todayText.textContent = 'nothing yet';
                 countDisplay.textContent = '';
                 skipCountDisplay.textContent = '';
                 doneButton.disabled = true;
                 skipButton.disabled = true;
+                editBtn.disabled = true;
+                removeBtn.disabled = true;
             }
 
             // Update the completed list
@@ -479,6 +609,19 @@
             }, 2000);
         }
 
+        // Haptic feedback
+        function haptic(style) {
+            if ('vibrate' in navigator) {
+                if (style === 'light') {
+                    navigator.vibrate(10);
+                } else if (style === 'medium') {
+                    navigator.vibrate(20);
+                } else {
+                    navigator.vibrate(30);
+                }
+            }
+        }
+
         function captureThought(text) {
             const thought = text || input.value;
 
@@ -488,6 +631,7 @@
                 input.value = '';
                 updateDisplay();
                 showConfirmation();
+                haptic('medium');
                 console.log('Captured:', thought);
             }
         }
@@ -509,6 +653,7 @@
                 saveThoughts();
                 saveCompleted();
                 updateDisplay();
+                haptic('medium');
                 console.log('Completed:', doneThought.text);
             }
         });
@@ -521,11 +666,66 @@
                 thoughts.push(skippedThought);
                 saveThoughts();
                 updateDisplay();
+                haptic('light');
                 console.log('Skipped:', skippedThought.text);
             } else if (thoughts.length === 1) {
                 thoughts[0].skips += 1;
                 saveThoughts();
                 updateDisplay();
+                haptic('light');
+            }
+        });
+
+        // Edit button - open modal
+        editBtn.addEventListener('click', function() {
+            if (thoughts.length > 0) {
+                editInput.value = thoughts[0].text;
+                editModal.classList.add('visible');
+                editInput.focus();
+            }
+        });
+
+        // Edit cancel
+        editCancel.addEventListener('click', function() {
+            editModal.classList.remove('visible');
+        });
+
+        // Edit save
+        editSave.addEventListener('click', function() {
+            if (thoughts.length > 0 && editInput.value.trim() !== '') {
+                thoughts[0].text = editInput.value.trim();
+                saveThoughts();
+                updateDisplay();
+                editModal.classList.remove('visible');
+                haptic('light');
+                console.log('Edited thought');
+            }
+        });
+
+        // Edit modal - Enter to save
+        editInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                editSave.click();
+            } else if (event.key === 'Escape') {
+                editCancel.click();
+            }
+        });
+
+        // Click outside modal to close
+        editModal.addEventListener('click', function(event) {
+            if (event.target === editModal) {
+                editModal.classList.remove('visible');
+            }
+        });
+
+        // Remove button
+        removeBtn.addEventListener('click', function() {
+            if (thoughts.length > 0) {
+                const removed = thoughts.shift();
+                saveThoughts();
+                updateDisplay();
+                haptic('medium');
+                console.log('Removed:', removed.text);
             }
         });
 
