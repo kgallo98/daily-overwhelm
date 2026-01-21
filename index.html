@@ -520,7 +520,7 @@
         .focus-card {
             position: relative;
             height: 100%;
-            background: linear-gradient(180deg, var(--card-bg) 0%, rgba(10,15,30,0.95) 100%);
+            background-color: var(--card-bg);
             border-radius: 16px;
             padding: 20px 24px;
             padding-left: 22px;
@@ -530,6 +530,26 @@
             transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             border-left: 3px solid var(--accent);
+            overflow: hidden;
+        }
+
+        .focus-card-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 0%;
+            transition: height 0.05s ease-out;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .focus-card-fill.done {
+            background: linear-gradient(to top, var(--done-color), #4caf50);
+        }
+
+        .focus-card-fill.later {
+            background: linear-gradient(to top, var(--later-color), #e09530);
         }
 
         .focus-card:active {
@@ -547,6 +567,8 @@
             line-height: 1.45;
             flex: 1;
             font-weight: 450;
+            position: relative;
+            z-index: 1;
         }
 
         /* ===== TODAY TAB ===== */
@@ -1457,6 +1479,7 @@
                     <div class="swipe-bg swipe-bg-left">later</div>
                     <div class="swipe-bg swipe-bg-right">done</div>
                     <div class="focus-card">
+                        <div class="focus-card-fill"></div>
                         <div class="focus-card-text">${item.text}</div>
                     </div>
                 `;
@@ -1469,6 +1492,7 @@
             const card = wrapper.querySelector('.focus-card');
             const bgLeft = wrapper.querySelector('.swipe-bg-left');
             const bgRight = wrapper.querySelector('.swipe-bg-right');
+            const fill = wrapper.querySelector('.focus-card-fill');
             let startX = 0, currentX = 0, swiping = false;
 
             card.addEventListener('touchstart', e => {
@@ -1484,17 +1508,24 @@
                 const diff = currentX - startX;
                 card.style.transform = `translateX(${diff}px)`;
 
-                // Show colored background - opacity scales linearly to 100% at threshold
+                // Fill rises from bottom based on swipe progress
                 const threshold = 80;
+                const fillPercent = Math.min(100, (Math.abs(diff) / threshold) * 100);
+
                 if (diff > 0) {
-                    const opacity = Math.min(1, diff / threshold);
-                    bgRight.style.opacity = opacity;
+                    // Swiping right - done (green)
+                    fill.className = 'focus-card-fill done';
+                    fill.style.height = fillPercent + '%';
+                    bgRight.style.opacity = Math.min(1, diff / threshold);
                     bgLeft.style.opacity = 0;
                 } else if (diff < 0) {
-                    const opacity = Math.min(1, -diff / threshold);
-                    bgLeft.style.opacity = opacity;
+                    // Swiping left - later (yellow/orange)
+                    fill.className = 'focus-card-fill later';
+                    fill.style.height = fillPercent + '%';
+                    bgLeft.style.opacity = Math.min(1, -diff / threshold);
                     bgRight.style.opacity = 0;
                 } else {
+                    fill.style.height = '0%';
                     bgLeft.style.opacity = 0;
                     bgRight.style.opacity = 0;
                 }
@@ -1546,6 +1577,7 @@
                 } else {
                     // Snap back
                     card.style.transform = '';
+                    fill.style.height = '0%';
                     bgLeft.style.opacity = 0;
                     bgRight.style.opacity = 0;
                 }
