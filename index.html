@@ -783,6 +783,9 @@
             saveAll();
         }
 
+        // Track focus overlay state (used by tab swiping)
+        let focusVisible = false;
+
         // ===== SETTINGS =====
         const settingsToggle = document.getElementById('settings-toggle');
         const settingsPanel = document.getElementById('settings-panel');
@@ -805,18 +808,72 @@
         // ===== TAB SWITCHING =====
         const tabButtons = document.querySelectorAll('.tab-button');
         const tabContents = document.querySelectorAll('.tab-content');
+        const tabIds = ['capture-tab', 'today-tab', 'all-tab'];
+        let currentTabIndex = 0;
 
-        tabButtons.forEach(btn => {
+        function switchToTab(index) {
+            if (index < 0 || index >= tabIds.length) return;
+            currentTabIndex = index;
+            const tabId = tabIds[index];
+
+            tabButtons.forEach(b => b.classList.remove('active'));
+            tabContents.forEach(t => t.classList.remove('active'));
+            tabButtons[index].classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+
+            if (tabId === 'today-tab') renderTodayTab();
+            if (tabId === 'all-tab') renderAllTab();
+        }
+
+        tabButtons.forEach((btn, index) => {
             btn.addEventListener('click', function() {
-                const tabId = this.getAttribute('data-tab');
-                tabButtons.forEach(b => b.classList.remove('active'));
-                tabContents.forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                document.getElementById(tabId).classList.add('active');
-
-                if (tabId === 'today-tab') renderTodayTab();
-                if (tabId === 'all-tab') renderAllTab();
+                switchToTab(index);
             });
+        });
+
+        // Swipe between tabs
+        let tabSwipeStartX = 0;
+        let tabSwipeStartY = 0;
+        let tabSwiping = false;
+
+        document.body.addEventListener('touchstart', e => {
+            // Don't start tab swipe if focus overlay is open
+            if (focusVisible) return;
+            tabSwipeStartX = e.touches[0].clientX;
+            tabSwipeStartY = e.touches[0].clientY;
+            tabSwiping = true;
+        }, { passive: true });
+
+        document.body.addEventListener('touchmove', e => {
+            if (!tabSwiping) return;
+            // If vertical movement is greater, cancel tab swipe (let other gestures handle it)
+            const diffX = e.touches[0].clientX - tabSwipeStartX;
+            const diffY = e.touches[0].clientY - tabSwipeStartY;
+            if (Math.abs(diffY) > Math.abs(diffX) + 10) {
+                tabSwiping = false;
+            }
+        }, { passive: true });
+
+        document.body.addEventListener('touchend', e => {
+            if (!tabSwiping) return;
+            tabSwiping = false;
+
+            // Don't switch tabs if focus overlay is open
+            if (focusVisible) return;
+
+            const diffX = e.changedTouches[0].clientX - tabSwipeStartX;
+            const diffY = e.changedTouches[0].clientY - tabSwipeStartY;
+
+            // Only trigger if horizontal swipe is dominant and far enough
+            if (Math.abs(diffX) > 80 && Math.abs(diffX) > Math.abs(diffY) * 2) {
+                if (diffX < 0) {
+                    // Swipe left - next tab
+                    switchToTab(currentTabIndex + 1);
+                } else {
+                    // Swipe right - previous tab
+                    switchToTab(currentTabIndex - 1);
+                }
+            }
         });
 
         // ===== BEDTIME MODE =====
@@ -946,7 +1003,6 @@
         const focusHandle = document.getElementById('focus-handle');
         const focusContainer = document.getElementById('focus-cards-container');
         const captureTab = document.getElementById('capture-tab');
-        let focusVisible = false;
         let currentCardIndex = 0;
 
         function openFocusOverlay() {
