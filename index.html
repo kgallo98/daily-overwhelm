@@ -614,19 +614,6 @@
             z-index: 10;
         }
 
-        .backlog-drag-handle {
-            padding: 10px;
-            margin-right: 5px;
-            margin-left: -5px;
-            color: var(--text-muted);
-            cursor: grab;
-            touch-action: none;
-        }
-
-        .backlog-drag-handle:active {
-            cursor: grabbing;
-        }
-
         .backlog-item-text {
             font-size: 16px;
             color: var(--text-color);
@@ -1439,90 +1426,29 @@
                 wrapper.innerHTML = `
                     <div class="backlog-swipe-bg backlog-swipe-delete">delete</div>
                     <div class="backlog-item">
-                        <div class="backlog-drag-handle">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="3" y1="6" x2="21" y2="6"></line>
-                                <line x1="3" y1="12" x2="21" y2="12"></line>
-                                <line x1="3" y1="18" x2="21" y2="18"></line>
-                            </svg>
-                        </div>
                         <div class="backlog-item-text">${item.text}</div>
                         ${item.skips > 0 ? `<div class="backlog-item-meta">skipped ${item.skips}x</div>` : ''}
                     </div>
                 `;
-                setupBacklogSwipe(wrapper, item);
-                setupBacklogDrag(wrapper, item, index, backlog);
+                setupBacklogInteraction(wrapper, item, index, backlog);
                 backlogList.appendChild(wrapper);
             });
         }
 
-        function setupBacklogSwipe(wrapper, item) {
+        function setupBacklogInteraction(wrapper, item, originalIndex, backlog) {
             const itemEl = wrapper.querySelector('.backlog-item');
             const deleteBg = wrapper.querySelector('.backlog-swipe-delete');
-            let startX = 0, currentX = 0, swiping = false;
 
-            itemEl.addEventListener('touchstart', e => {
-                // Don't start swipe if on drag handle
-                if (e.target.closest('.backlog-drag-handle')) return;
-                startX = e.touches[0].clientX;
-                currentX = startX;
-                swiping = true;
-                itemEl.classList.add('swiping');
-            }, { passive: true });
-
-            itemEl.addEventListener('touchmove', e => {
-                if (!swiping) return;
-                currentX = e.touches[0].clientX;
-                const diff = currentX - startX;
-                // Only allow left swipe (negative)
-                if (diff < 0) {
-                    itemEl.style.transform = `translateX(${diff}px)`;
-                    const opacity = Math.min(1, (-diff - 30) / 50);
-                    deleteBg.style.opacity = Math.max(0, opacity);
-                }
-            }, { passive: true });
-
-            itemEl.addEventListener('touchend', e => {
-                if (!swiping) return;
-                swiping = false;
-                itemEl.classList.remove('swiping');
-
-                const diff = currentX - startX;
-
-                if (diff < -100) {
-                    // Delete
-                    itemEl.style.transform = 'translateX(-100vw)';
-                    haptic('medium');
-                    setTimeout(() => {
-                        wrapper.classList.add('removing');
-                        setTimeout(() => {
-                            thoughts = thoughts.filter(t => t.text !== item.text);
-                            // Also remove from todayFocus if present
-                            todayFocus = todayFocus.filter(t => t.text !== item.text);
-                            saveAll();
-                            renderAllTab();
-                            renderFocusCards();
-                        }, 300);
-                    }, 150);
-                } else {
-                    // Snap back
-                    itemEl.style.transform = '';
-                    deleteBg.style.opacity = 0;
-                }
-            });
-        }
-
-        function setupBacklogDrag(wrapper, item, originalIndex, backlog) {
-            const handle = wrapper.querySelector('.backlog-drag-handle');
-            let startY = 0, currentY = 0, dragging = false;
+            let startX = 0, startY = 0, currentX = 0, currentY = 0;
+            let swiping = false, dragging = false;
+            let longPressTimer = null;
             let wrapperRect = null;
             let allWrappers = [];
+            const LONG_PRESS_DURATION = 400;
 
-            handle.addEventListener('touchstart', e => {
-                e.preventDefault();
-                startY = e.touches[0].clientY;
-                currentY = startY;
+            function startDragMode(e) {
                 dragging = true;
+                swiping = false;
                 draggedItem = item;
                 draggedIndex = originalIndex;
 
@@ -1546,82 +1472,164 @@
                 wrapper.parentNode.insertBefore(placeholder, wrapper);
                 document.body.appendChild(wrapper);
 
-                haptic('light');
-            });
+                haptic('medium');
+            }
 
-            handle.addEventListener('touchmove', e => {
-                if (!dragging) return;
+            itemEl.addEventListener('touchstart', e => {
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                currentX = startX;
+                currentY = startY;
+                swiping = true;
+                itemEl.classList.add('swiping');
+
+                // Start long press timer
+                longPressTimer = setTimeout(() => {
+                    if (swiping && Math.abs(currentX - startX) < 10 && Math.abs(currentY - startY) < 10) {
+                        startDragMode(e);
+                    }
+                }, LONG_PRESS_DURATION);
+            }, { passive: true });
+
+            itemEl.addEventListener('touchmove', e => {
+                currentX = e.touches[0].clientX;
                 currentY = e.touches[0].clientY;
-                const diff = currentY - startY;
-                wrapper.style.top = (wrapperRect.top + diff) + 'px';
 
-                // Find where to insert placeholder
-                const wrapperCenterY = wrapperRect.top + diff + wrapperRect.height / 2;
-                let insertBefore = null;
+                // If moved too much, cancel long press
+                if (longPressTimer && (Math.abs(currentX - startX) > 10 || Math.abs(currentY - startY) > 10)) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
 
-                allWrappers.forEach(w => {
-                    if (w === wrapper) return;
-                    const rect = w.getBoundingClientRect();
-                    if (wrapperCenterY < rect.top + rect.height / 2) {
-                        if (!insertBefore || rect.top < insertBefore.getBoundingClientRect().top) {
-                            insertBefore = w;
+                if (dragging) {
+                    // Drag mode - move vertically
+                    const diff = currentY - startY;
+                    wrapper.style.top = (wrapperRect.top + diff) + 'px';
+
+                    // Find where to insert placeholder
+                    const wrapperCenterY = wrapperRect.top + diff + wrapperRect.height / 2;
+                    let insertBefore = null;
+
+                    allWrappers.forEach(w => {
+                        if (w === wrapper) return;
+                        const rect = w.getBoundingClientRect();
+                        if (wrapperCenterY < rect.top + rect.height / 2) {
+                            if (!insertBefore || rect.top < insertBefore.getBoundingClientRect().top) {
+                                insertBefore = w;
+                            }
                         }
-                    }
-                });
+                    });
 
-                // Move placeholder
-                if (insertBefore) {
-                    backlogList.insertBefore(placeholder, insertBefore);
-                } else {
-                    backlogList.appendChild(placeholder);
+                    // Move placeholder
+                    if (insertBefore) {
+                        backlogList.insertBefore(placeholder, insertBefore);
+                    } else {
+                        backlogList.appendChild(placeholder);
+                    }
+                } else if (swiping) {
+                    // Swipe mode - move horizontally (left only)
+                    const diffX = currentX - startX;
+                    if (diffX < 0) {
+                        itemEl.style.transform = `translateX(${diffX}px)`;
+                        const opacity = Math.min(1, (-diffX - 30) / 50);
+                        deleteBg.style.opacity = Math.max(0, opacity);
+                    }
+                }
+            }, { passive: true });
+
+            itemEl.addEventListener('touchend', e => {
+                // Clear long press timer
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+
+                if (dragging) {
+                    // End drag mode
+                    dragging = false;
+
+                    // Get new position based on placeholder
+                    const newIndex = Array.from(backlogList.children).indexOf(placeholder);
+
+                    // Reset wrapper styling
+                    wrapper.classList.remove('dragging');
+                    wrapper.style.position = '';
+                    wrapper.style.left = '';
+                    wrapper.style.top = '';
+                    wrapper.style.width = '';
+                    wrapper.style.zIndex = '';
+
+                    // Insert at new position
+                    if (placeholder && placeholder.parentNode) {
+                        placeholder.parentNode.insertBefore(wrapper, placeholder);
+                        placeholder.remove();
+                    }
+                    placeholder = null;
+
+                    // Update thoughts array
+                    if (newIndex !== -1 && newIndex !== originalIndex) {
+                        const focusTexts = todayFocus.map(t => t.text);
+                        const backlogItems = thoughts.filter(t => !focusTexts.includes(t.text));
+                        const movedItem = backlogItems[originalIndex];
+
+                        // Remove from original position in thoughts
+                        const thoughtsIndex = thoughts.findIndex(t => t.text === movedItem.text);
+                        if (thoughtsIndex > -1) {
+                            thoughts.splice(thoughtsIndex, 1);
+                        }
+
+                        // Find insert position in thoughts (after focus items)
+                        const focusCount = thoughts.filter(t => focusTexts.includes(t.text)).length;
+                        const insertAt = focusCount + newIndex;
+                        thoughts.splice(insertAt, 0, movedItem);
+
+                        saveAll();
+                        haptic('light');
+                    }
+
+                    draggedItem = null;
+                    draggedIndex = -1;
+                } else if (swiping) {
+                    // End swipe mode
+                    swiping = false;
+                    itemEl.classList.remove('swiping');
+
+                    const diffX = currentX - startX;
+
+                    if (diffX < -100) {
+                        // Delete
+                        itemEl.style.transform = 'translateX(-100vw)';
+                        haptic('medium');
+                        setTimeout(() => {
+                            wrapper.classList.add('removing');
+                            setTimeout(() => {
+                                thoughts = thoughts.filter(t => t.text !== item.text);
+                                todayFocus = todayFocus.filter(t => t.text !== item.text);
+                                saveAll();
+                                renderAllTab();
+                                renderFocusCards();
+                            }, 300);
+                        }, 150);
+                    } else {
+                        // Snap back
+                        itemEl.style.transform = '';
+                        deleteBg.style.opacity = 0;
+                    }
                 }
             });
 
-            handle.addEventListener('touchend', e => {
-                if (!dragging) return;
+            // Handle touch cancel
+            itemEl.addEventListener('touchcancel', () => {
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+                swiping = false;
                 dragging = false;
-
-                // Get new position based on placeholder
-                const newIndex = Array.from(backlogList.children).indexOf(placeholder);
-
-                // Reset wrapper styling
+                itemEl.classList.remove('swiping');
                 wrapper.classList.remove('dragging');
-                wrapper.style.position = '';
-                wrapper.style.left = '';
-                wrapper.style.top = '';
-                wrapper.style.width = '';
-                wrapper.style.zIndex = '';
-
-                // Insert at new position
-                if (placeholder && placeholder.parentNode) {
-                    placeholder.parentNode.insertBefore(wrapper, placeholder);
-                    placeholder.remove();
-                }
-                placeholder = null;
-
-                // Update thoughts array
-                if (newIndex !== -1 && newIndex !== originalIndex) {
-                    const focusTexts = todayFocus.map(t => t.text);
-                    const backlogItems = thoughts.filter(t => !focusTexts.includes(t.text));
-                    const movedItem = backlogItems[originalIndex];
-
-                    // Remove from original position in thoughts
-                    const thoughtsIndex = thoughts.findIndex(t => t.text === movedItem.text);
-                    if (thoughtsIndex > -1) {
-                        thoughts.splice(thoughtsIndex, 1);
-                    }
-
-                    // Find insert position in thoughts (after focus items)
-                    const focusCount = thoughts.filter(t => focusTexts.includes(t.text)).length;
-                    const insertAt = focusCount + newIndex;
-                    thoughts.splice(insertAt, 0, movedItem);
-
-                    saveAll();
-                    haptic('light');
-                }
-
-                draggedItem = null;
-                draggedIndex = -1;
+                itemEl.style.transform = '';
+                deleteBg.style.opacity = 0;
             });
         }
 
