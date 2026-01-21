@@ -1186,8 +1186,8 @@
 
         // ===== CONFIRMATION MESSAGES =====
         const confirmationMessages = ["Got it.", "Noted.", "Saved.", "Done.", "All yours.", "On the list.", "Won't forget."];
-        const bedtimeMessages = ["Captured.", "It's safe.", "Letting go.", "Held for you.", "Set aside.", "Tomorrow's ready.", "Tucked away."];
-        const worryMessages = ["It's safe here.", "Heard.", "Letting that go.", "You can release that.", "Held, not carried."];
+        const bedtimeMessages = ["Captured.", "Got it.", "Noted.", "Set aside.", "For tomorrow."];
+        const worryMessages = ["Heard.", "Got it.", "Noted.", "Okay.", "Captured."];
 
         function getRandomConfirmation(type = 'normal') {
             if (type === 'worry') {
@@ -1362,8 +1362,8 @@
             if (thoughts.length === 0) {
                 focusContainer.innerHTML = `
                     <div id="focus-message">
-                        <div id="focus-message-title">your mind is clear</div>
-                        <div id="focus-message-subtitle">swipe down to capture a thought</div>
+                        <div id="focus-message-title">nothing here yet</div>
+                        <div id="focus-message-subtitle">swipe down to add something</div>
                     </div>`;
                 return;
             }
@@ -1372,8 +1372,8 @@
                 const allDone = todayFocus.length > 0 && completedToday.length === todayFocus.length;
                 focusContainer.innerHTML = `
                     <div id="focus-message">
-                        <div id="focus-message-title">${allDone ? 'a good day' : 'all set'}</div>
-                        <div id="focus-message-subtitle">${allDone ? 'you moved through everything' : 'rest easy'}</div>
+                        <div id="focus-message-title">${allDone ? 'all done' : 'all set'}</div>
+                        <div id="focus-message-subtitle">${allDone ? "that's everything" : 'see you tomorrow'}</div>
                     </div>`;
                 return;
             }
@@ -1604,7 +1604,7 @@
 
             // Completed
             completedTodayList.innerHTML = completedToday.length === 0
-                ? '<li class="empty-section">fresh start</li>'
+                ? '<li class="empty-section">—</li>'
                 : completedToday.map(item => `<li class="task-item completed">${item.text}</li>`).join('');
         }
 
