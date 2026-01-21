@@ -709,6 +709,36 @@
                 </select>
             </div>
         </div>
+
+        <div class="settings-section">
+            <div class="settings-section-title">Bedtime Mode</div>
+
+            <div class="settings-item">
+                <div>
+                    <div class="settings-item-label">Starts at</div>
+                    <div class="settings-item-desc">When bedtime mode activates</div>
+                </div>
+                <select id="setting-bedtime-start" style="padding: 8px 12px; font-size: 16px; background: var(--input-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 8px;">
+                    <option value="20">8 pm</option>
+                    <option value="21" selected>9 pm</option>
+                    <option value="22">10 pm</option>
+                    <option value="23">11 pm</option>
+                </select>
+            </div>
+
+            <div class="settings-item">
+                <div>
+                    <div class="settings-item-label">Ends at</div>
+                    <div class="settings-item-desc">When bedtime mode turns off</div>
+                </div>
+                <select id="setting-bedtime-end" style="padding: 8px 12px; font-size: 16px; background: var(--input-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 8px;">
+                    <option value="5">5 am</option>
+                    <option value="6" selected>6 am</option>
+                    <option value="7">7 am</option>
+                    <option value="8">8 am</option>
+                </select>
+            </div>
+        </div>
     </div>
 
     <!-- CAPTURE TAB -->
@@ -927,11 +957,31 @@
         const bedtimeToggle = document.getElementById('bedtime-toggle');
         const iconMoon = bedtimeToggle.querySelector('.icon-moon');
         const iconSun = bedtimeToggle.querySelector('.icon-sun');
+        const settingBedtimeStart = document.getElementById('setting-bedtime-start');
+        const settingBedtimeEnd = document.getElementById('setting-bedtime-end');
         let isBedtimeMode = false;
+
+        // Load saved bedtime hours
+        const savedBedtimeStart = localStorage.getItem('bedtimeStart') || '21';
+        const savedBedtimeEnd = localStorage.getItem('bedtimeEnd') || '6';
+        settingBedtimeStart.value = savedBedtimeStart;
+        settingBedtimeEnd.value = savedBedtimeEnd;
+
+        settingBedtimeStart.addEventListener('change', function() {
+            localStorage.setItem('bedtimeStart', this.value);
+            localStorage.removeItem('bedtimeManualOverride');
+        });
+
+        settingBedtimeEnd.addEventListener('change', function() {
+            localStorage.setItem('bedtimeEnd', this.value);
+            localStorage.removeItem('bedtimeManualOverride');
+        });
 
         function checkBedtimeTime() {
             const hour = new Date().getHours();
-            return hour >= 21 || hour < 6;
+            const start = parseInt(localStorage.getItem('bedtimeStart') || '21');
+            const end = parseInt(localStorage.getItem('bedtimeEnd') || '6');
+            return hour >= start || hour < end;
         }
 
         function updateBedtimeIcon(enabled) {
