@@ -539,17 +539,16 @@
             left: 0;
             right: 0;
             height: 0%;
-            transition: height 0.05s ease-out;
             pointer-events: none;
             z-index: 0;
         }
 
         .focus-card-fill.done {
-            background: linear-gradient(to top, var(--done-color), #4caf50);
+            background: linear-gradient(to top, var(--done-color) 0%, rgba(76, 175, 80, 0.6) 60%, rgba(76, 175, 80, 0) 100%);
         }
 
         .focus-card-fill.later {
-            background: linear-gradient(to top, var(--later-color), #e09530);
+            background: linear-gradient(to top, var(--later-color) 0%, rgba(240, 173, 78, 0.6) 60%, rgba(240, 173, 78, 0) 100%);
         }
 
         .focus-card:active {
