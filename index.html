@@ -314,17 +314,34 @@
 
         #capture-confirmation {
             margin-top: 30px;
-            padding: 15px 25px;
+            padding: 12px 24px;
             background-color: var(--card-bg);
             color: var(--text-color);
-            border-radius: 12px;
-            font-size: 16px;
+            border-radius: 20px;
+            font-size: 15px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
             opacity: 0;
-            transition: opacity 0.3s;
+            transform: scale(0.9) translateY(10px);
+            transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
         #capture-confirmation.visible {
             opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+
+        /* Capture success flash on button */
+        #big-mic-button.captured {
+            animation: capture-flash 0.4s ease-out;
+        }
+
+        @keyframes capture-flash {
+            0% { transform: scale(1); }
+            30% { transform: scale(0.95); }
+            60% { transform: scale(1.02); }
+            100% { transform: scale(1); }
         }
 
         #text-input-section {
@@ -360,7 +377,23 @@
             text-align: center;
             font-size: 12px;
             color: var(--text-muted);
+            opacity: 0.6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        #capture-swipe-hint .hint-chevron {
+            width: 20px;
+            height: 20px;
             opacity: 0.5;
+            animation: hint-bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes hint-bounce {
+            0%, 100% { transform: translateY(0); opacity: 0.5; }
+            50% { transform: translateY(-4px); opacity: 0.8; }
         }
 
         /* ===== FOCUS OVERLAY (swipe up from capture) ===== */
@@ -425,13 +458,14 @@
         }
 
         #focus-message-title {
-            font-size: 24px;
+            font-size: 22px;
+            font-weight: 500;
             color: var(--text-color);
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         #focus-message-subtitle {
-            font-size: 16px;
+            font-size: 15px;
             color: var(--text-muted);
         }
 
@@ -484,22 +518,29 @@
             height: 100%;
             background-color: var(--card-bg);
             border-radius: 12px;
-            padding: 15px 20px;
+            padding: 18px 22px;
             display: flex;
             align-items: center;
             touch-action: pan-y pinch-zoom;
-            transition: transform 0.1s ease-out;
+            transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .focus-card:active {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2), 0 2px 6px rgba(0,0,0,0.12);
         }
 
         .focus-card.swiping {
             transition: none;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25), 0 3px 8px rgba(0,0,0,0.15);
         }
 
         .focus-card-text {
-            font-size: 16px;
+            font-size: 17px;
             color: var(--text-color);
-            line-height: 1.3;
+            line-height: 1.4;
             flex: 1;
+            font-weight: 400;
         }
 
         /* ===== TODAY TAB ===== */
@@ -508,12 +549,13 @@
         }
 
         .section-title {
-            font-size: 14px;
+            font-size: 11px;
+            font-weight: 600;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 15px;
-            margin-top: 30px;
+            letter-spacing: 1.2px;
+            margin-bottom: 12px;
+            margin-top: 28px;
         }
 
         .section-title:first-child {
@@ -527,12 +569,23 @@
         }
 
         .task-item {
-            padding: 15px;
+            padding: 14px 16px;
             background-color: var(--card-bg);
             border-radius: 10px;
             margin-bottom: 10px;
-            font-size: 16px;
+            font-size: 15px;
+            line-height: 1.4;
             color: var(--text-color);
+            transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+        }
+
+        .task-item.tappable {
+            cursor: pointer;
+        }
+
+        .task-item.tappable:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
 
         .task-item.later {
@@ -609,7 +662,7 @@
         }
 
         .backlog-item {
-            padding: 15px;
+            padding: 14px 16px;
             background-color: var(--card-bg);
             border-radius: 10px;
             display: flex;
@@ -617,7 +670,7 @@
             align-items: center;
             position: relative;
             touch-action: pan-y pinch-zoom;
-            transition: transform 0.1s;
+            transition: transform 0.1s, box-shadow 0.1s;
             user-select: none;
             -webkit-user-select: none;
             -webkit-touch-callout: none;
@@ -628,21 +681,24 @@
         }
 
         .backlog-item.dragging {
-            opacity: 0.8;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            opacity: 0.9;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
             z-index: 10;
+            transform: scale(1.02);
         }
 
         .backlog-item-text {
-            font-size: 16px;
+            font-size: 15px;
+            line-height: 1.4;
             color: var(--text-color);
             flex: 1;
         }
 
         .backlog-item-meta {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-muted);
-            margin-left: 10px;
+            margin-left: 12px;
+            white-space: nowrap;
         }
 
         .backlog-placeholder {
@@ -832,7 +888,12 @@
         <div id="text-input-section">
             <input type="text" id="thought-input" placeholder="or type here">
         </div>
-        <div id="capture-swipe-hint">swipe up for today's focus</div>
+        <div id="capture-swipe-hint">
+            <svg class="hint-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="18 15 12 9 6 15"></polyline>
+            </svg>
+            <span>today's focus</span>
+        </div>
     </div>
 
     <!-- FOCUS OVERLAY -->
@@ -1243,7 +1304,11 @@
         function showConfirmation(message) {
             confirmation.textContent = message || getRandomConfirmation();
             confirmation.classList.add('visible');
-            setTimeout(() => confirmation.classList.remove('visible'), 2000);
+            bigMicButton.classList.add('captured');
+            setTimeout(() => {
+                confirmation.classList.remove('visible');
+                bigMicButton.classList.remove('captured');
+            }, 2000);
         }
 
         function captureThought(text) {
@@ -1577,6 +1642,17 @@
             return `${weeks} week${weeks !== 1 ? 's' : ''} ago`;
         }
 
+        function addToTodayFocus(item) {
+            // Add to today's focus if not already there
+            if (!todayFocus.find(t => t.text === item.text)) {
+                todayFocus.push({ ...item });
+                saveAll();
+                renderTodayTab();
+                renderFocusCards();
+                haptic('light');
+            }
+        }
+
         function renderTodayTab() {
             // Old items (2+ weeks old, not in today's focus)
             const twoWeeksAgo = Date.now() - (14 * 24 * 60 * 60 * 1000);
@@ -1587,12 +1663,17 @@
 
             if (oldItems.length > 0) {
                 oldItemsSection.style.display = 'block';
-                oldItemsList.innerHTML = oldItems.map(item => `
-                    <li class="task-item old">
+                oldItemsList.innerHTML = '';
+                oldItems.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'task-item old tappable';
+                    li.innerHTML = `
                         ${item.text}
-                        <div class="task-item-age">${getTimeAgo(item.createdAt)}</div>
-                    </li>
-                `).join('');
+                        <div class="task-item-age">${getTimeAgo(item.createdAt)} · tap to focus</div>
+                    `;
+                    li.addEventListener('click', () => addToTodayFocus(item));
+                    oldItemsList.appendChild(li);
+                });
             } else {
                 oldItemsSection.style.display = 'none';
             }
@@ -1837,6 +1918,7 @@
                     itemEl.classList.remove('swiping');
 
                     const diffX = currentX - startX;
+                    const diffY = currentY - startY;
 
                     if (diffX < -100) {
                         // Show delete confirmation
@@ -1847,6 +1929,11 @@
                         deleteBg.classList.add('confirm');
                         deleteBg.textContent = 'tap to delete';
                         haptic('light');
+                    } else if (Math.abs(diffX) < 10 && Math.abs(diffY) < 10) {
+                        // Simple tap - add to today's focus
+                        itemEl.style.transform = '';
+                        deleteBg.style.opacity = 0;
+                        addToTodayFocus(item);
                     } else {
                         // Snap back
                         itemEl.style.transform = '';
