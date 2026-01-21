@@ -28,6 +28,8 @@
             --input-bg: #0f0f23;
             --shadow: rgba(0,0,0,0.3);
             --accent: #4a90a4;
+            --done-color: #5cb85c;
+            --later-color: #f0ad4e;
         }
 
         /* Bedtime mode - warmer, softer colors */
@@ -50,30 +52,10 @@
             border-color: var(--accent);
         }
 
-        /* Bedtime toggle */
-        #bedtime-toggle {
+        /* Top buttons */
+        #bedtime-toggle, #settings-toggle {
             position: fixed;
             top: 15px;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            z-index: 50;
-            opacity: 0.6;
-            transition: opacity 0.2s;
-            padding: 8px;
-        }
-
-        #bedtime-toggle:hover {
-            opacity: 1;
-        }
-
-        /* Settings button */
-        #settings-toggle {
-            position: fixed;
-            top: 15px;
-            left: 15px;
             background: none;
             border: none;
             font-size: 22px;
@@ -84,7 +66,10 @@
             padding: 8px;
         }
 
-        #settings-toggle:hover {
+        #bedtime-toggle { right: 15px; }
+        #settings-toggle { left: 15px; }
+
+        #bedtime-toggle:hover, #settings-toggle:hover {
             opacity: 1;
         }
 
@@ -162,7 +147,6 @@
             margin-top: 4px;
         }
 
-        /* Toggle switch */
         .toggle-switch {
             position: relative;
             width: 50px;
@@ -238,7 +222,7 @@
             flex-direction: column;
         }
 
-        /* Tab content area */
+        /* Tab content */
         .tab-content {
             flex: 1;
             display: none;
@@ -281,22 +265,23 @@
             transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s;
             position: relative;
             z-index: 2;
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             font-size: 15px;
             font-weight: 400;
             letter-spacing: 0.5px;
             text-transform: lowercase;
         }
 
-        #big-mic-button:hover {
-            transform: scale(1.03);
-        }
-
         #big-mic-button:active {
             transform: scale(0.98);
         }
 
-        /* Ripple rings */
+        #big-mic-button.listening {
+            background-color: #e74c3c;
+            box-shadow: 0 4px 30px rgba(231, 76, 60, 0.5);
+            animation: pulse-listening 1s infinite;
+        }
+
         .ripple {
             position: absolute;
             width: 180px;
@@ -308,45 +293,24 @@
             pointer-events: none;
         }
 
-        .ripple-1 {
-            animation: ripple 7s ease-out infinite;
-        }
-
-        .ripple-2 {
-            animation: ripple 7s ease-out infinite 2s;
-        }
+        .ripple-1 { animation: ripple 7s ease-out infinite; }
+        .ripple-2 { animation: ripple 7s ease-out infinite 2s; }
 
         @keyframes ripple {
-            0% {
-                transform: scale(1);
-                opacity: 0.4;
-            }
-            57% {
-                transform: scale(1.8);
-                opacity: 0;
-            }
-            100% {
-                transform: scale(1.8);
-                opacity: 0;
-            }
-        }
-
-        /* Stop ripples when listening */
-        #mic-container.listening .ripple {
-            animation: none;
-            opacity: 0;
-        }
-
-        #big-mic-button.listening {
-            background-color: #e74c3c;
-            box-shadow: 0 4px 30px rgba(231, 76, 60, 0.5);
-            animation: pulse-listening 1s infinite;
+            0% { transform: scale(1); opacity: 0.4; }
+            57% { transform: scale(1.8); opacity: 0; }
+            100% { transform: scale(1.8); opacity: 0; }
         }
 
         @keyframes pulse-listening {
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
+        }
+
+        #mic-container.listening .ripple {
+            animation: none;
+            opacity: 0;
         }
 
         #capture-confirmation {
@@ -366,7 +330,7 @@
 
         #text-input-section {
             position: absolute;
-            bottom: 30px;
+            bottom: 80px;
             left: 20px;
             right: 20px;
             max-width: 300px;
@@ -388,302 +352,50 @@
             color: var(--text-muted);
         }
 
-        /* ===== TASKS TAB ===== */
-        #tasks-tab {
-            padding-top: 40px;
-        }
-
-        #today-item-container {
-            position: relative;
-            overflow: hidden;
-            border-radius: 12px;
-        }
-
-        .swipe-background {
+        /* Swipe hint at bottom of capture tab */
+        #capture-swipe-hint {
             position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            padding: 0 30px;
-            font-size: 18px;
-            font-weight: 500;
-            color: white;
-            pointer-events: none;
-            text-transform: lowercase;
-        }
-
-        #swipe-bg-left {
-            background-color: #f0ad4e;
-            justify-content: flex-end;
-            opacity: 0;
-            transition: opacity 0.15s;
-        }
-
-        #swipe-bg-right {
-            background-color: #5cb85c;
-            justify-content: flex-start;
-            opacity: 0;
-            transition: opacity 0.15s;
-        }
-
-        .swipe-label {
-            opacity: 0;
-            transition: opacity 0.15s;
-        }
-
-        #today-item {
-            padding: 20px;
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 2px 8px var(--shadow);
-            position: relative;
-            transition: transform 0.1s ease-out;
-            touch-action: pan-y pinch-zoom;
-        }
-
-        #today-item.swiping {
-            transition: none;
-        }
-
-        #today-item.swipe-away-right {
-            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-            transform: translateX(100%);
-            opacity: 0;
-        }
-
-        #today-item.swipe-away-left {
-            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-            transform: translateX(-100%);
-            opacity: 0;
-        }
-
-        #swipe-instruction {
-            text-align: center;
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 10px;
-            opacity: 0.6;
-        }
-
-        #today-label {
-            font-size: 14px;
-            color: var(--text-muted);
-            margin-bottom: 10px;
-        }
-
-        #today-text {
-            font-size: 20px;
-            color: var(--text-color);
-            line-height: 1.4;
-        }
-
-        #skip-count {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 8px;
-        }
-
-        #thought-count {
-            font-size: 14px;
-            color: var(--text-muted);
-            margin-top: 15px;
-        }
-
-        #secondary-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .secondary-btn {
-            flex: 1;
-            padding: 10px;
-            font-size: 14px;
-            background-color: transparent;
-            color: var(--text-muted);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        .secondary-btn:hover {
-            background-color: var(--border-color);
-        }
-
-        .secondary-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        #remove-btn {
-            color: #e74c3c;
-            border-color: #e74c3c40;
-        }
-
-        #remove-btn:hover {
-            background-color: #e74c3c20;
-        }
-
-        /* Edit modal */
-        #edit-modal {
-            display: none;
-            position: fixed;
-            top: 0;
+            bottom: 20px;
             left: 0;
             right: 0;
-            bottom: 0;
-            background-color: rgba(0,0,0,0.8);
-            z-index: 100;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        #edit-modal.visible {
-            display: flex;
-        }
-
-        #edit-modal-content {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
-            width: 100%;
-            max-width: 400px;
-        }
-
-        #edit-modal-title {
-            font-size: 16px;
-            color: var(--text-muted);
-            margin-bottom: 15px;
-        }
-
-        #edit-input {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background-color: var(--input-bg);
-            color: var(--text-color);
-            margin-bottom: 15px;
-        }
-
-        #edit-modal-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        #edit-modal-buttons button {
-            flex: 1;
-            padding: 12px;
-            font-size: 16px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        #edit-cancel {
-            background-color: transparent;
-            color: var(--text-muted);
-            border: 1px solid var(--border-color);
-        }
-
-        #edit-save {
-            background-color: var(--accent);
-            color: white;
-        }
-
-        #completed-section {
-            margin-top: 30px;
-        }
-
-        #completed-header {
-            font-size: 14px;
-            color: var(--text-muted);
-            margin-bottom: 10px;
-        }
-
-        #completed-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        #completed-list li {
-            padding: 12px 14px;
-            background-color: var(--card-bg);
-            border-radius: 8px;
-            margin-bottom: 8px;
-            color: var(--text-light);
-            font-size: 14px;
-            border-left: 3px solid #5cb85c;
-        }
-
-        #sheet-swipe-zone {
-            flex: 1;
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        #swipe-up-hint {
             text-align: center;
             font-size: 12px;
             color: var(--text-muted);
             opacity: 0.5;
-            padding: 20px;
-            margin-top: auto;
         }
 
-        /* ===== BOTTOM SHEET ===== */
-        #sheet-overlay {
+        /* ===== FOCUS OVERLAY (swipe up from capture) ===== */
+        #focus-overlay {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: rgba(0, 0, 0, 0);
-            z-index: 150;
-            pointer-events: none;
-            transition: background-color 0.3s;
-        }
-
-        #sheet-overlay.visible {
-            background-color: rgba(0, 0, 0, 0.5);
-            pointer-events: auto;
-        }
-
-        #bottom-sheet {
-            position: fixed;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: var(--card-bg);
-            border-radius: 20px 20px 0 0;
-            z-index: 160;
+            background-color: var(--bg-color);
+            z-index: 100;
             transform: translateY(100%);
-            max-height: 70vh;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
-            padding-bottom: max(20px, env(safe-area-inset-bottom));
             will-change: transform;
         }
 
-        #bottom-sheet.animating {
+        #focus-overlay.animating {
             transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
         }
 
-        #bottom-sheet.expanded {
+        #focus-overlay.visible {
             transform: translateY(0);
         }
 
-        #sheet-handle {
-            padding: 12px;
+        #focus-handle {
+            padding: 15px;
             display: flex;
             justify-content: center;
+            cursor: grab;
+        }
+
+        #focus-handle:active {
+            cursor: grabbing;
         }
 
         .handle-pill {
@@ -694,45 +406,182 @@
             opacity: 0.4;
         }
 
-        #sheet-content {
+        #focus-cards-container {
             flex: 1;
-            overflow-y: auto;
-            padding: 0 20px 20px;
-            display: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
         }
 
-        #bottom-sheet.expanded #sheet-content {
-            display: block;
+        #focus-message {
+            text-align: center;
+            padding: 40px 20px;
         }
 
-        #sheet-title {
-            font-size: 16px;
-            color: var(--text-muted);
-            margin-bottom: 15px;
-        }
-
-        .sheet-task-item {
-            padding: 15px;
-            background-color: var(--bg-color);
-            border-radius: 10px;
+        #focus-message-title {
+            font-size: 24px;
+            color: var(--text-color);
             margin-bottom: 10px;
         }
 
-        .sheet-task-text {
+        #focus-message-subtitle {
+            font-size: 16px;
+            color: var(--text-muted);
+        }
+
+        /* Focus card */
+        .focus-card {
+            width: 100%;
+            max-width: 350px;
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 20px var(--shadow);
+            position: relative;
+            touch-action: pan-y pinch-zoom;
+        }
+
+        .focus-card.swiping {
+            transition: none;
+        }
+
+        .focus-card.swipe-away {
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+            opacity: 0;
+        }
+
+        .focus-card-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .focus-card-text {
+            font-size: 22px;
+            color: var(--text-color);
+            line-height: 1.4;
+        }
+
+        .focus-card-hint {
+            margin-top: 20px;
+            font-size: 12px;
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+
+        .focus-card-count {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Swipe indicators */
+        .swipe-indicator {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.15s;
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+
+        .swipe-indicator.left {
+            left: -80px;
+            background-color: var(--later-color);
+            color: white;
+        }
+
+        .swipe-indicator.right {
+            right: -80px;
+            background-color: var(--done-color);
+            color: white;
+        }
+
+        /* ===== TODAY TAB ===== */
+        #today-tab {
+            padding-top: 50px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            margin-top: 30px;
+        }
+
+        .section-title:first-child {
+            margin-top: 0;
+        }
+
+        .task-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .task-item {
+            padding: 15px;
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            margin-bottom: 10px;
             font-size: 16px;
             color: var(--text-color);
         }
 
-        .sheet-task-meta {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 5px;
+        .task-item.later {
+            border-left: 3px solid var(--later-color);
         }
 
-        .sheet-empty {
-            text-align: center;
+        .task-item.completed {
+            border-left: 3px solid var(--done-color);
+            color: var(--text-light);
+        }
+
+        .empty-section {
             color: var(--text-muted);
-            padding: 30px 0;
+            font-size: 14px;
+            padding: 20px;
+            text-align: center;
+            opacity: 0.6;
+        }
+
+        /* ===== ALL TAB ===== */
+        #all-tab {
+            padding-top: 50px;
+        }
+
+        .backlog-item {
+            padding: 15px;
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .backlog-item-text {
+            font-size: 16px;
+            color: var(--text-color);
+            flex: 1;
+        }
+
+        .backlog-item-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-left: 10px;
         }
 
         /* ===== TAB BAR ===== */
@@ -740,8 +589,8 @@
             display: flex;
             background-color: var(--card-bg);
             border-top: 1px solid var(--border-color);
-            padding: 10px 0;
-            padding-bottom: max(10px, env(safe-area-inset-bottom));
+            padding: 8px 0;
+            padding-bottom: max(8px, env(safe-area-inset-bottom));
         }
 
         .tab-button {
@@ -749,17 +598,17 @@
             background: none;
             border: none;
             color: var(--text-muted);
-            font-size: 12px;
-            padding: 8px;
+            font-size: 11px;
+            padding: 6px;
             cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
         }
 
         .tab-button .tab-icon {
-            font-size: 24px;
+            font-size: 22px;
         }
 
         .tab-button.active {
@@ -796,7 +645,7 @@
             <div class="settings-item">
                 <div>
                     <div class="settings-item-label">Morning focus<span class="settings-coming-soon">coming soon</span></div>
-                    <div class="settings-item-desc">Daily reminder of your focus item</div>
+                    <div class="settings-item-desc">Daily reminder of your focus items</div>
                 </div>
                 <label class="toggle-switch">
                     <input type="checkbox" id="setting-morning-notif" disabled>
@@ -825,9 +674,9 @@
                     <div class="settings-item-desc">How many tasks to show each day</div>
                 </div>
                 <select id="setting-daily-items" style="padding: 8px 12px; font-size: 16px; background: var(--input-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 8px;">
-                    <option value="1" selected>1</option>
+                    <option value="1">1</option>
                     <option value="2">2</option>
-                    <option value="3">3</option>
+                    <option value="3" selected>3</option>
                     <option value="5">5</option>
                 </select>
             </div>
@@ -845,62 +694,32 @@
         <div id="text-input-section">
             <input type="text" id="thought-input" placeholder="or type here">
         </div>
+        <div id="capture-swipe-hint">swipe up for today's focus</div>
     </div>
 
-    <!-- TASKS TAB -->
-    <div id="tasks-tab" class="tab-content">
-        <div id="today-item-container">
-            <div id="swipe-bg-left" class="swipe-background">
-                <span class="swipe-label" id="swipe-label-left">later</span>
-            </div>
-            <div id="swipe-bg-right" class="swipe-background">
-                <span class="swipe-label" id="swipe-label-right">done</span>
-            </div>
-            <div id="today-item">
-                <div id="today-label">your focus for today</div>
-                <div id="today-text">nothing yet</div>
-                <div id="skip-count"></div>
-                <div id="thought-count"></div>
-                <div id="secondary-actions">
-                    <button id="edit-btn" class="secondary-btn">edit</button>
-                    <button id="remove-btn" class="secondary-btn">remove</button>
-                </div>
-            </div>
-        </div>
-        <div id="swipe-instruction">swipe right to complete, left for later</div>
-
-        <!-- Swipe zone for bottom sheet -->
-        <div id="sheet-swipe-zone">
-            <div id="completed-section">
-                <div id="completed-header"></div>
-                <ul id="completed-list"></ul>
-            </div>
-            <div id="swipe-up-hint">swipe up for all</div>
-        </div>
-    </div>
-
-    <!-- EDIT MODAL -->
-    <div id="edit-modal">
-        <div id="edit-modal-content">
-            <div id="edit-modal-title">edit thought</div>
-            <input type="text" id="edit-input" placeholder="update your thought">
-            <div id="edit-modal-buttons">
-                <button id="edit-cancel">cancel</button>
-                <button id="edit-save">save</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- BOTTOM SHEET -->
-    <div id="sheet-overlay"></div>
-    <div id="bottom-sheet">
-        <div id="sheet-handle">
+    <!-- FOCUS OVERLAY -->
+    <div id="focus-overlay">
+        <div id="focus-handle">
             <div class="handle-pill"></div>
         </div>
-        <div id="sheet-content">
-            <div id="sheet-title">all thoughts</div>
-            <div id="sheet-list"></div>
+        <div id="focus-cards-container">
+            <!-- Cards or message will be rendered here -->
         </div>
+    </div>
+
+    <!-- TODAY TAB -->
+    <div id="today-tab" class="tab-content">
+        <div class="section-title">for later</div>
+        <ul id="later-list" class="task-list"></ul>
+
+        <div class="section-title">completed today</div>
+        <ul id="completed-today-list" class="task-list"></ul>
+    </div>
+
+    <!-- ALL TAB -->
+    <div id="all-tab" class="tab-content">
+        <div class="section-title">backlog</div>
+        <div id="backlog-list"></div>
     </div>
 
     <!-- TAB BAR -->
@@ -909,242 +728,114 @@
             <span class="tab-icon">+</span>
             <span>Capture</span>
         </button>
-        <button class="tab-button" data-tab="tasks-tab">
+        <button class="tab-button" data-tab="today-tab">
+            <span class="tab-icon">◐</span>
+            <span>Today</span>
+        </button>
+        <button class="tab-button" data-tab="all-tab">
             <span class="tab-icon">☰</span>
-            <span>Tasks</span>
+            <span>All</span>
         </button>
     </div>
 
     <script>
-        // ===== TAB SWITCHING =====
-        const tabButtons = document.querySelectorAll('.tab-button');
-        const tabContents = document.querySelectorAll('.tab-content');
+        // ===== DATA MODEL =====
+        let thoughts = JSON.parse(localStorage.getItem('thoughts')) || [];
+        let todayFocus = JSON.parse(localStorage.getItem('todayFocus')) || [];
+        let laterToday = JSON.parse(localStorage.getItem('laterToday')) || [];
+        let completedToday = JSON.parse(localStorage.getItem('completedToday')) || [];
+        let completedAllTime = JSON.parse(localStorage.getItem('completedAllTime')) || [];
+        let lastResetDate = localStorage.getItem('lastResetDate') || '';
 
-        tabButtons.forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                const tabId = this.getAttribute('data-tab');
+        // Migrate old format
+        thoughts = thoughts.map(item => typeof item === 'string' ? { text: item, skips: 0 } : item);
 
-                // Update active states
-                tabButtons.forEach(b => b.classList.remove('active'));
-                tabContents.forEach(t => t.classList.remove('active'));
+        function saveAll() {
+            localStorage.setItem('thoughts', JSON.stringify(thoughts));
+            localStorage.setItem('todayFocus', JSON.stringify(todayFocus));
+            localStorage.setItem('laterToday', JSON.stringify(laterToday));
+            localStorage.setItem('completedToday', JSON.stringify(completedToday));
+            localStorage.setItem('completedAllTime', JSON.stringify(completedAllTime));
+            localStorage.setItem('lastResetDate', lastResetDate);
+        }
 
-                this.classList.add('active');
-                document.getElementById(tabId).classList.add('active');
+        function getTodayDate() {
+            return new Date().toDateString();
+        }
 
-                // Close bottom sheet when switching tabs
-                if (tabId !== 'tasks-tab') {
-                    closeSheet();
-                }
-            });
-        });
+        function checkDailyReset() {
+            const today = getTodayDate();
+            if (lastResetDate !== today) {
+                // New day - reset
+                laterToday = [];
+                completedToday = [];
+                lastResetDate = today;
+                selectTodayFocus();
+                saveAll();
+            }
+        }
 
-        // ===== SETTINGS PANEL =====
+        function selectTodayFocus() {
+            const count = parseInt(localStorage.getItem('dailyFocusItems') || '3');
+            todayFocus = thoughts.slice(0, count).map(t => ({ ...t }));
+        }
+
+        // Initialize on load
+        checkDailyReset();
+        if (todayFocus.length === 0 && thoughts.length > 0) {
+            selectTodayFocus();
+            saveAll();
+        }
+
+        // ===== SETTINGS =====
         const settingsToggle = document.getElementById('settings-toggle');
         const settingsPanel = document.getElementById('settings-panel');
         const settingsClose = document.getElementById('settings-close');
         const settingDailyItems = document.getElementById('setting-daily-items');
 
-        settingsToggle.addEventListener('click', function() {
-            settingsPanel.classList.add('visible');
-        });
+        settingsToggle.addEventListener('click', () => settingsPanel.classList.add('visible'));
+        settingsClose.addEventListener('click', () => settingsPanel.classList.remove('visible'));
 
-        settingsClose.addEventListener('click', function() {
-            settingsPanel.classList.remove('visible');
-        });
-
-        // Load saved settings
-        const savedDailyItems = localStorage.getItem('dailyFocusItems') || '1';
+        const savedDailyItems = localStorage.getItem('dailyFocusItems') || '3';
         settingDailyItems.value = savedDailyItems;
 
         settingDailyItems.addEventListener('change', function() {
             localStorage.setItem('dailyFocusItems', this.value);
+            selectTodayFocus();
+            saveAll();
+            renderFocusCards();
         });
 
-        // ===== BOTTOM SHEET =====
-        const bottomSheet = document.getElementById('bottom-sheet');
-        const sheetOverlay = document.getElementById('sheet-overlay');
-        const sheetList = document.getElementById('sheet-list');
-        const sheetSwipeZone = document.getElementById('sheet-swipe-zone');
-        let sheetExpanded = false;
-        let sheetDragging = false;
-        let sheetStartY = 0;
-        let sheetCurrentY = 0;
-        let sheetStartTime = 0;
-        const sheetHeight = window.innerHeight * 0.7;
+        // ===== TAB SWITCHING =====
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
 
-        function openSheet() {
-            sheetExpanded = true;
-            bottomSheet.classList.add('animating');
-            bottomSheet.classList.add('expanded');
-            bottomSheet.style.transform = '';
-            sheetOverlay.classList.add('visible');
-            renderSheetList();
-            setTimeout(() => bottomSheet.classList.remove('animating'), 300);
-        }
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                tabButtons.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
 
-        function closeSheet() {
-            sheetExpanded = false;
-            bottomSheet.classList.add('animating');
-            bottomSheet.classList.remove('expanded');
-            bottomSheet.style.transform = '';
-            sheetOverlay.classList.remove('visible');
-            setTimeout(() => bottomSheet.classList.remove('animating'), 300);
-        }
-
-        function renderSheetList() {
-            if (thoughts.length === 0) {
-                sheetList.innerHTML = '<div class="sheet-empty">no thoughts captured yet</div>';
-                return;
-            }
-
-            sheetList.innerHTML = '';
-            thoughts.forEach(function(item, index) {
-                const div = document.createElement('div');
-                div.className = 'sheet-task-item';
-
-                let meta = '';
-                if (index === 0) {
-                    meta = 'current focus';
-                } else if (item.skips > 0) {
-                    meta = 'skipped ' + item.skips + ' time' + (item.skips === 1 ? '' : 's');
-                }
-
-                div.innerHTML = '<div class="sheet-task-text">' + item.text + '</div>' +
-                    (meta ? '<div class="sheet-task-meta">' + meta + '</div>' : '');
-
-                sheetList.appendChild(div);
+                if (tabId === 'today-tab') renderTodayTab();
+                if (tabId === 'all-tab') renderAllTab();
             });
-        }
-
-        // Swipe up on tasks tab to open sheet
-        sheetSwipeZone.addEventListener('touchstart', function(e) {
-            if (sheetExpanded) return;
-            sheetStartY = e.touches[0].clientY;
-            sheetStartTime = Date.now();
-            sheetDragging = true;
-        }, { passive: true });
-
-        sheetSwipeZone.addEventListener('touchmove', function(e) {
-            if (!sheetDragging || sheetExpanded) return;
-            sheetCurrentY = e.touches[0].clientY;
-            const diff = sheetStartY - sheetCurrentY;
-
-            if (diff > 10) {
-                // Swiping up - show sheet following finger
-                const progress = Math.min(diff / sheetHeight, 1);
-                const translateY = (1 - progress) * 100;
-                bottomSheet.style.transform = 'translateY(' + translateY + '%)';
-                sheetOverlay.style.backgroundColor = 'rgba(0, 0, 0, ' + (progress * 0.5) + ')';
-                sheetOverlay.style.pointerEvents = progress > 0.1 ? 'auto' : 'none';
-            }
-        }, { passive: true });
-
-        sheetSwipeZone.addEventListener('touchend', function(e) {
-            if (!sheetDragging || sheetExpanded) return;
-            sheetDragging = false;
-
-            const diff = sheetStartY - sheetCurrentY;
-            const velocity = diff / (Date.now() - sheetStartTime);
-
-            // Open if dragged far enough or fast enough
-            if (diff > 80 || velocity > 0.5) {
-                openSheet();
-            } else {
-                closeSheet();
-            }
         });
-
-        // Swipe down on sheet to close
-        let sheetCloseStartY = 0;
-        let sheetCloseDragging = false;
-
-        bottomSheet.addEventListener('touchstart', function(e) {
-            if (!sheetExpanded) return;
-            sheetCloseStartY = e.touches[0].clientY;
-            sheetCloseDragging = true;
-            sheetStartTime = Date.now();
-        }, { passive: true });
-
-        bottomSheet.addEventListener('touchmove', function(e) {
-            if (!sheetCloseDragging || !sheetExpanded) return;
-            const diff = e.touches[0].clientY - sheetCloseStartY;
-
-            if (diff > 0) {
-                // Swiping down - sheet follows finger
-                const translateY = Math.min(diff, sheetHeight);
-                bottomSheet.style.transform = 'translateY(' + translateY + 'px)';
-                const progress = 1 - (diff / sheetHeight);
-                sheetOverlay.style.backgroundColor = 'rgba(0, 0, 0, ' + (progress * 0.5) + ')';
-            }
-        }, { passive: true });
-
-        bottomSheet.addEventListener('touchend', function(e) {
-            if (!sheetCloseDragging || !sheetExpanded) return;
-            sheetCloseDragging = false;
-
-            const diff = e.changedTouches[0].clientY - sheetCloseStartY;
-            const velocity = diff / (Date.now() - sheetStartTime);
-
-            // Close if dragged far enough or fast enough
-            if (diff > 100 || velocity > 0.5) {
-                closeSheet();
-            } else {
-                openSheet();
-            }
-        });
-
-        // Tap overlay to close
-        sheetOverlay.addEventListener('click', closeSheet);
-
-        // ===== CONFIRMATION MESSAGES =====
-        const confirmationMessages = [
-            "Got it.",
-            "Noted.",
-            "Saved.",
-            "Done.",
-            "All yours.",
-            "On the list.",
-            "Won't forget."
-        ];
-
-        const bedtimeMessages = [
-            "Captured.",
-            "It's safe.",
-            "Letting go.",
-            "Held for you.",
-            "Set aside.",
-            "Tomorrow's ready.",
-            "Tucked away."
-        ];
-
-        function getRandomConfirmation() {
-            const messages = isBedtimeMode ? bedtimeMessages : confirmationMessages;
-            const index = Math.floor(Math.random() * messages.length);
-            return messages[index];
-        }
 
         // ===== BEDTIME MODE =====
         const bedtimeToggle = document.getElementById('bedtime-toggle');
         let isBedtimeMode = false;
-        const bedtimeStart = 21; // 9pm
-        const bedtimeEnd = 6;    // 6am
 
         function checkBedtimeTime() {
             const hour = new Date().getHours();
-            return hour >= bedtimeStart || hour < bedtimeEnd;
+            return hour >= 21 || hour < 6;
         }
 
         function setBedtimeMode(enabled) {
             isBedtimeMode = enabled;
-            if (enabled) {
-                document.body.classList.add('bedtime-mode');
-                bedtimeToggle.textContent = '☀️';
-                bedtimeToggle.title = 'Switch to day mode';
-            } else {
-                document.body.classList.remove('bedtime-mode');
-                bedtimeToggle.textContent = '🌙';
-                bedtimeToggle.title = 'Switch to bedtime mode';
-            }
+            document.body.classList.toggle('bedtime-mode', enabled);
+            bedtimeToggle.textContent = enabled ? '☀️' : '🌙';
             localStorage.setItem('bedtimeManualOverride', 'true');
             localStorage.setItem('bedtimeMode', enabled.toString());
         }
@@ -1152,336 +843,81 @@
         function initBedtimeMode() {
             const manualOverride = localStorage.getItem('bedtimeManualOverride');
             const savedMode = localStorage.getItem('bedtimeMode');
-
-            if (manualOverride === 'true' && savedMode !== null) {
-                // User manually set a preference
-                isBedtimeMode = savedMode === 'true';
-            } else {
-                // Auto-detect based on time
-                isBedtimeMode = checkBedtimeTime();
-            }
-
+            isBedtimeMode = (manualOverride === 'true' && savedMode !== null)
+                ? savedMode === 'true'
+                : checkBedtimeTime();
             if (isBedtimeMode) {
                 document.body.classList.add('bedtime-mode');
                 bedtimeToggle.textContent = '☀️';
-                bedtimeToggle.title = 'Switch to day mode';
             }
         }
 
-        // Check time periodically and reset manual override at mode boundaries
-        function checkBedtimeSchedule() {
-            const shouldBeBedtime = checkBedtimeTime();
-            const hour = new Date().getHours();
-
-            // Reset manual override at 6am or 9pm
-            if (hour === bedtimeEnd || hour === bedtimeStart) {
-                localStorage.removeItem('bedtimeManualOverride');
-                if (shouldBeBedtime !== isBedtimeMode) {
-                    setBedtimeMode(shouldBeBedtime);
-                    localStorage.removeItem('bedtimeManualOverride');
-                }
-            }
-        }
-
-        bedtimeToggle.addEventListener('click', function() {
-            setBedtimeMode(!isBedtimeMode);
-        });
-
-        // Initialize bedtime mode
+        bedtimeToggle.addEventListener('click', () => setBedtimeMode(!isBedtimeMode));
         initBedtimeMode();
 
-        // Check schedule every minute
-        setInterval(checkBedtimeSchedule, 60000);
+        // ===== CONFIRMATION MESSAGES =====
+        const confirmationMessages = ["Got it.", "Noted.", "Saved.", "Done.", "All yours.", "On the list.", "Won't forget."];
+        const bedtimeMessages = ["Captured.", "It's safe.", "Letting go.", "Held for you.", "Set aside.", "Tomorrow's ready.", "Tucked away."];
 
-        // ===== DATA =====
-        let thoughts = JSON.parse(localStorage.getItem('thoughts')) || [];
-        let completed = JSON.parse(localStorage.getItem('completed')) || [];
+        function getRandomConfirmation() {
+            const messages = isBedtimeMode ? bedtimeMessages : confirmationMessages;
+            return messages[Math.floor(Math.random() * messages.length)];
+        }
 
-        // Migrate old string format to new object format { text, skips }
-        thoughts = thoughts.map(function(item) {
-            if (typeof item === 'string') {
-                return { text: item, skips: 0 };
-            }
-            return item;
-        });
-
-        // ===== ELEMENTS =====
+        // ===== CAPTURE =====
         const input = document.getElementById('thought-input');
         const bigMicButton = document.getElementById('big-mic-button');
         const micContainer = document.getElementById('mic-container');
         const confirmation = document.getElementById('capture-confirmation');
-        const todayText = document.getElementById('today-text');
-        const countDisplay = document.getElementById('thought-count');
-        const skipCountDisplay = document.getElementById('skip-count');
-        const completedHeader = document.getElementById('completed-header');
-        const completedList = document.getElementById('completed-list');
-        const editBtn = document.getElementById('edit-btn');
-        const removeBtn = document.getElementById('remove-btn');
-        const editModal = document.getElementById('edit-modal');
-        const editInput = document.getElementById('edit-input');
-        const editCancel = document.getElementById('edit-cancel');
-        const editSave = document.getElementById('edit-save');
-        const todayItem = document.getElementById('today-item');
-        const swipeLabelLeft = document.getElementById('swipe-label-left');
-        const swipeLabelRight = document.getElementById('swipe-label-right');
-        const swipeBgLeft = document.getElementById('swipe-bg-left');
-        const swipeBgRight = document.getElementById('swipe-bg-right');
 
-        // ===== FUNCTIONS =====
-        function saveThoughts() {
-            localStorage.setItem('thoughts', JSON.stringify(thoughts));
-        }
-
-        function saveCompleted() {
-            localStorage.setItem('completed', JSON.stringify(completed));
-        }
-
-        function updateDisplay() {
-            // Update the focus item
-            if (thoughts.length > 0) {
-                const current = thoughts[0];
-                todayText.textContent = current.text;
-                countDisplay.textContent = thoughts.length + ' thought' + (thoughts.length === 1 ? '' : 's') + ' captured';
-                editBtn.disabled = false;
-                removeBtn.disabled = false;
-
-                if (current.skips > 0) {
-                    skipCountDisplay.textContent = 'skipped ' + current.skips + ' time' + (current.skips === 1 ? '' : 's');
-                } else {
-                    skipCountDisplay.textContent = '';
-                }
-            } else {
-                todayText.textContent = 'nothing yet';
-                countDisplay.textContent = '';
-                skipCountDisplay.textContent = '';
-                editBtn.disabled = true;
-                removeBtn.disabled = true;
-            }
-
-            // Update the completed list
-            if (completed.length > 0) {
-                completedHeader.textContent = completed.length + ' completed';
-                completedList.innerHTML = '';
-                completed.slice(-10).reverse().forEach(function(item) {
-                    const li = document.createElement('li');
-                    li.textContent = item;
-                    completedList.appendChild(li);
-                });
-            } else {
-                completedHeader.textContent = '';
-                completedList.innerHTML = '';
+        function haptic(style) {
+            if ('vibrate' in navigator) {
+                navigator.vibrate(style === 'light' ? 10 : style === 'medium' ? 20 : 30);
             }
         }
 
         function showConfirmation(message) {
             confirmation.textContent = message || getRandomConfirmation();
             confirmation.classList.add('visible');
-            setTimeout(function() {
-                confirmation.classList.remove('visible');
-            }, 2000);
-        }
-
-        // Haptic feedback
-        function haptic(style) {
-            if ('vibrate' in navigator) {
-                if (style === 'light') {
-                    navigator.vibrate(10);
-                } else if (style === 'medium') {
-                    navigator.vibrate(20);
-                } else {
-                    navigator.vibrate(30);
-                }
-            }
+            setTimeout(() => confirmation.classList.remove('visible'), 2000);
         }
 
         function captureThought(text) {
-            const thought = text || input.value;
+            const thought = (text || input.value).trim();
+            if (thought === '') return;
 
-            if (thought.trim() !== '') {
-                thoughts.push({ text: thought, skips: 0 });
-                saveThoughts();
-                input.value = '';
-                updateDisplay();
-                showConfirmation();
-                haptic('medium');
-                console.log('Captured:', thought);
+            thoughts.push({ text: thought, skips: 0 });
+            input.value = '';
+
+            // If today's focus isn't full, add to it
+            const maxFocus = parseInt(localStorage.getItem('dailyFocusItems') || '3');
+            if (todayFocus.length < maxFocus) {
+                todayFocus.push({ text: thought, skips: 0 });
             }
+
+            saveAll();
+            showConfirmation();
+            haptic('medium');
         }
 
-        // ===== EVENT LISTENERS =====
-
-        // Text input - Enter key
-        input.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                captureThought();
-            }
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') captureThought();
         });
 
-        // Edit button - open modal
-        editBtn.addEventListener('click', function() {
-            if (thoughts.length > 0) {
-                editInput.value = thoughts[0].text;
-                editModal.classList.add('visible');
-                editInput.focus();
-            }
-        });
-
-        // Edit cancel
-        editCancel.addEventListener('click', function() {
-            editModal.classList.remove('visible');
-        });
-
-        // Edit save
-        editSave.addEventListener('click', function() {
-            if (thoughts.length > 0 && editInput.value.trim() !== '') {
-                thoughts[0].text = editInput.value.trim();
-                saveThoughts();
-                updateDisplay();
-                editModal.classList.remove('visible');
-                haptic('light');
-                console.log('Edited thought');
-            }
-        });
-
-        // Edit modal - Enter to save
-        editInput.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                editSave.click();
-            } else if (event.key === 'Escape') {
-                editCancel.click();
-            }
-        });
-
-        // Click outside modal to close
-        editModal.addEventListener('click', function(event) {
-            if (event.target === editModal) {
-                editModal.classList.remove('visible');
-            }
-        });
-
-        // Remove button
-        removeBtn.addEventListener('click', function() {
-            if (thoughts.length > 0) {
-                const removed = thoughts.shift();
-                saveThoughts();
-                updateDisplay();
-                haptic('medium');
-                console.log('Removed:', removed.text);
-            }
-        });
-
-        // ===== SWIPE GESTURES =====
-        let touchStartX = 0;
-        let touchCurrentX = 0;
-        let isSwiping = false;
-        const swipeThreshold = 80;
-
-        todayItem.addEventListener('touchstart', function(e) {
-            if (thoughts.length === 0) return;
-            touchStartX = e.touches[0].clientX;
-            isSwiping = true;
-            todayItem.classList.add('swiping');
-        }, { passive: true });
-
-        todayItem.addEventListener('touchmove', function(e) {
-            if (!isSwiping || thoughts.length === 0) return;
-            touchCurrentX = e.touches[0].clientX;
-            const diff = touchCurrentX - touchStartX;
-
-            // Move the card
-            todayItem.style.transform = 'translateX(' + diff + 'px)';
-
-            // Show background and label based on direction
-            if (diff > 30) {
-                // Swiping right - show green "done" background
-                const opacity = Math.min(1, (diff - 30) / 50);
-                swipeBgRight.style.opacity = opacity;
-                swipeLabelRight.style.opacity = opacity;
-                swipeBgLeft.style.opacity = 0;
-                swipeLabelLeft.style.opacity = 0;
-            } else if (diff < -30) {
-                // Swiping left - show orange "later" background
-                const opacity = Math.min(1, (-diff - 30) / 50);
-                swipeBgLeft.style.opacity = opacity;
-                swipeLabelLeft.style.opacity = opacity;
-                swipeBgRight.style.opacity = 0;
-                swipeLabelRight.style.opacity = 0;
-            } else {
-                swipeBgLeft.style.opacity = 0;
-                swipeBgRight.style.opacity = 0;
-                swipeLabelLeft.style.opacity = 0;
-                swipeLabelRight.style.opacity = 0;
-            }
-        }, { passive: true });
-
-        todayItem.addEventListener('touchend', function(e) {
-            if (!isSwiping || thoughts.length === 0) return;
-            isSwiping = false;
-            todayItem.classList.remove('swiping');
-
-            const diff = touchCurrentX - touchStartX;
-
-            if (diff > swipeThreshold) {
-                // Swipe right - Done
-                todayItem.classList.add('swipe-away-right');
-                haptic('medium');
-                setTimeout(function() {
-                    const doneThought = thoughts.shift();
-                    completed.push(doneThought.text);
-                    saveThoughts();
-                    saveCompleted();
-                    resetSwipeState();
-                    updateDisplay();
-                }, 300);
-            } else if (diff < -swipeThreshold) {
-                // Swipe left - Later
-                todayItem.classList.add('swipe-away-left');
-                haptic('light');
-                setTimeout(function() {
-                    if (thoughts.length > 1) {
-                        const skipped = thoughts.shift();
-                        skipped.skips += 1;
-                        thoughts.push(skipped);
-                    } else if (thoughts.length === 1) {
-                        thoughts[0].skips += 1;
-                    }
-                    saveThoughts();
-                    resetSwipeState();
-                    updateDisplay();
-                }, 300);
-            } else {
-                // Not enough to trigger action
-                resetSwipeState();
-            }
-        });
-
-        function resetSwipeState() {
-            todayItem.style.transform = '';
-            todayItem.classList.remove('swipe-away-left', 'swipe-away-right', 'swiping');
-            swipeBgLeft.style.opacity = 0;
-            swipeBgRight.style.opacity = 0;
-            swipeLabelLeft.style.opacity = 0;
-            swipeLabelRight.style.opacity = 0;
-            touchStartX = 0;
-            touchCurrentX = 0;
-        }
-
-        // ===== VOICE CAPTURE =====
+        // Voice capture
         let recognition = null;
         let isListening = false;
 
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
-
             recognition.continuous = false;
             recognition.interimResults = false;
             recognition.lang = 'en-US';
 
-            recognition.onresult = function(event) {
-                const transcript = event.results[0][0].transcript;
+            recognition.onresult = function(e) {
                 recognition.stop();
-                captureThought(transcript);
+                captureThought(e.results[0][0].transcript);
             };
 
             recognition.onend = function() {
@@ -1491,13 +927,7 @@
                 bigMicButton.textContent = 'tap to capture';
             };
 
-            recognition.onerror = function(event) {
-                console.log('Speech recognition error:', event.error);
-                isListening = false;
-                bigMicButton.classList.remove('listening');
-                micContainer.classList.remove('listening');
-                bigMicButton.textContent = 'tap to capture';
-            };
+            recognition.onerror = recognition.onend;
 
             bigMicButton.addEventListener('click', function() {
                 if (isListening) {
@@ -1515,19 +945,257 @@
             bigMicButton.textContent = 'voice not supported';
         }
 
-        // ===== INIT =====
-        updateDisplay();
+        // ===== FOCUS OVERLAY =====
+        const focusOverlay = document.getElementById('focus-overlay');
+        const focusHandle = document.getElementById('focus-handle');
+        const focusContainer = document.getElementById('focus-cards-container');
+        const captureTab = document.getElementById('capture-tab');
+        let focusVisible = false;
+        let currentCardIndex = 0;
 
-        // Register service worker
+        function openFocusOverlay() {
+            focusVisible = true;
+            focusOverlay.classList.add('animating');
+            focusOverlay.classList.add('visible');
+            focusOverlay.style.transform = '';
+            renderFocusCards();
+            setTimeout(() => focusOverlay.classList.remove('animating'), 300);
+        }
+
+        function closeFocusOverlay() {
+            focusVisible = false;
+            focusOverlay.classList.add('animating');
+            focusOverlay.classList.remove('visible');
+            focusOverlay.style.transform = '';
+            setTimeout(() => focusOverlay.classList.remove('animating'), 300);
+        }
+
+        function renderFocusCards() {
+            focusContainer.innerHTML = '';
+
+            // Filter out items already handled today
+            const handledTexts = [...laterToday.map(i => i.text), ...completedToday.map(i => i.text)];
+            const remaining = todayFocus.filter(item => !handledTexts.includes(item.text));
+
+            if (thoughts.length === 0) {
+                // No thoughts captured yet
+                focusContainer.innerHTML = `
+                    <div id="focus-message">
+                        <div id="focus-message-title">nothing captured yet</div>
+                        <div id="focus-message-subtitle">tap below to add your first thought</div>
+                    </div>`;
+                return;
+            }
+
+            if (remaining.length === 0) {
+                // All handled
+                const allDone = todayFocus.length > 0 && completedToday.length === todayFocus.length;
+                focusContainer.innerHTML = `
+                    <div id="focus-message">
+                        <div id="focus-message-title">${allDone ? 'nice work' : 'all set for now'}</div>
+                        <div id="focus-message-subtitle">${allDone ? 'you completed everything today' : 'see you tomorrow'}</div>
+                    </div>`;
+                return;
+            }
+
+            // Show current card
+            const item = remaining[0];
+            const cardEl = document.createElement('div');
+            cardEl.className = 'focus-card';
+            cardEl.innerHTML = `
+                <div class="focus-card-count">${remaining.length} remaining</div>
+                <div class="focus-card-label">focus</div>
+                <div class="focus-card-text">${item.text}</div>
+                <div class="focus-card-hint">swipe right = done, left = later</div>
+                <div class="swipe-indicator left">later</div>
+                <div class="swipe-indicator right">done</div>
+            `;
+
+            setupCardSwipe(cardEl, item);
+            focusContainer.appendChild(cardEl);
+        }
+
+        function setupCardSwipe(card, item) {
+            let startX = 0, currentX = 0, swiping = false;
+            const leftIndicator = card.querySelector('.swipe-indicator.left');
+            const rightIndicator = card.querySelector('.swipe-indicator.right');
+
+            card.addEventListener('touchstart', e => {
+                startX = e.touches[0].clientX;
+                swiping = true;
+                card.classList.add('swiping');
+            }, { passive: true });
+
+            card.addEventListener('touchmove', e => {
+                if (!swiping) return;
+                currentX = e.touches[0].clientX;
+                const diff = currentX - startX;
+                card.style.transform = `translateX(${diff}px) rotate(${diff * 0.03}deg)`;
+
+                if (diff > 30) {
+                    rightIndicator.style.opacity = Math.min(1, (diff - 30) / 50);
+                    leftIndicator.style.opacity = 0;
+                } else if (diff < -30) {
+                    leftIndicator.style.opacity = Math.min(1, (-diff - 30) / 50);
+                    rightIndicator.style.opacity = 0;
+                } else {
+                    leftIndicator.style.opacity = 0;
+                    rightIndicator.style.opacity = 0;
+                }
+            }, { passive: true });
+
+            card.addEventListener('touchend', e => {
+                if (!swiping) return;
+                swiping = false;
+                card.classList.remove('swiping');
+
+                const diff = currentX - startX;
+
+                if (diff > 80) {
+                    // Swipe right - done
+                    card.style.transform = 'translateX(100vw) rotate(30deg)';
+                    card.classList.add('swipe-away');
+                    haptic('medium');
+                    setTimeout(() => {
+                        completedToday.push(item);
+                        // Remove from main thoughts list
+                        thoughts = thoughts.filter(t => t.text !== item.text);
+                        completedAllTime.push(item.text);
+                        saveAll();
+                        renderFocusCards();
+                    }, 300);
+                } else if (diff < -80) {
+                    // Swipe left - later
+                    card.style.transform = 'translateX(-100vw) rotate(-30deg)';
+                    card.classList.add('swipe-away');
+                    haptic('light');
+                    setTimeout(() => {
+                        laterToday.push(item);
+                        // Move to end of thoughts
+                        const idx = thoughts.findIndex(t => t.text === item.text);
+                        if (idx > -1) {
+                            const t = thoughts.splice(idx, 1)[0];
+                            t.skips = (t.skips || 0) + 1;
+                            thoughts.push(t);
+                        }
+                        saveAll();
+                        renderFocusCards();
+                    }, 300);
+                } else {
+                    // Snap back
+                    card.style.transform = '';
+                    leftIndicator.style.opacity = 0;
+                    rightIndicator.style.opacity = 0;
+                }
+            });
+        }
+
+        // Swipe up on capture tab to open focus overlay
+        let captureStartY = 0, captureDragging = false;
+
+        captureTab.addEventListener('touchstart', e => {
+            if (focusVisible) return;
+            const touch = e.touches[0];
+            // Only trigger from bottom half
+            if (touch.clientY > window.innerHeight * 0.5) {
+                captureStartY = touch.clientY;
+                captureDragging = true;
+            }
+        }, { passive: true });
+
+        captureTab.addEventListener('touchmove', e => {
+            if (!captureDragging || focusVisible) return;
+            const diff = captureStartY - e.touches[0].clientY;
+            if (diff > 10) {
+                const progress = Math.min(diff / (window.innerHeight * 0.5), 1);
+                focusOverlay.style.transform = `translateY(${(1 - progress) * 100}%)`;
+            }
+        }, { passive: true });
+
+        captureTab.addEventListener('touchend', e => {
+            if (!captureDragging) return;
+            captureDragging = false;
+            const diff = captureStartY - e.changedTouches[0].clientY;
+            if (diff > 100) {
+                openFocusOverlay();
+            } else {
+                focusOverlay.style.transform = '';
+            }
+        });
+
+        // Swipe down on handle to close focus overlay
+        let handleStartY = 0, handleDragging = false;
+
+        focusHandle.addEventListener('touchstart', e => {
+            handleStartY = e.touches[0].clientY;
+            handleDragging = true;
+        }, { passive: true });
+
+        focusHandle.addEventListener('touchmove', e => {
+            if (!handleDragging) return;
+            const diff = e.touches[0].clientY - handleStartY;
+            if (diff > 0) {
+                focusOverlay.style.transform = `translateY(${diff}px)`;
+            }
+        }, { passive: true });
+
+        focusHandle.addEventListener('touchend', e => {
+            if (!handleDragging) return;
+            handleDragging = false;
+            const diff = e.changedTouches[0].clientY - handleStartY;
+            if (diff > 100) {
+                closeFocusOverlay();
+            } else {
+                focusOverlay.classList.add('animating');
+                focusOverlay.style.transform = '';
+                setTimeout(() => focusOverlay.classList.remove('animating'), 300);
+            }
+        });
+
+        // ===== TODAY TAB =====
+        const laterList = document.getElementById('later-list');
+        const completedTodayList = document.getElementById('completed-today-list');
+
+        function renderTodayTab() {
+            laterList.innerHTML = laterToday.length === 0
+                ? '<li class="empty-section">nothing deferred yet</li>'
+                : laterToday.map(item => `<li class="task-item later">${item.text}</li>`).join('');
+
+            completedTodayList.innerHTML = completedToday.length === 0
+                ? '<li class="empty-section">nothing completed yet</li>'
+                : completedToday.map(item => `<li class="task-item completed">${item.text}</li>`).join('');
+        }
+
+        // ===== ALL TAB =====
+        const backlogList = document.getElementById('backlog-list');
+
+        function renderAllTab() {
+            // Show thoughts not in today's focus
+            const focusTexts = todayFocus.map(t => t.text);
+            const backlog = thoughts.filter(t => !focusTexts.includes(t.text));
+
+            if (backlog.length === 0) {
+                backlogList.innerHTML = '<div class="empty-section">no items in backlog</div>';
+                return;
+            }
+
+            backlogList.innerHTML = backlog.map(item => `
+                <div class="backlog-item">
+                    <div class="backlog-item-text">${item.text}</div>
+                    ${item.skips > 0 ? `<div class="backlog-item-meta">skipped ${item.skips}x</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        // ===== SERVICE WORKER =====
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('service-worker.js')
-                .then(function(registration) {
-                    console.log('Service Worker registered');
-                })
-                .catch(function(error) {
-                    console.log('Service Worker registration failed:', error);
-                });
+                .then(() => console.log('Service Worker registered'))
+                .catch(err => console.log('Service Worker registration failed:', err));
         }
+
+        // Check for daily reset periodically
+        setInterval(checkDailyReset, 60000);
     </script>
 </body>
 </html>
