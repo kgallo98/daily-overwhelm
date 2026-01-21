@@ -410,13 +410,17 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+            padding: 15px;
+            gap: 10px;
             overflow: hidden;
         }
 
         #focus-message {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             text-align: center;
             padding: 40px 20px;
         }
@@ -432,79 +436,71 @@
             color: var(--text-muted);
         }
 
+        /* Focus card wrapper */
+        .focus-card-wrapper {
+            position: relative;
+            flex: 1;
+            max-height: 150px;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: flex 0.3s ease-out, opacity 0.3s ease-out, max-height 0.3s ease-out;
+        }
+
+        .focus-card-wrapper.removing {
+            flex: 0;
+            max-height: 0;
+            opacity: 0;
+            margin: 0;
+        }
+
+        /* Swipe backgrounds */
+        .swipe-bg {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 16px;
+            font-weight: 500;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        .swipe-bg-left {
+            background-color: var(--later-color);
+            justify-content: flex-end;
+        }
+
+        .swipe-bg-right {
+            background-color: var(--done-color);
+            justify-content: flex-start;
+        }
+
         /* Focus card */
         .focus-card {
-            width: 100%;
-            max-width: 350px;
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 4px 20px var(--shadow);
             position: relative;
+            height: 100%;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
             touch-action: pan-y pinch-zoom;
+            transition: transform 0.1s ease-out;
         }
 
         .focus-card.swiping {
             transition: none;
         }
 
-        .focus-card.swipe-away {
-            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-            opacity: 0;
-        }
-
-        .focus-card-label {
-            font-size: 12px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 15px;
-        }
-
         .focus-card-text {
-            font-size: 22px;
+            font-size: 16px;
             color: var(--text-color);
-            line-height: 1.4;
-        }
-
-        .focus-card-hint {
-            margin-top: 20px;
-            font-size: 12px;
-            color: var(--text-muted);
-            opacity: 0.6;
-        }
-
-        .focus-card-count {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        /* Swipe indicators */
-        .swipe-indicator {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 14px;
-            font-weight: 500;
-            opacity: 0;
-            transition: opacity 0.15s;
-            padding: 8px 16px;
-            border-radius: 20px;
-        }
-
-        .swipe-indicator.left {
-            left: -80px;
-            background-color: var(--later-color);
-            color: white;
-        }
-
-        .swipe-indicator.right {
-            right: -80px;
-            background-color: var(--done-color);
-            color: white;
+            line-height: 1.3;
+            flex: 1;
         }
 
         /* ===== TODAY TAB ===== */
@@ -978,17 +974,15 @@
             const remaining = todayFocus.filter(item => !handledTexts.includes(item.text));
 
             if (thoughts.length === 0) {
-                // No thoughts captured yet
                 focusContainer.innerHTML = `
                     <div id="focus-message">
                         <div id="focus-message-title">nothing captured yet</div>
-                        <div id="focus-message-subtitle">tap below to add your first thought</div>
+                        <div id="focus-message-subtitle">swipe down and add your first thought</div>
                     </div>`;
                 return;
             }
 
             if (remaining.length === 0) {
-                // All handled
                 const allDone = todayFocus.length > 0 && completedToday.length === todayFocus.length;
                 focusContainer.innerHTML = `
                     <div id="focus-message">
@@ -998,30 +992,31 @@
                 return;
             }
 
-            // Show current card
-            const item = remaining[0];
-            const cardEl = document.createElement('div');
-            cardEl.className = 'focus-card';
-            cardEl.innerHTML = `
-                <div class="focus-card-count">${remaining.length} remaining</div>
-                <div class="focus-card-label">focus</div>
-                <div class="focus-card-text">${item.text}</div>
-                <div class="focus-card-hint">swipe right = done, left = later</div>
-                <div class="swipe-indicator left">later</div>
-                <div class="swipe-indicator right">done</div>
-            `;
-
-            setupCardSwipe(cardEl, item);
-            focusContainer.appendChild(cardEl);
+            // Show all remaining cards
+            remaining.forEach((item, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'focus-card-wrapper';
+                wrapper.innerHTML = `
+                    <div class="swipe-bg swipe-bg-left">later</div>
+                    <div class="swipe-bg swipe-bg-right">done</div>
+                    <div class="focus-card">
+                        <div class="focus-card-text">${item.text}</div>
+                    </div>
+                `;
+                setupCardSwipe(wrapper, item);
+                focusContainer.appendChild(wrapper);
+            });
         }
 
-        function setupCardSwipe(card, item) {
+        function setupCardSwipe(wrapper, item) {
+            const card = wrapper.querySelector('.focus-card');
+            const bgLeft = wrapper.querySelector('.swipe-bg-left');
+            const bgRight = wrapper.querySelector('.swipe-bg-right');
             let startX = 0, currentX = 0, swiping = false;
-            const leftIndicator = card.querySelector('.swipe-indicator.left');
-            const rightIndicator = card.querySelector('.swipe-indicator.right');
 
             card.addEventListener('touchstart', e => {
                 startX = e.touches[0].clientX;
+                currentX = startX;
                 swiping = true;
                 card.classList.add('swiping');
             }, { passive: true });
@@ -1030,17 +1025,20 @@
                 if (!swiping) return;
                 currentX = e.touches[0].clientX;
                 const diff = currentX - startX;
-                card.style.transform = `translateX(${diff}px) rotate(${diff * 0.03}deg)`;
+                card.style.transform = `translateX(${diff}px)`;
 
+                // Show colored background based on direction
                 if (diff > 30) {
-                    rightIndicator.style.opacity = Math.min(1, (diff - 30) / 50);
-                    leftIndicator.style.opacity = 0;
+                    const opacity = Math.min(1, (diff - 30) / 50);
+                    bgRight.style.opacity = opacity;
+                    bgLeft.style.opacity = 0;
                 } else if (diff < -30) {
-                    leftIndicator.style.opacity = Math.min(1, (-diff - 30) / 50);
-                    rightIndicator.style.opacity = 0;
+                    const opacity = Math.min(1, (-diff - 30) / 50);
+                    bgLeft.style.opacity = opacity;
+                    bgRight.style.opacity = 0;
                 } else {
-                    leftIndicator.style.opacity = 0;
-                    rightIndicator.style.opacity = 0;
+                    bgLeft.style.opacity = 0;
+                    bgRight.style.opacity = 0;
                 }
             }, { passive: true });
 
@@ -1053,39 +1051,41 @@
 
                 if (diff > 80) {
                     // Swipe right - done
-                    card.style.transform = 'translateX(100vw) rotate(30deg)';
-                    card.classList.add('swipe-away');
+                    card.style.transform = 'translateX(100vw)';
                     haptic('medium');
                     setTimeout(() => {
-                        completedToday.push(item);
-                        // Remove from main thoughts list
-                        thoughts = thoughts.filter(t => t.text !== item.text);
-                        completedAllTime.push(item.text);
-                        saveAll();
-                        renderFocusCards();
-                    }, 300);
+                        wrapper.classList.add('removing');
+                        setTimeout(() => {
+                            completedToday.push(item);
+                            thoughts = thoughts.filter(t => t.text !== item.text);
+                            completedAllTime.push(item.text);
+                            saveAll();
+                            renderFocusCards();
+                        }, 300);
+                    }, 200);
                 } else if (diff < -80) {
                     // Swipe left - later
-                    card.style.transform = 'translateX(-100vw) rotate(-30deg)';
-                    card.classList.add('swipe-away');
+                    card.style.transform = 'translateX(-100vw)';
                     haptic('light');
                     setTimeout(() => {
-                        laterToday.push(item);
-                        // Move to end of thoughts
-                        const idx = thoughts.findIndex(t => t.text === item.text);
-                        if (idx > -1) {
-                            const t = thoughts.splice(idx, 1)[0];
-                            t.skips = (t.skips || 0) + 1;
-                            thoughts.push(t);
-                        }
-                        saveAll();
-                        renderFocusCards();
-                    }, 300);
+                        wrapper.classList.add('removing');
+                        setTimeout(() => {
+                            laterToday.push(item);
+                            const idx = thoughts.findIndex(t => t.text === item.text);
+                            if (idx > -1) {
+                                const t = thoughts.splice(idx, 1)[0];
+                                t.skips = (t.skips || 0) + 1;
+                                thoughts.push(t);
+                            }
+                            saveAll();
+                            renderFocusCards();
+                        }, 300);
+                    }, 200);
                 } else {
                     // Snap back
                     card.style.transform = '';
-                    leftIndicator.style.opacity = 0;
-                    rightIndicator.style.opacity = 0;
+                    bgLeft.style.opacity = 0;
+                    bgRight.style.opacity = 0;
                 }
             });
         }
