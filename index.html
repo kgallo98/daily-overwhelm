@@ -224,14 +224,13 @@
         /* Tab content */
         #tabs-container {
             flex: 1;
-            display: flex;
             overflow: hidden;
             position: relative;
+            width: 100%;
         }
 
         #tabs-track {
             display: flex;
-            width: 300%;
             height: 100%;
             will-change: transform;
         }
@@ -246,7 +245,8 @@
             flex-direction: column;
             padding: 20px;
             overflow-y: auto;
-            width: 33.333%;
+            width: 100vw;
+            min-width: 100vw;
         }
 
         /* ===== CAPTURE TAB ===== */
@@ -1168,10 +1168,6 @@
         const tabIds = ['capture-tab', 'today-tab', 'all-tab'];
         let currentTabIndex = 0;
 
-        function getTabOffset(index) {
-            return -(index * 100 / 3) + '%';
-        }
-
         function switchToTab(index, animate = true) {
             if (index < 0 || index >= tabIds.length) return;
             currentTabIndex = index;
@@ -1182,7 +1178,7 @@
             if (animate) {
                 tabsTrack.classList.add('animating');
             }
-            tabsTrack.style.transform = `translateX(${getTabOffset(index)})`;
+            tabsTrack.style.transform = `translateX(${-index * 100}vw)`;
 
             if (animate) {
                 setTimeout(() => tabsTrack.classList.remove('animating'), 300);
@@ -1235,16 +1231,14 @@
 
             if (tabSwipeConfirmed) {
                 // Calculate the new position based on swipe
-                const containerWidth = tabsContainer.offsetWidth;
-                const baseOffset = -(currentTabIndex * 100 / 3);
-                const swipeOffset = (diffX / containerWidth) * (100 / 3);
+                const baseOffset = -currentTabIndex * window.innerWidth;
+                const newOffset = baseOffset + diffX;
 
                 // Limit swiping at edges
-                let newOffset = baseOffset + swipeOffset;
-                const minOffset = -((tabIds.length - 1) * 100 / 3);
-                newOffset = Math.max(minOffset, Math.min(0, newOffset));
+                const minOffset = -(tabIds.length - 1) * window.innerWidth;
+                const clampedOffset = Math.max(minOffset, Math.min(0, newOffset));
 
-                tabsTrack.style.transform = `translateX(${newOffset}%)`;
+                tabsTrack.style.transform = `translateX(${clampedOffset}px)`;
             }
         }, { passive: true });
 
