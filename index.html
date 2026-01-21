@@ -592,6 +592,11 @@
             justify-content: flex-end;
         }
 
+        .backlog-swipe-delete.confirm {
+            justify-content: center;
+            cursor: pointer;
+        }
+
         .backlog-item {
             padding: 15px;
             background-color: var(--card-bg);
@@ -602,6 +607,9 @@
             position: relative;
             touch-action: pan-y pinch-zoom;
             transition: transform 0.1s;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
         }
 
         .backlog-item.swiping {
@@ -1440,11 +1448,42 @@
             const deleteBg = wrapper.querySelector('.backlog-swipe-delete');
 
             let startX = 0, startY = 0, currentX = 0, currentY = 0;
-            let swiping = false, dragging = false;
+            let swiping = false, dragging = false, pendingDelete = false;
             let longPressTimer = null;
             let wrapperRect = null;
             let allWrappers = [];
             const LONG_PRESS_DURATION = 400;
+
+            function confirmDelete() {
+                itemEl.style.transform = 'translateX(-100vw)';
+                haptic('medium');
+                setTimeout(() => {
+                    wrapper.classList.add('removing');
+                    setTimeout(() => {
+                        thoughts = thoughts.filter(t => t.text !== item.text);
+                        todayFocus = todayFocus.filter(t => t.text !== item.text);
+                        saveAll();
+                        renderAllTab();
+                        renderFocusCards();
+                    }, 300);
+                }, 150);
+            }
+
+            function cancelPendingDelete() {
+                pendingDelete = false;
+                deleteBg.classList.remove('confirm');
+                deleteBg.textContent = 'delete';
+                itemEl.style.transform = '';
+                deleteBg.style.opacity = 0;
+            }
+
+            // Tap on delete background to confirm
+            deleteBg.addEventListener('click', e => {
+                if (pendingDelete) {
+                    e.stopPropagation();
+                    confirmDelete();
+                }
+            });
 
             function startDragMode(e) {
                 dragging = true;
@@ -1476,6 +1515,11 @@
             }
 
             itemEl.addEventListener('touchstart', e => {
+                // Cancel any pending delete when starting new interaction
+                if (pendingDelete) {
+                    cancelPendingDelete();
+                }
+
                 startX = e.touches[0].clientX;
                 startY = e.touches[0].clientY;
                 currentX = startX;
@@ -1597,19 +1641,14 @@
                     const diffX = currentX - startX;
 
                     if (diffX < -100) {
-                        // Delete
-                        itemEl.style.transform = 'translateX(-100vw)';
-                        haptic('medium');
-                        setTimeout(() => {
-                            wrapper.classList.add('removing');
-                            setTimeout(() => {
-                                thoughts = thoughts.filter(t => t.text !== item.text);
-                                todayFocus = todayFocus.filter(t => t.text !== item.text);
-                                saveAll();
-                                renderAllTab();
-                                renderFocusCards();
-                            }, 300);
-                        }, 150);
+                        // Show delete confirmation
+                        pendingDelete = true;
+                        const itemWidth = itemEl.offsetWidth;
+                        itemEl.style.transform = `translateX(-${itemWidth}px)`;
+                        deleteBg.style.opacity = 1;
+                        deleteBg.classList.add('confirm');
+                        deleteBg.textContent = 'tap to delete';
+                        haptic('light');
                     } else {
                         // Snap back
                         itemEl.style.transform = '';
@@ -1626,6 +1665,7 @@
                 }
                 swiping = false;
                 dragging = false;
+                if (pendingDelete) cancelPendingDelete();
                 itemEl.classList.remove('swiping');
                 wrapper.classList.remove('dragging');
                 itemEl.style.transform = '';
