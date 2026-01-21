@@ -520,36 +520,25 @@
         .focus-card {
             position: relative;
             height: 100%;
-            background: linear-gradient(to bottom, var(--card-bg), rgba(0,0,0,0.15));
+            background-color: var(--card-bg);
             border-radius: 16px;
             padding: 20px 24px;
+            padding-left: 22px;
             display: flex;
             align-items: center;
             touch-action: pan-y pinch-zoom;
             transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1);
-            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             border-left: 3px solid var(--accent);
         }
 
-        .focus-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent);
-            border-radius: 16px 16px 0 0;
-        }
-
         .focus-card:active {
-            box-shadow: 0 6px 20px rgba(0,0,0,0.25), 0 3px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
         .focus-card.swiping {
             transition: none;
-            box-shadow: 0 8px 28px rgba(0,0,0,0.3), 0 4px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
         }
 
         .focus-card-text {
@@ -558,7 +547,6 @@
             line-height: 1.45;
             flex: 1;
             font-weight: 450;
-            letter-spacing: -0.01em;
         }
 
         /* ===== TODAY TAB ===== */
@@ -1496,13 +1484,14 @@
                 const diff = currentX - startX;
                 card.style.transform = `translateX(${diff}px)`;
 
-                // Show colored background based on direction
-                if (diff > 30) {
-                    const opacity = Math.min(1, (diff - 30) / 50);
+                // Show colored background - opacity scales linearly to 100% at threshold
+                const threshold = 80;
+                if (diff > 0) {
+                    const opacity = Math.min(1, diff / threshold);
                     bgRight.style.opacity = opacity;
                     bgLeft.style.opacity = 0;
-                } else if (diff < -30) {
-                    const opacity = Math.min(1, (-diff - 30) / 50);
+                } else if (diff < 0) {
+                    const opacity = Math.min(1, -diff / threshold);
                     bgLeft.style.opacity = opacity;
                     bgRight.style.opacity = 0;
                 } else {
