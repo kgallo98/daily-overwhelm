@@ -544,6 +544,17 @@
             color: var(--text-light);
         }
 
+        .task-item.old {
+            border-left: 3px solid var(--text-muted);
+            opacity: 0.85;
+        }
+
+        .task-item-age {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
         .empty-section {
             color: var(--text-muted);
             font-size: 14px;
@@ -836,10 +847,15 @@
 
     <!-- TODAY TAB -->
     <div id="today-tab" class="tab-content">
+        <div id="old-items-section" style="display: none;">
+            <div class="section-title">been on your mind</div>
+            <ul id="old-items-list" class="task-list"></ul>
+        </div>
+
         <div class="section-title">for later</div>
         <ul id="later-list" class="task-list"></ul>
 
-        <div class="section-title">completed today</div>
+        <div class="section-title">done</div>
         <ul id="completed-today-list" class="task-list"></ul>
     </div>
 
@@ -1346,8 +1362,8 @@
             if (thoughts.length === 0) {
                 focusContainer.innerHTML = `
                     <div id="focus-message">
-                        <div id="focus-message-title">nothing captured yet</div>
-                        <div id="focus-message-subtitle">swipe down and add your first thought</div>
+                        <div id="focus-message-title">your mind is clear</div>
+                        <div id="focus-message-subtitle">swipe down to capture a thought</div>
                     </div>`;
                 return;
             }
@@ -1356,8 +1372,8 @@
                 const allDone = todayFocus.length > 0 && completedToday.length === todayFocus.length;
                 focusContainer.innerHTML = `
                     <div id="focus-message">
-                        <div id="focus-message-title">${allDone ? 'nice work' : 'all set for now'}</div>
-                        <div id="focus-message-subtitle">${allDone ? 'you completed everything today' : 'see you tomorrow'}</div>
+                        <div id="focus-message-title">${allDone ? 'a good day' : 'all set'}</div>
+                        <div id="focus-message-subtitle">${allDone ? 'you moved through everything' : 'rest easy'}</div>
                     </div>`;
                 return;
             }
@@ -1551,14 +1567,44 @@
         // ===== TODAY TAB =====
         const laterList = document.getElementById('later-list');
         const completedTodayList = document.getElementById('completed-today-list');
+        const oldItemsSection = document.getElementById('old-items-section');
+        const oldItemsList = document.getElementById('old-items-list');
+
+        function getTimeAgo(timestamp) {
+            const days = Math.floor((Date.now() - timestamp) / (1000 * 60 * 60 * 24));
+            if (days < 7) return `${days} day${days !== 1 ? 's' : ''} ago`;
+            const weeks = Math.floor(days / 7);
+            return `${weeks} week${weeks !== 1 ? 's' : ''} ago`;
+        }
 
         function renderTodayTab() {
+            // Old items (2+ weeks old, not in today's focus)
+            const twoWeeksAgo = Date.now() - (14 * 24 * 60 * 60 * 1000);
+            const focusTexts = todayFocus.map(t => t.text);
+            const oldItems = thoughts
+                .filter(t => t.createdAt && t.createdAt < twoWeeksAgo && !focusTexts.includes(t.text))
+                .slice(0, 2);
+
+            if (oldItems.length > 0) {
+                oldItemsSection.style.display = 'block';
+                oldItemsList.innerHTML = oldItems.map(item => `
+                    <li class="task-item old">
+                        ${item.text}
+                        <div class="task-item-age">${getTimeAgo(item.createdAt)}</div>
+                    </li>
+                `).join('');
+            } else {
+                oldItemsSection.style.display = 'none';
+            }
+
+            // For later
             laterList.innerHTML = laterToday.length === 0
-                ? '<li class="empty-section">nothing deferred yet</li>'
+                ? '<li class="empty-section">nothing pushed back</li>'
                 : laterToday.map(item => `<li class="task-item later">${item.text}</li>`).join('');
 
+            // Completed
             completedTodayList.innerHTML = completedToday.length === 0
-                ? '<li class="empty-section">nothing completed yet</li>'
+                ? '<li class="empty-section">fresh start</li>'
                 : completedToday.map(item => `<li class="task-item completed">${item.text}</li>`).join('');
         }
 
@@ -1574,7 +1620,7 @@
             const backlog = thoughts.filter(t => !focusTexts.includes(t.text));
 
             if (backlog.length === 0) {
-                backlogList.innerHTML = '<div class="empty-section">no items in backlog</div>';
+                backlogList.innerHTML = '<div class="empty-section">nothing waiting</div>';
                 return;
             }
 
