@@ -442,8 +442,8 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding: 15px;
-            gap: 10px;
+            padding: 10px 20px 30px;
+            gap: 14px;
             overflow: hidden;
         }
 
@@ -473,8 +473,9 @@
         .focus-card-wrapper {
             position: relative;
             flex: 1;
-            max-height: 150px;
-            border-radius: 12px;
+            max-height: 140px;
+            min-height: 80px;
+            border-radius: 16px;
             overflow: hidden;
             transition: flex 0.3s ease-out, opacity 0.3s ease-out, max-height 0.3s ease-out;
         }
@@ -494,21 +495,24 @@
             width: 100%;
             display: flex;
             align-items: center;
-            padding: 0 20px;
-            font-size: 16px;
-            font-weight: 500;
+            padding: 0 24px;
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: lowercase;
             color: white;
             opacity: 0;
             transition: opacity 0.15s;
+            border-radius: 16px;
         }
 
         .swipe-bg-left {
-            background-color: var(--later-color);
+            background: linear-gradient(135deg, var(--later-color), #e09530);
             justify-content: flex-end;
         }
 
         .swipe-bg-right {
-            background-color: var(--done-color);
+            background: linear-gradient(135deg, #4caf50, var(--done-color));
             justify-content: flex-start;
         }
 
@@ -516,31 +520,45 @@
         .focus-card {
             position: relative;
             height: 100%;
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 18px 22px;
+            background: linear-gradient(to bottom, var(--card-bg), rgba(0,0,0,0.15));
+            border-radius: 16px;
+            padding: 20px 24px;
             display: flex;
             align-items: center;
             touch-action: pan-y pinch-zoom;
             transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-left: 3px solid var(--accent);
+        }
+
+        .focus-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent);
+            border-radius: 16px 16px 0 0;
         }
 
         .focus-card:active {
-            box-shadow: 0 4px 16px rgba(0,0,0,0.2), 0 2px 6px rgba(0,0,0,0.12);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25), 0 3px 8px rgba(0,0,0,0.15);
         }
 
         .focus-card.swiping {
             transition: none;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.25), 0 3px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 28px rgba(0,0,0,0.3), 0 4px 10px rgba(0,0,0,0.2);
         }
 
         .focus-card-text {
-            font-size: 17px;
+            font-size: 18px;
             color: var(--text-color);
-            line-height: 1.4;
+            line-height: 1.45;
             flex: 1;
-            font-weight: 400;
+            font-weight: 450;
+            letter-spacing: -0.01em;
         }
 
         /* ===== TODAY TAB ===== */
