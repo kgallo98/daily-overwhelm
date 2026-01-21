@@ -621,6 +621,22 @@
             border-left: 3px solid #5cb85c;
         }
 
+        #sheet-swipe-zone {
+            flex: 1;
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #swipe-up-hint {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            opacity: 0.5;
+            padding: 20px;
+            margin-top: auto;
+        }
+
         /* ===== BOTTOM SHEET ===== */
         #sheet-overlay {
             position: fixed;
@@ -643,20 +659,21 @@
             position: fixed;
             left: 0;
             right: 0;
-            bottom: 60px;
+            bottom: 0;
             background-color: var(--card-bg);
             border-radius: 20px 20px 0 0;
             z-index: 160;
-            transform: translateY(calc(100% + 10px));
-            transition: transform 0.3s ease-out;
-            max-height: 60vh;
+            transform: translateY(100%);
+            max-height: 70vh;
             display: flex;
             flex-direction: column;
             box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+            will-change: transform;
         }
 
-        #bottom-sheet.peek {
-            transform: translateY(calc(100% - 45px));
+        #bottom-sheet.animating {
+            transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
         }
 
         #bottom-sheet.expanded {
@@ -664,15 +681,9 @@
         }
 
         #sheet-handle {
-            padding: 15px;
+            padding: 12px;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            cursor: grab;
-        }
-
-        #sheet-handle:active {
-            cursor: grabbing;
+            justify-content: center;
         }
 
         .handle-pill {
@@ -680,18 +691,7 @@
             height: 4px;
             background-color: var(--text-muted);
             border-radius: 2px;
-            opacity: 0.5;
-        }
-
-        #sheet-hint {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 8px;
-            opacity: 0.7;
-        }
-
-        #bottom-sheet.expanded #sheet-hint {
-            display: none;
+            opacity: 0.4;
         }
 
         #sheet-content {
@@ -869,9 +869,13 @@
         </div>
         <div id="swipe-instruction">swipe right to complete, left for later</div>
 
-        <div id="completed-section">
-            <div id="completed-header"></div>
-            <ul id="completed-list"></ul>
+        <!-- Swipe zone for bottom sheet -->
+        <div id="sheet-swipe-zone">
+            <div id="completed-section">
+                <div id="completed-header"></div>
+                <ul id="completed-list"></ul>
+            </div>
+            <div id="swipe-up-hint">swipe up for all</div>
         </div>
     </div>
 
@@ -892,7 +896,6 @@
     <div id="bottom-sheet">
         <div id="sheet-handle">
             <div class="handle-pill"></div>
-            <div id="sheet-hint">pull up to see all</div>
         </div>
         <div id="sheet-content">
             <div id="sheet-title">all thoughts</div>
@@ -928,14 +931,9 @@
                 this.classList.add('active');
                 document.getElementById(tabId).classList.add('active');
 
-                // Show/hide bottom sheet peek based on tab
-                const bottomSheet = document.getElementById('bottom-sheet');
-                if (tabId === 'tasks-tab') {
-                    bottomSheet.classList.add('peek');
-                } else {
-                    bottomSheet.classList.remove('peek');
-                    bottomSheet.classList.remove('expanded');
-                    document.getElementById('sheet-overlay').classList.remove('visible');
+                // Close bottom sheet when switching tabs
+                if (tabId !== 'tasks-tab') {
+                    closeSheet();
                 }
             });
         });
@@ -965,22 +963,32 @@
         // ===== BOTTOM SHEET =====
         const bottomSheet = document.getElementById('bottom-sheet');
         const sheetOverlay = document.getElementById('sheet-overlay');
-        const sheetHandle = document.getElementById('sheet-handle');
         const sheetList = document.getElementById('sheet-list');
+        const sheetSwipeZone = document.getElementById('sheet-swipe-zone');
         let sheetExpanded = false;
+        let sheetDragging = false;
+        let sheetStartY = 0;
+        let sheetCurrentY = 0;
+        let sheetStartTime = 0;
+        const sheetHeight = window.innerHeight * 0.7;
 
-        function toggleSheet(expand) {
-            sheetExpanded = expand;
-            if (expand) {
-                bottomSheet.classList.remove('peek');
-                bottomSheet.classList.add('expanded');
-                sheetOverlay.classList.add('visible');
-                renderSheetList();
-            } else {
-                bottomSheet.classList.remove('expanded');
-                bottomSheet.classList.add('peek');
-                sheetOverlay.classList.remove('visible');
-            }
+        function openSheet() {
+            sheetExpanded = true;
+            bottomSheet.classList.add('animating');
+            bottomSheet.classList.add('expanded');
+            bottomSheet.style.transform = '';
+            sheetOverlay.classList.add('visible');
+            renderSheetList();
+            setTimeout(() => bottomSheet.classList.remove('animating'), 300);
+        }
+
+        function closeSheet() {
+            sheetExpanded = false;
+            bottomSheet.classList.add('animating');
+            bottomSheet.classList.remove('expanded');
+            bottomSheet.style.transform = '';
+            sheetOverlay.classList.remove('visible');
+            setTimeout(() => bottomSheet.classList.remove('animating'), 300);
         }
 
         function renderSheetList() {
@@ -1008,29 +1016,85 @@
             });
         }
 
-        sheetHandle.addEventListener('click', function() {
-            toggleSheet(!sheetExpanded);
-        });
+        // Swipe up on tasks tab to open sheet
+        sheetSwipeZone.addEventListener('touchstart', function(e) {
+            if (sheetExpanded) return;
+            sheetStartY = e.touches[0].clientY;
+            sheetStartTime = Date.now();
+            sheetDragging = true;
+        }, { passive: true });
 
-        sheetOverlay.addEventListener('click', function() {
-            toggleSheet(false);
-        });
+        sheetSwipeZone.addEventListener('touchmove', function(e) {
+            if (!sheetDragging || sheetExpanded) return;
+            sheetCurrentY = e.touches[0].clientY;
+            const diff = sheetStartY - sheetCurrentY;
 
-        // Swipe down to close
-        let sheetTouchStartY = 0;
-        bottomSheet.addEventListener('touchstart', function(e) {
-            if (sheetExpanded) {
-                sheetTouchStartY = e.touches[0].clientY;
+            if (diff > 10) {
+                // Swiping up - show sheet following finger
+                const progress = Math.min(diff / sheetHeight, 1);
+                const translateY = (1 - progress) * 100;
+                bottomSheet.style.transform = 'translateY(' + translateY + '%)';
+                sheetOverlay.style.backgroundColor = 'rgba(0, 0, 0, ' + (progress * 0.5) + ')';
+                sheetOverlay.style.pointerEvents = progress > 0.1 ? 'auto' : 'none';
             }
+        }, { passive: true });
+
+        sheetSwipeZone.addEventListener('touchend', function(e) {
+            if (!sheetDragging || sheetExpanded) return;
+            sheetDragging = false;
+
+            const diff = sheetStartY - sheetCurrentY;
+            const velocity = diff / (Date.now() - sheetStartTime);
+
+            // Open if dragged far enough or fast enough
+            if (diff > 80 || velocity > 0.5) {
+                openSheet();
+            } else {
+                closeSheet();
+            }
+        });
+
+        // Swipe down on sheet to close
+        let sheetCloseStartY = 0;
+        let sheetCloseDragging = false;
+
+        bottomSheet.addEventListener('touchstart', function(e) {
+            if (!sheetExpanded) return;
+            sheetCloseStartY = e.touches[0].clientY;
+            sheetCloseDragging = true;
+            sheetStartTime = Date.now();
         }, { passive: true });
 
         bottomSheet.addEventListener('touchmove', function(e) {
-            if (!sheetExpanded) return;
-            const diff = e.touches[0].clientY - sheetTouchStartY;
-            if (diff > 50) {
-                toggleSheet(false);
+            if (!sheetCloseDragging || !sheetExpanded) return;
+            const diff = e.touches[0].clientY - sheetCloseStartY;
+
+            if (diff > 0) {
+                // Swiping down - sheet follows finger
+                const translateY = Math.min(diff, sheetHeight);
+                bottomSheet.style.transform = 'translateY(' + translateY + 'px)';
+                const progress = 1 - (diff / sheetHeight);
+                sheetOverlay.style.backgroundColor = 'rgba(0, 0, 0, ' + (progress * 0.5) + ')';
             }
         }, { passive: true });
+
+        bottomSheet.addEventListener('touchend', function(e) {
+            if (!sheetCloseDragging || !sheetExpanded) return;
+            sheetCloseDragging = false;
+
+            const diff = e.changedTouches[0].clientY - sheetCloseStartY;
+            const velocity = diff / (Date.now() - sheetStartTime);
+
+            // Close if dragged far enough or fast enough
+            if (diff > 100 || velocity > 0.5) {
+                closeSheet();
+            } else {
+                openSheet();
+            }
+        });
+
+        // Tap overlay to close
+        sheetOverlay.addEventListener('click', closeSheet);
 
         // ===== CONFIRMATION MESSAGES =====
         const confirmationMessages = [
