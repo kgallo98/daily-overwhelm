@@ -557,14 +557,74 @@
             padding-top: 50px;
         }
 
+        .backlog-item-wrapper {
+            position: relative;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .backlog-item-wrapper.removing {
+            transition: max-height 0.3s, opacity 0.3s, margin 0.3s;
+            max-height: 0;
+            opacity: 0;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .backlog-swipe-bg {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        .backlog-swipe-delete {
+            background-color: #e74c3c;
+            justify-content: flex-end;
+        }
+
         .backlog-item {
             padding: 15px;
             background-color: var(--card-bg);
             border-radius: 10px;
-            margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
+            touch-action: pan-y pinch-zoom;
+            transition: transform 0.1s;
+        }
+
+        .backlog-item.swiping {
+            transition: none;
+        }
+
+        .backlog-item.dragging {
+            opacity: 0.8;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+
+        .backlog-drag-handle {
+            padding: 10px;
+            margin-right: 5px;
+            margin-left: -5px;
+            color: var(--text-muted);
+            cursor: grab;
+            touch-action: none;
+        }
+
+        .backlog-drag-handle:active {
+            cursor: grabbing;
         }
 
         .backlog-item-text {
@@ -577,6 +637,13 @@
             font-size: 12px;
             color: var(--text-muted);
             margin-left: 10px;
+        }
+
+        .backlog-placeholder {
+            background-color: var(--border-color);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            opacity: 0.5;
         }
 
         /* ===== TAB BAR ===== */
@@ -1350,6 +1417,9 @@
 
         // ===== ALL TAB =====
         const backlogList = document.getElementById('backlog-list');
+        let draggedItem = null;
+        let draggedIndex = -1;
+        let placeholder = null;
 
         function renderAllTab() {
             // Show thoughts not in today's focus
@@ -1361,12 +1431,198 @@
                 return;
             }
 
-            backlogList.innerHTML = backlog.map(item => `
-                <div class="backlog-item">
-                    <div class="backlog-item-text">${item.text}</div>
-                    ${item.skips > 0 ? `<div class="backlog-item-meta">skipped ${item.skips}x</div>` : ''}
-                </div>
-            `).join('');
+            backlogList.innerHTML = '';
+            backlog.forEach((item, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'backlog-item-wrapper';
+                wrapper.dataset.index = index;
+                wrapper.innerHTML = `
+                    <div class="backlog-swipe-bg backlog-swipe-delete">delete</div>
+                    <div class="backlog-item">
+                        <div class="backlog-drag-handle">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg>
+                        </div>
+                        <div class="backlog-item-text">${item.text}</div>
+                        ${item.skips > 0 ? `<div class="backlog-item-meta">skipped ${item.skips}x</div>` : ''}
+                    </div>
+                `;
+                setupBacklogSwipe(wrapper, item);
+                setupBacklogDrag(wrapper, item, index, backlog);
+                backlogList.appendChild(wrapper);
+            });
+        }
+
+        function setupBacklogSwipe(wrapper, item) {
+            const itemEl = wrapper.querySelector('.backlog-item');
+            const deleteBg = wrapper.querySelector('.backlog-swipe-delete');
+            let startX = 0, currentX = 0, swiping = false;
+
+            itemEl.addEventListener('touchstart', e => {
+                // Don't start swipe if on drag handle
+                if (e.target.closest('.backlog-drag-handle')) return;
+                startX = e.touches[0].clientX;
+                currentX = startX;
+                swiping = true;
+                itemEl.classList.add('swiping');
+            }, { passive: true });
+
+            itemEl.addEventListener('touchmove', e => {
+                if (!swiping) return;
+                currentX = e.touches[0].clientX;
+                const diff = currentX - startX;
+                // Only allow left swipe (negative)
+                if (diff < 0) {
+                    itemEl.style.transform = `translateX(${diff}px)`;
+                    const opacity = Math.min(1, (-diff - 30) / 50);
+                    deleteBg.style.opacity = Math.max(0, opacity);
+                }
+            }, { passive: true });
+
+            itemEl.addEventListener('touchend', e => {
+                if (!swiping) return;
+                swiping = false;
+                itemEl.classList.remove('swiping');
+
+                const diff = currentX - startX;
+
+                if (diff < -100) {
+                    // Delete
+                    itemEl.style.transform = 'translateX(-100vw)';
+                    haptic('medium');
+                    setTimeout(() => {
+                        wrapper.classList.add('removing');
+                        setTimeout(() => {
+                            thoughts = thoughts.filter(t => t.text !== item.text);
+                            // Also remove from todayFocus if present
+                            todayFocus = todayFocus.filter(t => t.text !== item.text);
+                            saveAll();
+                            renderAllTab();
+                            renderFocusCards();
+                        }, 300);
+                    }, 150);
+                } else {
+                    // Snap back
+                    itemEl.style.transform = '';
+                    deleteBg.style.opacity = 0;
+                }
+            });
+        }
+
+        function setupBacklogDrag(wrapper, item, originalIndex, backlog) {
+            const handle = wrapper.querySelector('.backlog-drag-handle');
+            let startY = 0, currentY = 0, dragging = false;
+            let wrapperRect = null;
+            let allWrappers = [];
+
+            handle.addEventListener('touchstart', e => {
+                e.preventDefault();
+                startY = e.touches[0].clientY;
+                currentY = startY;
+                dragging = true;
+                draggedItem = item;
+                draggedIndex = originalIndex;
+
+                wrapperRect = wrapper.getBoundingClientRect();
+                allWrappers = Array.from(backlogList.querySelectorAll('.backlog-item-wrapper'));
+
+                // Create placeholder
+                placeholder = document.createElement('div');
+                placeholder.className = 'backlog-placeholder';
+                placeholder.style.height = wrapperRect.height + 'px';
+
+                // Style dragged item
+                wrapper.classList.add('dragging');
+                wrapper.style.position = 'fixed';
+                wrapper.style.left = wrapperRect.left + 'px';
+                wrapper.style.top = wrapperRect.top + 'px';
+                wrapper.style.width = wrapperRect.width + 'px';
+                wrapper.style.zIndex = '100';
+
+                // Insert placeholder
+                wrapper.parentNode.insertBefore(placeholder, wrapper);
+                document.body.appendChild(wrapper);
+
+                haptic('light');
+            });
+
+            handle.addEventListener('touchmove', e => {
+                if (!dragging) return;
+                currentY = e.touches[0].clientY;
+                const diff = currentY - startY;
+                wrapper.style.top = (wrapperRect.top + diff) + 'px';
+
+                // Find where to insert placeholder
+                const wrapperCenterY = wrapperRect.top + diff + wrapperRect.height / 2;
+                let insertBefore = null;
+
+                allWrappers.forEach(w => {
+                    if (w === wrapper) return;
+                    const rect = w.getBoundingClientRect();
+                    if (wrapperCenterY < rect.top + rect.height / 2) {
+                        if (!insertBefore || rect.top < insertBefore.getBoundingClientRect().top) {
+                            insertBefore = w;
+                        }
+                    }
+                });
+
+                // Move placeholder
+                if (insertBefore) {
+                    backlogList.insertBefore(placeholder, insertBefore);
+                } else {
+                    backlogList.appendChild(placeholder);
+                }
+            });
+
+            handle.addEventListener('touchend', e => {
+                if (!dragging) return;
+                dragging = false;
+
+                // Get new position based on placeholder
+                const newIndex = Array.from(backlogList.children).indexOf(placeholder);
+
+                // Reset wrapper styling
+                wrapper.classList.remove('dragging');
+                wrapper.style.position = '';
+                wrapper.style.left = '';
+                wrapper.style.top = '';
+                wrapper.style.width = '';
+                wrapper.style.zIndex = '';
+
+                // Insert at new position
+                if (placeholder && placeholder.parentNode) {
+                    placeholder.parentNode.insertBefore(wrapper, placeholder);
+                    placeholder.remove();
+                }
+                placeholder = null;
+
+                // Update thoughts array
+                if (newIndex !== -1 && newIndex !== originalIndex) {
+                    const focusTexts = todayFocus.map(t => t.text);
+                    const backlogItems = thoughts.filter(t => !focusTexts.includes(t.text));
+                    const movedItem = backlogItems[originalIndex];
+
+                    // Remove from original position in thoughts
+                    const thoughtsIndex = thoughts.findIndex(t => t.text === movedItem.text);
+                    if (thoughtsIndex > -1) {
+                        thoughts.splice(thoughtsIndex, 1);
+                    }
+
+                    // Find insert position in thoughts (after focus items)
+                    const focusCount = thoughts.filter(t => focusTexts.includes(t.text)).length;
+                    const insertAt = focusCount + newIndex;
+                    thoughts.splice(insertAt, 0, movedItem);
+
+                    saveAll();
+                    haptic('light');
+                }
+
+                draggedItem = null;
+                draggedIndex = -1;
+            });
         }
 
         // ===== SERVICE WORKER =====
