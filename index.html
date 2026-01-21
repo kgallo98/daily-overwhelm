@@ -1233,26 +1233,48 @@
             }
         });
 
-        // Swipe down on handle to close focus overlay
-        let handleStartY = 0, handleDragging = false;
+        // Swipe down anywhere on focus overlay to close
+        let overlayStartY = 0, overlayStartX = 0, overlayDragging = false, overlayDragConfirmed = false;
 
-        focusHandle.addEventListener('touchstart', e => {
-            handleStartY = e.touches[0].clientY;
-            handleDragging = true;
+        focusOverlay.addEventListener('touchstart', e => {
+            overlayStartY = e.touches[0].clientY;
+            overlayStartX = e.touches[0].clientX;
+            overlayDragging = true;
+            overlayDragConfirmed = false;
         }, { passive: true });
 
-        focusHandle.addEventListener('touchmove', e => {
-            if (!handleDragging) return;
-            const diff = e.touches[0].clientY - handleStartY;
-            if (diff > 0) {
-                focusOverlay.style.transform = `translateY(${diff}px)`;
+        focusOverlay.addEventListener('touchmove', e => {
+            if (!overlayDragging) return;
+
+            const diffY = e.touches[0].clientY - overlayStartY;
+            const diffX = e.touches[0].clientX - overlayStartX;
+
+            // Only handle if vertical swipe is dominant and downward
+            if (!overlayDragConfirmed) {
+                if (Math.abs(diffX) > 20) {
+                    // Horizontal swipe - let card handle it
+                    overlayDragging = false;
+                    return;
+                }
+                if (diffY > 20) {
+                    overlayDragConfirmed = true;
+                }
+            }
+
+            if (overlayDragConfirmed && diffY > 0) {
+                focusOverlay.style.transform = `translateY(${diffY}px)`;
             }
         }, { passive: true });
 
-        focusHandle.addEventListener('touchend', e => {
-            if (!handleDragging) return;
-            handleDragging = false;
-            const diff = e.changedTouches[0].clientY - handleStartY;
+        focusOverlay.addEventListener('touchend', e => {
+            if (!overlayDragging) return;
+            overlayDragging = false;
+
+            if (!overlayDragConfirmed) {
+                return;
+            }
+
+            const diff = e.changedTouches[0].clientY - overlayStartY;
             if (diff > 100) {
                 closeFocusOverlay();
             } else {
