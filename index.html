@@ -1588,46 +1588,74 @@
             };
 
             recognition.onerror = function(e) {
-                console.log('Speech recognition error:', e.error);
+                console.log('Speech recognition error:', e.error, e);
                 isListening = false;
                 bigMicButton.classList.remove('listening');
                 micContainer.classList.remove('listening');
 
-                if (e.error === 'not-allowed') {
+                if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
                     bigMicButton.textContent = 'mic blocked';
                     setTimeout(() => {
-                        bigMicButton.textContent = 'type below';
+                        bigMicButton.textContent = 'tap to capture';
                     }, 2000);
                 } else if (e.error === 'no-speech') {
                     bigMicButton.textContent = 'no speech heard';
                     setTimeout(() => {
                         bigMicButton.textContent = 'tap to capture';
                     }, 2000);
+                } else if (e.error === 'network') {
+                    bigMicButton.textContent = 'needs internet';
+                    setTimeout(() => {
+                        bigMicButton.textContent = 'tap to capture';
+                    }, 2000);
+                } else if (e.error === 'audio-capture') {
+                    bigMicButton.textContent = 'mic unavailable';
+                    setTimeout(() => {
+                        bigMicButton.textContent = 'tap to capture';
+                    }, 2000);
                 } else {
-                    bigMicButton.textContent = 'try again';
+                    // Show actual error for debugging
+                    bigMicButton.textContent = e.error || 'error';
                     setTimeout(() => {
                         bigMicButton.textContent = 'tap to capture';
                     }, 2000);
                 }
             };
 
+            async function startListening() {
+                // Request mic permission explicitly first (helps with iOS PWA)
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    stream.getTracks().forEach(track => track.stop()); // Release immediately
+                } catch (err) {
+                    console.log('Mic permission error:', err);
+                    bigMicButton.textContent = 'mic blocked';
+                    setTimeout(() => {
+                        bigMicButton.textContent = 'tap to capture';
+                    }, 2000);
+                    return;
+                }
+
+                try {
+                    recognition.start();
+                    isListening = true;
+                    bigMicButton.classList.add('listening');
+                    micContainer.classList.add('listening');
+                    bigMicButton.textContent = 'listening...';
+                } catch (err) {
+                    console.log('Speech start error:', err);
+                    bigMicButton.textContent = 'use text below';
+                    setTimeout(() => {
+                        bigMicButton.textContent = 'tap to capture';
+                    }, 2000);
+                }
+            }
+
             bigMicButton.addEventListener('click', function() {
                 if (isListening) {
                     recognition.stop();
                 } else {
-                    try {
-                        recognition.start();
-                        isListening = true;
-                        bigMicButton.classList.add('listening');
-                        micContainer.classList.add('listening');
-                        bigMicButton.textContent = 'listening...';
-                    } catch (err) {
-                        console.log('Speech start error:', err);
-                        bigMicButton.textContent = 'use text below';
-                        setTimeout(() => {
-                            bigMicButton.textContent = 'tap to capture';
-                        }, 2000);
-                    }
+                    startListening();
                 }
             });
         } else {
