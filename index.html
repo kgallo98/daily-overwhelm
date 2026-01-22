@@ -1745,13 +1745,35 @@
         let tabSwipeStartY = 0;
         let tabSwiping = false;
         let tabSwipeConfirmed = false;
+        let cardSwipeInProgress = false; // Global flag for card swipes
 
         const tabsContainer = document.getElementById('tabs-container');
 
         tabsContainer.addEventListener('touchstart', e => {
             // Don't start tab swipe if focus overlay is open
             if (focusVisible) return;
-            tabSwipeStartX = e.touches[0].clientX;
+
+            const touchX = e.touches[0].clientX;
+            const screenWidth = window.innerWidth;
+            const edgeThreshold = 30; // pixels from edge
+
+            // Always allow tab swipe from screen edges
+            const isFromEdge = touchX < edgeThreshold || touchX > screenWidth - edgeThreshold;
+
+            if (!isFromEdge) {
+                // Check if touch started on a swipeable card
+                const target = e.target;
+                const isOnBacklogItem = target.closest('.backlog-item');
+                const isOnFocusCard = target.closest('.focus-card');
+
+                // If on a swipeable element, don't initiate tab swipe
+                if (isOnBacklogItem || isOnFocusCard) {
+                    tabSwiping = false;
+                    return;
+                }
+            }
+
+            tabSwipeStartX = touchX;
             tabSwipeStartY = e.touches[0].clientY;
             tabSwiping = true;
             tabSwipeConfirmed = false;
