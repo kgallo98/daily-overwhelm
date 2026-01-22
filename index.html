@@ -1587,17 +1587,47 @@
                 bigMicButton.textContent = 'tap to capture';
             };
 
-            recognition.onerror = recognition.onend;
+            recognition.onerror = function(e) {
+                console.log('Speech recognition error:', e.error);
+                isListening = false;
+                bigMicButton.classList.remove('listening');
+                micContainer.classList.remove('listening');
+
+                if (e.error === 'not-allowed') {
+                    bigMicButton.textContent = 'mic blocked';
+                    setTimeout(() => {
+                        bigMicButton.textContent = 'type below';
+                    }, 2000);
+                } else if (e.error === 'no-speech') {
+                    bigMicButton.textContent = 'no speech heard';
+                    setTimeout(() => {
+                        bigMicButton.textContent = 'tap to capture';
+                    }, 2000);
+                } else {
+                    bigMicButton.textContent = 'try again';
+                    setTimeout(() => {
+                        bigMicButton.textContent = 'tap to capture';
+                    }, 2000);
+                }
+            };
 
             bigMicButton.addEventListener('click', function() {
                 if (isListening) {
                     recognition.stop();
                 } else {
-                    recognition.start();
-                    isListening = true;
-                    bigMicButton.classList.add('listening');
-                    micContainer.classList.add('listening');
-                    bigMicButton.textContent = 'listening...';
+                    try {
+                        recognition.start();
+                        isListening = true;
+                        bigMicButton.classList.add('listening');
+                        micContainer.classList.add('listening');
+                        bigMicButton.textContent = 'listening...';
+                    } catch (err) {
+                        console.log('Speech start error:', err);
+                        bigMicButton.textContent = 'use text below';
+                        setTimeout(() => {
+                            bigMicButton.textContent = 'tap to capture';
+                        }, 2000);
+                    }
                 }
             });
         } else {
