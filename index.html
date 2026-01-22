@@ -248,20 +248,6 @@
             margin-top: 4px;
         }
 
-        .dev-time-override {
-            padding: 10px;
-            background-color: var(--accent);
-            color: white;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 13px;
-            display: none;
-        }
-
-        .dev-time-override.active {
-            display: block;
-        }
-
         .dev-subsection {
             margin-top: 20px;
             margin-bottom: 10px;
@@ -466,6 +452,7 @@
             flex-direction: column;
             gap: 12px;
             animation: morningFadeIn 0.4s ease-out;
+            z-index: 10;
         }
 
         #morning-banner.visible {
@@ -544,6 +531,7 @@
             flex-direction: column;
             gap: 12px;
             animation: morningFadeIn 0.4s ease-out;
+            z-index: 10;
         }
 
         #weekly-banner.visible {
@@ -1293,25 +1281,6 @@
         <div class="dev-tools-section">
             <div class="settings-section-title">Dev Tools</div>
             <div class="dev-tools-warning">Testing only. Changes affect your real data.</div>
-
-            <div id="dev-time-status" class="dev-time-override">
-                Time override active: <span id="dev-time-label"></span>
-                <button onclick="devClearTimeOverride()" style="float: right; background: none; border: none; color: white; cursor: pointer;">✕</button>
-            </div>
-
-            <div class="dev-subsection">Time Simulation</div>
-            <button class="dev-button" onclick="devSetTime('morning')">
-                Simulate Morning (7am)
-                <div class="dev-button-desc">Test morning intention banner</div>
-            </button>
-            <button class="dev-button" onclick="devSetTime('sunday')">
-                Simulate Sunday Evening (6pm)
-                <div class="dev-button-desc">Test weekly reflection banner</div>
-            </button>
-            <button class="dev-button" onclick="devSetTime('bedtime')">
-                Simulate Bedtime (10pm)
-                <div class="dev-button-desc">Test bedtime mode auto-activation</div>
-            </button>
 
             <div class="dev-subsection">Generate Sample Data</div>
             <button class="dev-button" onclick="devGenerateThoughts()">
@@ -2816,70 +2785,6 @@
         setTimeout(showWeeklyBanner, 100);
 
         // ===== DEV TOOLS =====
-        let devTimeOverride = null;
-
-        function devGetTime() {
-            if (devTimeOverride) return devTimeOverride;
-            return new Date();
-        }
-
-        // Override the time-checking functions to use devGetTime
-        const originalIsMorningTime = isMorningTime;
-        window.isMorningTime = function() {
-            if (devTimeOverride) {
-                const hour = devTimeOverride.getHours();
-                return hour >= 6 && hour < 10;
-            }
-            return originalIsMorningTime();
-        };
-
-        const originalIsSundayEvening = isSundayEvening;
-        window.isSundayEvening = function() {
-            if (devTimeOverride) {
-                return devTimeOverride.getDay() === 0 && devTimeOverride.getHours() >= 17;
-            }
-            return originalIsSundayEvening();
-        };
-
-        function devUpdateTimeStatus() {
-            const status = document.getElementById('dev-time-status');
-            const label = document.getElementById('dev-time-label');
-            if (devTimeOverride) {
-                const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-                const day = days[devTimeOverride.getDay()];
-                const hour = devTimeOverride.getHours();
-                const ampm = hour >= 12 ? 'pm' : 'am';
-                const hour12 = hour % 12 || 12;
-                label.textContent = `${day} ${hour12}${ampm}`;
-                status.classList.add('active');
-            } else {
-                status.classList.remove('active');
-            }
-        }
-
-        window.devSetTime = function(mode) {
-            const now = new Date();
-            if (mode === 'morning') {
-                devTimeOverride = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 7, 0, 0);
-            } else if (mode === 'sunday') {
-                // Find next Sunday or use today if it's Sunday
-                const daysUntilSunday = (7 - now.getDay()) % 7;
-                devTimeOverride = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilSunday, 18, 0, 0);
-            } else if (mode === 'bedtime') {
-                devTimeOverride = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 22, 0, 0);
-            }
-            devUpdateTimeStatus();
-            // Clear any dismissals so banners can show
-            localStorage.removeItem('morningDismissed');
-            localStorage.removeItem('weeklyDismissed');
-            alert(`Time set to ${mode}. Close settings and banners will appear if conditions are met.`);
-        };
-
-        window.devClearTimeOverride = function() {
-            devTimeOverride = null;
-            devUpdateTimeStatus();
-        };
-
         window.devGenerateThoughts = function() {
             const sampleThoughts = [
                 'Review quarterly goals',
