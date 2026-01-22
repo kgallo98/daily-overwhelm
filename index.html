@@ -498,7 +498,6 @@
             padding: 10px 12px;
             background-color: rgba(0,0,0,0.2);
             border-radius: 10px;
-            border-left: 3px solid var(--accent);
         }
 
         .morning-action {
@@ -609,7 +608,7 @@
             border-radius: 14px;
             padding: 16px;
             margin-bottom: 12px;
-            border-left: 3px solid var(--done-color);
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(92, 184, 92, 0.06) 100%);
         }
 
         .reflection-week {
@@ -684,12 +683,22 @@
         }
 
         #focus-handle {
-            padding: 12px;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
             cursor: grab;
         }
 
         #focus-handle:active {
             cursor: grabbing;
+        }
+
+        .handle-pill {
+            width: 36px;
+            height: 4px;
+            background-color: var(--text-muted);
+            border-radius: 2px;
+            opacity: 0.4;
         }
 
         #focus-cards-container {
@@ -782,7 +791,6 @@
             touch-action: pan-y pinch-zoom;
             transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
             box-shadow: 0 2px 12px rgba(0,0,0,0.15);
-            border-left: 4px solid var(--accent);
             overflow: hidden;
         }
 
@@ -869,17 +877,17 @@
         }
 
         .task-item.later {
-            border-left: 3px solid var(--later-color);
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(240, 173, 78, 0.08) 100%);
         }
 
         .task-item.completed {
-            border-left: 3px solid var(--done-color);
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(92, 184, 92, 0.08) 100%);
             color: var(--text-light);
         }
 
         .task-item.old {
-            border-left: 3px solid var(--text-muted);
-            opacity: 0.85;
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(150, 150, 150, 0.06) 100%);
+            opacity: 0.9;
         }
 
         .task-item-age {
@@ -931,8 +939,7 @@
         }
 
         .pattern-card.highlight {
-            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(74, 144, 164, 0.1) 100%);
-            border-left: 3px solid var(--accent);
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(74, 144, 164, 0.12) 100%);
         }
 
         .pattern-card-label {
@@ -1417,7 +1424,9 @@
 
     <!-- FOCUS OVERLAY -->
     <div id="focus-overlay">
-        <div id="focus-handle"></div>
+        <div id="focus-handle">
+            <div class="handle-pill"></div>
+        </div>
         <div id="focus-cards-container">
             <!-- Cards or message will be rendered here -->
         </div>
