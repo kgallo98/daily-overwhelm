@@ -19,14 +19,14 @@
         }
 
         :root {
-            --bg-color: #1a1a2e;
-            --card-bg: #16213e;
+            --bg-color: #12121f;
+            --card-bg: #1e2140;
             --text-color: #eee;
-            --text-muted: #aaa;
+            --text-muted: #999;
             --text-light: #bbb;
-            --border-color: #333;
-            --input-bg: #0f0f23;
-            --shadow: rgba(0,0,0,0.3);
+            --border-color: #2a2d4a;
+            --input-bg: #0f0f1a;
+            --shadow: rgba(0,0,0,0.4);
             --accent: #4a90a4;
             --done-color: #5cb85c;
             --later-color: #f0ad4e;
@@ -34,13 +34,13 @@
 
         /* Bedtime mode - warmer, softer colors */
         body.bedtime-mode {
-            --bg-color: #1a1610;
-            --card-bg: #2a2018;
+            --bg-color: #141210;
+            --card-bg: #2a2520;
             --text-color: #e8dcc8;
-            --text-muted: #a89880;
+            --text-muted: #a09080;
             --text-light: #c8b8a0;
-            --border-color: #3a3028;
-            --input-bg: #1a1610;
+            --border-color: #3a3530;
+            --input-bg: #141210;
             --accent: #c4956a;
         }
 
@@ -1069,10 +1069,10 @@
         .backlog-item {
             padding: 14px 16px;
             background-color: var(--card-bg);
-            border-radius: 10px;
+            border-radius: 12px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            gap: 6px;
             position: relative;
             touch-action: pan-y pinch-zoom;
             transition: transform 0.1s, box-shadow 0.1s;
@@ -1096,17 +1096,19 @@
             font-size: 15px;
             line-height: 1.4;
             color: var(--text-color);
-            flex: 1;
             word-wrap: break-word;
             overflow-wrap: break-word;
-            min-width: 0;
         }
 
         .backlog-item-meta {
-            font-size: 11px;
+            font-size: 12px;
             color: var(--text-muted);
-            margin-left: 12px;
-            white-space: nowrap;
+            display: flex;
+            gap: 12px;
+        }
+
+        .backlog-item-meta span {
+            opacity: 0.8;
         }
 
         .backlog-placeholder {
@@ -2387,11 +2389,28 @@
                 const wrapper = document.createElement('div');
                 wrapper.className = 'backlog-item-wrapper';
                 wrapper.dataset.index = index;
+
+                // Build meta info
+                let metaHtml = '';
+                const metaParts = [];
+                if (item.createdAt) {
+                    const daysAgo = Math.floor((Date.now() - item.createdAt) / (1000 * 60 * 60 * 24));
+                    if (daysAgo === 0) metaParts.push('today');
+                    else if (daysAgo === 1) metaParts.push('yesterday');
+                    else if (daysAgo < 7) metaParts.push(`${daysAgo} days ago`);
+                    else if (daysAgo < 14) metaParts.push('1 week ago');
+                    else metaParts.push(`${Math.floor(daysAgo / 7)} weeks ago`);
+                }
+                if (item.skips > 0) metaParts.push(`deferred ${item.skips}x`);
+                if (metaParts.length > 0) {
+                    metaHtml = `<div class="backlog-item-meta">${metaParts.map(p => `<span>${p}</span>`).join('')}</div>`;
+                }
+
                 wrapper.innerHTML = `
                     <div class="backlog-swipe-bg backlog-swipe-delete">delete</div>
                     <div class="backlog-item">
                         <div class="backlog-item-text">${item.text}</div>
-                        ${item.skips > 0 ? `<div class="backlog-item-meta">skipped ${item.skips}x</div>` : ''}
+                        ${metaHtml}
                     </div>
                 `;
                 setupBacklogInteraction(wrapper, item, index, backlog);
