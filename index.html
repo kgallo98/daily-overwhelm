@@ -548,24 +548,6 @@
             overflow: hidden;
         }
 
-        .focus-card-fill {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 0%;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .focus-card-fill.done {
-            background: linear-gradient(to top, var(--done-color) 0%, rgba(76, 175, 80, 0.6) 60%, rgba(76, 175, 80, 0) 100%);
-        }
-
-        .focus-card-fill.later {
-            background: linear-gradient(to top, var(--later-color) 0%, rgba(240, 173, 78, 0.6) 60%, rgba(240, 173, 78, 0) 100%);
-        }
-
         .focus-card:active {
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
@@ -583,6 +565,12 @@
             font-weight: 450;
             position: relative;
             z-index: 1;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         /* ===== TODAY TAB ===== */
@@ -619,6 +607,8 @@
             line-height: 1.4;
             color: var(--text-color);
             transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .task-item.tappable {
@@ -661,6 +651,78 @@
         /* ===== ALL TAB ===== */
         #all-tab {
             padding-top: 50px;
+        }
+
+        /* ===== PATTERNS TAB ===== */
+        #patterns-tab {
+            padding-top: 50px;
+        }
+
+        .pattern-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .pattern-card-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .pattern-card-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .pattern-card-detail {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .pattern-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .pattern-row .pattern-card {
+            flex: 1;
+        }
+
+        .pattern-bar-container {
+            margin-top: 12px;
+        }
+
+        .pattern-bar-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .pattern-bar-label {
+            width: 40px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .pattern-bar-track {
+            flex: 1;
+            height: 8px;
+            background-color: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .pattern-bar-fill {
+            height: 100%;
+            background-color: var(--accent);
+            border-radius: 4px;
+            transition: width 0.3s ease-out;
         }
 
         .backlog-item-wrapper {
@@ -734,6 +796,9 @@
             line-height: 1.4;
             color: var(--text-color);
             flex: 1;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            min-width: 0;
         }
 
         .backlog-item-meta {
@@ -911,12 +976,6 @@
             </div>
         </div>
 
-        <div class="settings-section">
-            <div class="settings-section-title">Insights</div>
-            <div id="insights-container">
-                <div class="settings-item-desc" style="padding: 10px 0;">Capture a few more thoughts to see patterns</div>
-            </div>
-        </div>
     </div>
 
     <!-- TABS -->
@@ -960,6 +1019,12 @@
                 <div class="section-title">backlog</div>
                 <div id="backlog-list"></div>
             </div>
+
+            <!-- PATTERNS TAB -->
+            <div id="patterns-tab" class="tab-content">
+                <div class="section-title">patterns</div>
+                <div id="patterns-container"></div>
+            </div>
         </div>
     </div>
 
@@ -1001,6 +1066,14 @@
                 <line x1="3" y1="18" x2="3.01" y2="18"></line>
             </svg>
             <span>All</span>
+        </button>
+        <button class="tab-button" data-tab="patterns-tab">
+            <svg class="tab-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+            <span>Patterns</span>
         </button>
     </div>
 
@@ -1093,79 +1166,139 @@
             renderFocusCards();
         });
 
-        // ===== INSIGHTS =====
-        function renderInsights() {
-            const container = document.getElementById('insights-container');
-            const insights = [];
+        // ===== PATTERNS =====
+        function renderPatterns() {
+            const container = document.getElementById('patterns-container');
+            const now = Date.now();
+            const oneWeekAgo = now - (7 * 24 * 60 * 60 * 1000);
+            const twoWeeksAgo = now - (14 * 24 * 60 * 60 * 1000);
 
-            // Need at least 5 items to show patterns
-            const totalItems = thoughts.length + completedAllTime.length;
-            if (totalItems < 5) {
-                container.innerHTML = '<div class="settings-item-desc" style="padding: 10px 0;">Capture a few more thoughts to see patterns</div>';
+            // Calculate stats
+            const totalCaptured = thoughts.length + completedAllTime.length + worries.length;
+            const totalCompleted = completedAllTime.length;
+            const thisWeekCompleted = completedAllTime.filter(t => t.completedAt && t.completedAt > oneWeekAgo).length;
+            const lastWeekCompleted = completedAllTime.filter(t => t.completedAt && t.completedAt > twoWeeksAgo && t.completedAt <= oneWeekAgo).length;
+            const backlogSize = thoughts.length;
+            const worriesReleased = worries.length;
+
+            // Not enough data
+            if (totalCaptured < 3) {
+                container.innerHTML = '<div class="empty-section">capture a few more thoughts to see patterns</div>';
                 return;
             }
 
-            // Analyze time of day patterns
+            let html = '';
+
+            // Top row: key numbers
+            html += '<div class="pattern-row">';
+            html += `<div class="pattern-card">
+                <div class="pattern-card-label">completed</div>
+                <div class="pattern-card-value">${totalCompleted}</div>
+                <div class="pattern-card-detail">all time</div>
+            </div>`;
+            html += `<div class="pattern-card">
+                <div class="pattern-card-label">waiting</div>
+                <div class="pattern-card-value">${backlogSize}</div>
+                <div class="pattern-card-detail">in backlog</div>
+            </div>`;
+            html += '</div>';
+
+            // This week vs last week
+            if (thisWeekCompleted > 0 || lastWeekCompleted > 0) {
+                let velocityDetail = '';
+                if (lastWeekCompleted > 0 && thisWeekCompleted > lastWeekCompleted) {
+                    velocityDetail = `up from ${lastWeekCompleted} last week`;
+                } else if (lastWeekCompleted > 0 && thisWeekCompleted < lastWeekCompleted) {
+                    velocityDetail = `down from ${lastWeekCompleted} last week`;
+                } else if (lastWeekCompleted > 0) {
+                    velocityDetail = `same as last week`;
+                } else {
+                    velocityDetail = 'this week';
+                }
+                html += `<div class="pattern-card">
+                    <div class="pattern-card-label">this week</div>
+                    <div class="pattern-card-value">${thisWeekCompleted}</div>
+                    <div class="pattern-card-detail">${velocityDetail}</div>
+                </div>`;
+            }
+
+            // Day of week activity
             const allTimestamps = [
                 ...thoughts.map(t => t.createdAt),
-                ...completedAllTime.map(t => t.createdAt).filter(Boolean),
+                ...completedAllTime.map(t => t.createdAt || t.completedAt).filter(Boolean),
                 ...worries.map(w => w.createdAt)
             ].filter(Boolean);
 
-            if (allTimestamps.length >= 5) {
-                const hourCounts = {};
+            if (allTimestamps.length >= 7) {
+                const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                const dayCounts = dayNames.map(() => 0);
                 allTimestamps.forEach(ts => {
-                    const hour = new Date(ts).getHours();
-                    const bucket = hour < 6 ? 'late night' : hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : hour < 21 ? 'evening' : 'night';
-                    hourCounts[bucket] = (hourCounts[bucket] || 0) + 1;
+                    const day = new Date(ts).getDay();
+                    dayCounts[day]++;
                 });
+                const maxCount = Math.max(...dayCounts, 1);
 
-                const sorted = Object.entries(hourCounts).sort((a, b) => b[1] - a[1]);
-                if (sorted.length > 0 && sorted[0][1] >= 3) {
-                    const pct = Math.round((sorted[0][1] / allTimestamps.length) * 100);
-                    if (pct >= 40) {
-                        insights.push(`You capture most thoughts in the ${sorted[0][0]} (${pct}%)`);
-                    }
+                html += `<div class="pattern-card">
+                    <div class="pattern-card-label">activity by day</div>
+                    <div class="pattern-bar-container">`;
+                dayNames.forEach((name, i) => {
+                    const pct = Math.round((dayCounts[i] / maxCount) * 100);
+                    html += `<div class="pattern-bar-row">
+                        <div class="pattern-bar-label">${name}</div>
+                        <div class="pattern-bar-track">
+                            <div class="pattern-bar-fill" style="width: ${pct}%"></div>
+                        </div>
+                    </div>`;
+                });
+                html += '</div></div>';
+            }
+
+            // Oldest item
+            const thoughtsWithDates = thoughts.filter(t => t.createdAt);
+            if (thoughtsWithDates.length > 0) {
+                const oldest = thoughtsWithDates.reduce((a, b) => a.createdAt < b.createdAt ? a : b);
+                const daysOld = Math.floor((now - oldest.createdAt) / (1000 * 60 * 60 * 24));
+                if (daysOld >= 3) {
+                    const truncated = oldest.text.length > 40 ? oldest.text.slice(0, 40) + '...' : oldest.text;
+                    const timeStr = daysOld >= 14 ? `${Math.floor(daysOld / 7)} weeks` : `${daysOld} days`;
+                    html += `<div class="pattern-card">
+                        <div class="pattern-card-label">oldest in backlog</div>
+                        <div class="pattern-card-detail" style="font-size: 15px; color: var(--text-color); margin-top: 8px;">"${truncated}"</div>
+                        <div class="pattern-card-detail">${timeStr} old</div>
+                    </div>`;
                 }
             }
 
-            // Frequently skipped items
-            const frequentlySkipped = thoughts.filter(t => t.skips >= 3).slice(0, 3);
+            // Frequently deferred
+            const frequentlySkipped = thoughts.filter(t => t.skips >= 2).sort((a, b) => b.skips - a.skips);
             if (frequentlySkipped.length > 0) {
-                const item = frequentlySkipped[0];
-                const truncated = item.text.length > 30 ? item.text.slice(0, 30) + '...' : item.text;
-                insights.push(`"${truncated}" has been deferred ${item.skips} times`);
+                html += `<div class="pattern-card">
+                    <div class="pattern-card-label">keeps getting pushed back</div>`;
+                frequentlySkipped.slice(0, 3).forEach(item => {
+                    const truncated = item.text.length > 35 ? item.text.slice(0, 35) + '...' : item.text;
+                    html += `<div class="pattern-card-detail" style="margin-top: 8px;">
+                        "${truncated}" <span style="color: var(--text-muted);">· ${item.skips}x</span>
+                    </div>`;
+                });
+                html += '</div>';
             }
 
-            // Completion stats
-            if (completedAllTime.length >= 3) {
-                insights.push(`You've completed ${completedAllTime.length} things total`);
+            // Worries released
+            if (worriesReleased > 0) {
+                html += `<div class="pattern-card">
+                    <div class="pattern-card-label">worries released</div>
+                    <div class="pattern-card-value">${worriesReleased}</div>
+                    <div class="pattern-card-detail">captured and let go</div>
+                </div>`;
             }
 
-            // Worries tracked (without showing them)
-            if (worries.length >= 3) {
-                insights.push(`${worries.length} worries released and held safely`);
-            }
-
-            // Render insights
-            if (insights.length === 0) {
-                container.innerHTML = '<div class="settings-item-desc" style="padding: 10px 0;">Keep capturing to reveal patterns</div>';
-            } else {
-                container.innerHTML = insights.map(insight =>
-                    `<div class="settings-item" style="border-bottom: none; padding: 10px 0;">
-                        <div class="settings-item-desc" style="font-size: 14px; color: var(--text-color);">${insight}</div>
-                    </div>`
-                ).join('');
-            }
+            container.innerHTML = html;
         }
-
-        // Render insights when settings opens
-        settingsToggle.addEventListener('click', renderInsights);
 
         // ===== TAB SWITCHING =====
         const tabButtons = document.querySelectorAll('.tab-button');
         const tabsTrack = document.getElementById('tabs-track');
-        const tabIds = ['capture-tab', 'today-tab', 'all-tab'];
+        const tabIds = ['capture-tab', 'today-tab', 'all-tab', 'patterns-tab'];
         let currentTabIndex = 0;
 
         function switchToTab(index, animate = true) {
@@ -1186,6 +1319,7 @@
 
             if (tabIds[index] === 'today-tab') renderTodayTab();
             if (tabIds[index] === 'all-tab') renderAllTab();
+            if (tabIds[index] === 'patterns-tab') renderPatterns();
         }
 
         tabButtons.forEach((btn, index) => {
@@ -1529,7 +1663,6 @@
                     <div class="swipe-bg swipe-bg-left">later</div>
                     <div class="swipe-bg swipe-bg-right">done</div>
                     <div class="focus-card">
-                        <div class="focus-card-fill"></div>
                         <div class="focus-card-text">${item.text}</div>
                     </div>
                 `;
@@ -1542,7 +1675,6 @@
             const card = wrapper.querySelector('.focus-card');
             const bgLeft = wrapper.querySelector('.swipe-bg-left');
             const bgRight = wrapper.querySelector('.swipe-bg-right');
-            const fill = wrapper.querySelector('.focus-card-fill');
             let startX = 0, currentX = 0, swiping = false;
 
             card.addEventListener('touchstart', e => {
@@ -1558,24 +1690,14 @@
                 const diff = currentX - startX;
                 card.style.transform = `translateX(${diff}px)`;
 
-                // Fill rises from bottom based on swipe progress
                 const threshold = 80;
-                const fillPercent = Math.min(100, (Math.abs(diff) / threshold) * 100);
-
                 if (diff > 0) {
-                    // Swiping right - done (green)
-                    fill.className = 'focus-card-fill done';
-                    fill.style.height = fillPercent + '%';
                     bgRight.style.opacity = Math.min(1, diff / threshold);
                     bgLeft.style.opacity = 0;
                 } else if (diff < 0) {
-                    // Swiping left - later (yellow/orange)
-                    fill.className = 'focus-card-fill later';
-                    fill.style.height = fillPercent + '%';
                     bgLeft.style.opacity = Math.min(1, -diff / threshold);
                     bgRight.style.opacity = 0;
                 } else {
-                    fill.style.height = '0%';
                     bgLeft.style.opacity = 0;
                     bgRight.style.opacity = 0;
                 }
@@ -1627,7 +1749,6 @@
                 } else {
                     // Snap back
                     card.style.transform = '';
-                    fill.style.height = '0%';
                     bgLeft.style.opacity = 0;
                     bgRight.style.opacity = 0;
                 }
