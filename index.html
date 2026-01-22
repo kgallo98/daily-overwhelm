@@ -684,22 +684,12 @@
         }
 
         #focus-handle {
-            padding: 15px;
-            display: flex;
-            justify-content: center;
+            padding: 12px;
             cursor: grab;
         }
 
         #focus-handle:active {
             cursor: grabbing;
-        }
-
-        .handle-pill {
-            width: 36px;
-            height: 4px;
-            background-color: var(--text-muted);
-            border-radius: 2px;
-            opacity: 0.4;
         }
 
         #focus-cards-container {
@@ -739,7 +729,7 @@
             flex: 1;
             max-height: 140px;
             min-height: 80px;
-            border-radius: 16px;
+            border-radius: 12px;
             overflow: hidden;
             transition: flex 0.3s ease-out, opacity 0.3s ease-out, max-height 0.3s ease-out;
         }
@@ -767,7 +757,7 @@
             color: white;
             opacity: 0;
             transition: opacity 0.15s;
-            border-radius: 16px;
+            border-radius: 12px;
         }
 
         .swipe-bg-left {
@@ -785,14 +775,13 @@
             position: relative;
             height: 100%;
             background-color: var(--card-bg);
-            border-radius: 16px;
-            padding: 20px 24px;
-            padding-left: 20px;
+            border-radius: 12px;
+            padding: 18px 20px;
             display: flex;
             align-items: center;
             touch-action: pan-y pinch-zoom;
             transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
             border-left: 4px solid var(--accent);
             overflow: hidden;
         }
@@ -807,7 +796,7 @@
         }
 
         .focus-card-text {
-            font-size: 17px;
+            font-size: 16px;
             color: var(--text-color);
             line-height: 1.5;
             flex: 1;
@@ -857,16 +846,17 @@
         }
 
         .task-item {
-            padding: 14px 16px;
+            padding: 16px 18px;
             background-color: var(--card-bg);
-            border-radius: 10px;
+            border-radius: 12px;
             margin-bottom: 10px;
             font-size: 15px;
-            line-height: 1.4;
+            line-height: 1.5;
             color: var(--text-color);
             transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
             word-wrap: break-word;
             overflow-wrap: break-word;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .task-item.tappable {
@@ -1067,7 +1057,7 @@
         }
 
         .backlog-item {
-            padding: 14px 16px;
+            padding: 16px 18px;
             background-color: var(--card-bg);
             border-radius: 12px;
             display: flex;
@@ -1077,6 +1067,7 @@
             touch-action: pan-y pinch-zoom;
             transition: transform 0.1s, box-shadow 0.1s;
             user-select: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             -webkit-user-select: none;
             -webkit-touch-callout: none;
         }
@@ -1279,6 +1270,21 @@
             </div>
         </div>
 
+        <div class="settings-section">
+            <div class="settings-section-title">Backup</div>
+            <div class="settings-item-desc" style="margin-bottom: 15px;">Your data is stored locally. Back up regularly to avoid losing it.</div>
+
+            <button class="dev-button" onclick="backupToClipboard()" style="margin-bottom: 8px;">
+                Copy Backup to Clipboard
+                <div class="dev-button-desc">Quick backup - paste into Notes or anywhere</div>
+            </button>
+            <button class="dev-button" onclick="restoreFromClipboard()">
+                Restore from Clipboard
+                <div class="dev-button-desc">Paste a previous backup to restore</div>
+            </button>
+            <div id="last-backup-info" style="font-size: 12px; color: var(--text-muted); margin-top: 12px; text-align: center;"></div>
+        </div>
+
         <!-- Dev Tools Section -->
         <div class="dev-tools-section">
             <div class="settings-section-title">Dev Tools</div>
@@ -1411,9 +1417,7 @@
 
     <!-- FOCUS OVERLAY -->
     <div id="focus-overlay">
-        <div id="focus-handle">
-            <div class="handle-pill"></div>
-        </div>
+        <div id="focus-handle"></div>
         <div id="focus-cards-container">
             <!-- Cards or message will be rendered here -->
         </div>
@@ -2802,6 +2806,111 @@
 
         // Show weekly banner on load (after morning check)
         setTimeout(showWeeklyBanner, 100);
+
+        // ===== BACKUP/RESTORE =====
+        function updateLastBackupInfo() {
+            const lastBackup = localStorage.getItem('lastBackupDate');
+            const infoEl = document.getElementById('last-backup-info');
+            if (lastBackup) {
+                const date = new Date(parseInt(lastBackup));
+                const daysAgo = Math.floor((Date.now() - date) / (1000 * 60 * 60 * 24));
+                let timeStr;
+                if (daysAgo === 0) timeStr = 'today';
+                else if (daysAgo === 1) timeStr = 'yesterday';
+                else if (daysAgo < 7) timeStr = `${daysAgo} days ago`;
+                else timeStr = `${Math.floor(daysAgo / 7)} week${daysAgo >= 14 ? 's' : ''} ago`;
+                infoEl.textContent = `Last backup: ${timeStr}`;
+                if (daysAgo >= 7) {
+                    infoEl.style.color = 'var(--later-color)';
+                }
+            } else {
+                infoEl.textContent = 'No backups yet';
+                infoEl.style.color = 'var(--later-color)';
+            }
+        }
+
+        window.backupToClipboard = async function() {
+            const data = {
+                thoughts,
+                todayFocus,
+                laterToday,
+                completedToday,
+                completedAllTime,
+                worries,
+                weeklyReflections,
+                lastResetDate,
+                backupDate: new Date().toISOString(),
+                version: 1
+            };
+
+            try {
+                await navigator.clipboard.writeText(JSON.stringify(data));
+                localStorage.setItem('lastBackupDate', Date.now().toString());
+                updateLastBackupInfo();
+                alert('Backup copied to clipboard! Paste it somewhere safe (Notes, email, etc.)');
+            } catch (err) {
+                // Fallback for iOS
+                const textArea = document.createElement('textarea');
+                textArea.value = JSON.stringify(data);
+                textArea.style.position = 'fixed';
+                textArea.style.opacity = '0';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    localStorage.setItem('lastBackupDate', Date.now().toString());
+                    updateLastBackupInfo();
+                    alert('Backup copied! Paste it somewhere safe.');
+                } catch (e) {
+                    alert('Could not copy. Try the Export option in Dev Tools instead.');
+                }
+                document.body.removeChild(textArea);
+            }
+        };
+
+        window.restoreFromClipboard = async function() {
+            let text;
+            try {
+                text = await navigator.clipboard.readText();
+            } catch (err) {
+                text = prompt('Paste your backup data here:');
+            }
+
+            if (!text) return;
+
+            try {
+                const data = JSON.parse(text);
+
+                // Validate it looks like our data
+                if (!data.thoughts || !Array.isArray(data.thoughts)) {
+                    alert('Invalid backup data');
+                    return;
+                }
+
+                if (!confirm(`Restore backup from ${data.backupDate ? new Date(data.backupDate).toLocaleDateString() : 'unknown date'}? This will replace all current data.`)) {
+                    return;
+                }
+
+                thoughts = data.thoughts || [];
+                todayFocus = data.todayFocus || [];
+                laterToday = data.laterToday || [];
+                completedToday = data.completedToday || [];
+                completedAllTime = data.completedAllTime || [];
+                worries = data.worries || [];
+                weeklyReflections = data.weeklyReflections || [];
+                lastResetDate = data.lastResetDate || '';
+
+                saveAll();
+                alert('Restored successfully!');
+                location.reload();
+            } catch (e) {
+                alert('Could not parse backup data. Make sure you copied the entire backup.');
+            }
+        };
+
+        // Update backup info on settings open
+        settingsToggle.addEventListener('click', updateLastBackupInfo);
 
         // ===== DEV TOOLS =====
         window.devGenerateThoughts = function() {
