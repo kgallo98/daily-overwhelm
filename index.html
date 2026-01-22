@@ -1587,6 +1587,8 @@
                 bigMicButton.textContent = 'tap to capture';
             };
 
+            let voiceUnavailable = false;
+
             recognition.onerror = function(e) {
                 console.log('Speech recognition error:', e.error, e);
                 isListening = false;
@@ -1594,10 +1596,12 @@
                 micContainer.classList.remove('listening');
 
                 if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
-                    bigMicButton.textContent = 'mic blocked';
-                    setTimeout(() => {
-                        bigMicButton.textContent = 'tap to capture';
-                    }, 2000);
+                    // In iOS standalone PWA, speech service is blocked even with mic permission
+                    voiceUnavailable = true;
+                    bigMicButton.textContent = 'voice unavailable';
+                    bigMicButton.style.fontSize = '14px';
+                    document.getElementById('text-input-section').style.bottom = '100px';
+                    document.getElementById('thought-input').placeholder = 'type here instead';
                 } else if (e.error === 'no-speech') {
                     bigMicButton.textContent = 'no speech heard';
                     setTimeout(() => {
@@ -1614,7 +1618,6 @@
                         bigMicButton.textContent = 'tap to capture';
                     }, 2000);
                 } else {
-                    // Show actual error for debugging
                     bigMicButton.textContent = e.error || 'error';
                     setTimeout(() => {
                         bigMicButton.textContent = 'tap to capture';
@@ -1652,6 +1655,11 @@
             }
 
             bigMicButton.addEventListener('click', function() {
+                if (voiceUnavailable) {
+                    // Focus the text input instead
+                    document.getElementById('thought-input').focus();
+                    return;
+                }
                 if (isListening) {
                     recognition.stop();
                 } else {
