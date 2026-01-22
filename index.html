@@ -202,6 +202,75 @@
             margin-left: 10px;
         }
 
+        /* Dev tools */
+        .dev-tools-section {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .dev-tools-warning {
+            font-size: 12px;
+            color: var(--later-color);
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: rgba(240, 173, 78, 0.1);
+            border-radius: 8px;
+        }
+
+        .dev-button {
+            display: block;
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            text-align: left;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+
+        .dev-button:active {
+            background-color: var(--border-color);
+        }
+
+        .dev-button.danger {
+            border-color: #e74c3c;
+            color: #e74c3c;
+        }
+
+        .dev-button-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .dev-time-override {
+            padding: 10px;
+            background-color: var(--accent);
+            color: white;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .dev-time-override.active {
+            display: block;
+        }
+
+        .dev-subsection {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+        }
+
         /* Hide text input in bedtime mode */
         body.bedtime-mode #text-input-section {
             display: none;
@@ -1218,6 +1287,73 @@
                     <option value="8">8 am</option>
                 </select>
             </div>
+        </div>
+
+        <!-- Dev Tools Section -->
+        <div class="dev-tools-section">
+            <div class="settings-section-title">Dev Tools</div>
+            <div class="dev-tools-warning">Testing only. Changes affect your real data.</div>
+
+            <div id="dev-time-status" class="dev-time-override">
+                Time override active: <span id="dev-time-label"></span>
+                <button onclick="devClearTimeOverride()" style="float: right; background: none; border: none; color: white; cursor: pointer;">✕</button>
+            </div>
+
+            <div class="dev-subsection">Time Simulation</div>
+            <button class="dev-button" onclick="devSetTime('morning')">
+                Simulate Morning (7am)
+                <div class="dev-button-desc">Test morning intention banner</div>
+            </button>
+            <button class="dev-button" onclick="devSetTime('sunday')">
+                Simulate Sunday Evening (6pm)
+                <div class="dev-button-desc">Test weekly reflection banner</div>
+            </button>
+            <button class="dev-button" onclick="devSetTime('bedtime')">
+                Simulate Bedtime (10pm)
+                <div class="dev-button-desc">Test bedtime mode auto-activation</div>
+            </button>
+
+            <div class="dev-subsection">Generate Sample Data</div>
+            <button class="dev-button" onclick="devGenerateThoughts()">
+                Generate Sample Thoughts
+                <div class="dev-button-desc">Add 10 thoughts with varied ages (1 day to 3 weeks old)</div>
+            </button>
+            <button class="dev-button" onclick="devGenerateCompleted()">
+                Generate Completed Items
+                <div class="dev-button-desc">Add 15 completed items over past 2 weeks</div>
+            </button>
+            <button class="dev-button" onclick="devGenerateWorries()">
+                Generate Worries
+                <div class="dev-button-desc">Add 5 sample worries</div>
+            </button>
+            <button class="dev-button" onclick="devGenerateSkipped()">
+                Generate Skipped Items
+                <div class="dev-button-desc">Add items with high skip counts</div>
+            </button>
+            <button class="dev-button" onclick="devGenerateReflections()">
+                Generate Weekly Reflections
+                <div class="dev-button-desc">Add 4 weeks of reflection history</div>
+            </button>
+
+            <div class="dev-subsection">Triggers</div>
+            <button class="dev-button" onclick="devTriggerMorning()">
+                Show Morning Banner Now
+                <div class="dev-button-desc">Force show regardless of time</div>
+            </button>
+            <button class="dev-button" onclick="devTriggerWeekly()">
+                Show Weekly Banner Now
+                <div class="dev-button-desc">Force show regardless of day/time</div>
+            </button>
+
+            <div class="dev-subsection">Data Management</div>
+            <button class="dev-button" onclick="devExportData()">
+                Export All Data
+                <div class="dev-button-desc">Download as JSON file</div>
+            </button>
+            <button class="dev-button danger" onclick="devClearAllData()">
+                Clear All Data
+                <div class="dev-button-desc">Remove all thoughts, completions, and reflections</div>
+            </button>
         </div>
 
     </div>
@@ -2678,6 +2814,280 @@
 
         // Show weekly banner on load (after morning check)
         setTimeout(showWeeklyBanner, 100);
+
+        // ===== DEV TOOLS =====
+        let devTimeOverride = null;
+
+        function devGetTime() {
+            if (devTimeOverride) return devTimeOverride;
+            return new Date();
+        }
+
+        // Override the time-checking functions to use devGetTime
+        const originalIsMorningTime = isMorningTime;
+        window.isMorningTime = function() {
+            if (devTimeOverride) {
+                const hour = devTimeOverride.getHours();
+                return hour >= 6 && hour < 10;
+            }
+            return originalIsMorningTime();
+        };
+
+        const originalIsSundayEvening = isSundayEvening;
+        window.isSundayEvening = function() {
+            if (devTimeOverride) {
+                return devTimeOverride.getDay() === 0 && devTimeOverride.getHours() >= 17;
+            }
+            return originalIsSundayEvening();
+        };
+
+        function devUpdateTimeStatus() {
+            const status = document.getElementById('dev-time-status');
+            const label = document.getElementById('dev-time-label');
+            if (devTimeOverride) {
+                const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const day = days[devTimeOverride.getDay()];
+                const hour = devTimeOverride.getHours();
+                const ampm = hour >= 12 ? 'pm' : 'am';
+                const hour12 = hour % 12 || 12;
+                label.textContent = `${day} ${hour12}${ampm}`;
+                status.classList.add('active');
+            } else {
+                status.classList.remove('active');
+            }
+        }
+
+        window.devSetTime = function(mode) {
+            const now = new Date();
+            if (mode === 'morning') {
+                devTimeOverride = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 7, 0, 0);
+            } else if (mode === 'sunday') {
+                // Find next Sunday or use today if it's Sunday
+                const daysUntilSunday = (7 - now.getDay()) % 7;
+                devTimeOverride = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilSunday, 18, 0, 0);
+            } else if (mode === 'bedtime') {
+                devTimeOverride = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 22, 0, 0);
+            }
+            devUpdateTimeStatus();
+            // Clear any dismissals so banners can show
+            localStorage.removeItem('morningDismissed');
+            localStorage.removeItem('weeklyDismissed');
+            alert(`Time set to ${mode}. Close settings and banners will appear if conditions are met.`);
+        };
+
+        window.devClearTimeOverride = function() {
+            devTimeOverride = null;
+            devUpdateTimeStatus();
+        };
+
+        window.devGenerateThoughts = function() {
+            const sampleThoughts = [
+                'Review quarterly goals',
+                'Call mom about weekend plans',
+                'Research new project management tools',
+                'Schedule dentist appointment',
+                'Update resume',
+                'Clean out garage',
+                'Plan team offsite',
+                'Read that book everyone recommended',
+                'Fix the leaky faucet',
+                'Organize photo library'
+            ];
+            const now = Date.now();
+            const dayMs = 24 * 60 * 60 * 1000;
+
+            sampleThoughts.forEach((text, i) => {
+                const daysAgo = Math.floor(Math.random() * 21) + 1; // 1-21 days ago
+                thoughts.push({
+                    text,
+                    skips: 0,
+                    createdAt: now - (daysAgo * dayMs)
+                });
+            });
+            selectTodayFocus();
+            saveAll();
+            alert('Added 10 sample thoughts');
+        };
+
+        window.devGenerateCompleted = function() {
+            const sampleCompleted = [
+                'Submit expense report',
+                'Buy birthday gift',
+                'Finish presentation',
+                'Reply to emails',
+                'Update project status',
+                'Review pull request',
+                'Book flight tickets',
+                'Send meeting notes',
+                'Fix bug in login flow',
+                'Write blog post draft',
+                'Clean desk',
+                'Update dependencies',
+                'Call insurance company',
+                'Prepare demo',
+                'Order office supplies'
+            ];
+            const now = Date.now();
+            const dayMs = 24 * 60 * 60 * 1000;
+
+            sampleCompleted.forEach((text, i) => {
+                const daysAgo = Math.floor(Math.random() * 14); // 0-13 days ago
+                completedAllTime.push({
+                    text,
+                    createdAt: now - ((daysAgo + 1) * dayMs),
+                    completedAt: now - (daysAgo * dayMs)
+                });
+            });
+            saveAll();
+            alert('Added 15 completed items');
+        };
+
+        window.devGenerateWorries = function() {
+            const sampleWorries = [
+                'What if the project fails?',
+                'Worried about the presentation tomorrow',
+                'Anxious about the upcoming review',
+                'Keep thinking about that awkward conversation',
+                'Stressed about deadlines'
+            ];
+            const now = Date.now();
+            const dayMs = 24 * 60 * 60 * 1000;
+
+            sampleWorries.forEach((text, i) => {
+                const daysAgo = Math.floor(Math.random() * 14);
+                worries.push({
+                    text,
+                    createdAt: now - (daysAgo * dayMs)
+                });
+            });
+            saveAll();
+            alert('Added 5 worries');
+        };
+
+        window.devGenerateSkipped = function() {
+            const skippedItems = [
+                { text: 'Organize the basement', skips: 5 },
+                { text: 'Start exercising regularly', skips: 4 },
+                { text: 'Learn a new language', skips: 3 }
+            ];
+            const now = Date.now();
+            const dayMs = 24 * 60 * 60 * 1000;
+
+            skippedItems.forEach(item => {
+                thoughts.push({
+                    text: item.text,
+                    skips: item.skips,
+                    createdAt: now - (14 * dayMs)
+                });
+            });
+            selectTodayFocus();
+            saveAll();
+            alert('Added 3 frequently skipped items');
+        };
+
+        window.devGenerateReflections = function() {
+            const now = Date.now();
+            const weekMs = 7 * 24 * 60 * 60 * 1000;
+
+            for (let i = 1; i <= 4; i++) {
+                const weekDate = new Date(now - (i * weekMs));
+                const weekNum = getWeekNumber(weekDate);
+                const weekKey = `${weekDate.getFullYear()}-W${weekNum}`;
+
+                // Don't duplicate
+                if (!weeklyReflections.find(r => r.week === weekKey)) {
+                    weeklyReflections.push({
+                        week: weekKey,
+                        date: weekDate.getTime(),
+                        completed: Math.floor(Math.random() * 8) + 2,
+                        captured: Math.floor(Math.random() * 12) + 5
+                    });
+                }
+            }
+            // Sort by date descending
+            weeklyReflections.sort((a, b) => b.date - a.date);
+            saveAll();
+            alert('Added 4 weeks of reflections');
+        };
+
+        window.devTriggerMorning = function() {
+            localStorage.removeItem('morningDismissed');
+            // Force show
+            if (todayFocus.length === 0 && thoughts.length > 0) {
+                selectTodayFocus();
+                saveAll();
+            }
+            if (todayFocus.length === 0) {
+                alert('Add some thoughts first');
+                return;
+            }
+            const handledTexts = [...laterToday.map(i => i.text), ...completedToday.map(i => i.text)];
+            const remaining = todayFocus.filter(item => !handledTexts.includes(item.text));
+            if (remaining.length === 0) {
+                alert('All focus items already handled today');
+                return;
+            }
+            morningFocusList.innerHTML = remaining.slice(0, 3).map(item =>
+                `<div class="morning-focus-preview">${item.text}</div>`
+            ).join('');
+            morningBanner.classList.add('visible');
+            settingsPanel.classList.remove('visible');
+        };
+
+        window.devTriggerWeekly = function() {
+            localStorage.removeItem('weeklyDismissed');
+            const stats = getWeeklyStats();
+            if (stats.completed === 0 && stats.captured === 0) {
+                alert('Generate some data first');
+                return;
+            }
+            weeklyCompleted.textContent = stats.completed;
+            weeklyCaptured.textContent = stats.captured;
+            weeklyBanner.classList.add('visible');
+            morningBanner.classList.remove('visible');
+            settingsPanel.classList.remove('visible');
+        };
+
+        window.devExportData = function() {
+            const data = {
+                thoughts,
+                todayFocus,
+                laterToday,
+                completedToday,
+                completedAllTime,
+                worries,
+                weeklyReflections,
+                lastResetDate,
+                exportedAt: new Date().toISOString()
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `daily-overwhelm-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+
+        window.devClearAllData = function() {
+            if (!confirm('This will delete ALL your data. Are you sure?')) return;
+            if (!confirm('Really sure? This cannot be undone.')) return;
+
+            thoughts = [];
+            todayFocus = [];
+            laterToday = [];
+            completedToday = [];
+            completedAllTime = [];
+            worries = [];
+            weeklyReflections = [];
+            lastResetDate = '';
+
+            localStorage.clear();
+            saveAll();
+
+            alert('All data cleared');
+            location.reload();
+        };
 
         // ===== SERVICE WORKER =====
         if ('serviceWorker' in navigator) {
