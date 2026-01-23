@@ -930,6 +930,33 @@
             color: var(--text-muted);
         }
 
+        /* Section organization */
+        .pattern-section {
+            margin-bottom: 28px;
+        }
+
+        .pattern-section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .pattern-section-icon {
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .pattern-section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
         .pattern-card {
             background-color: var(--card-bg);
             border-radius: 14px;
@@ -940,6 +967,10 @@
 
         .pattern-card.highlight {
             background: linear-gradient(135deg, var(--card-bg) 0%, rgba(74, 144, 164, 0.12) 100%);
+        }
+
+        .pattern-card.highlight-green {
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(92, 184, 92, 0.1) 100%);
         }
 
         .pattern-card-label {
@@ -957,6 +988,10 @@
             line-height: 1;
         }
 
+        .pattern-card-value.small {
+            font-size: 24px;
+        }
+
         .pattern-card-detail {
             font-size: 13px;
             color: var(--text-muted);
@@ -972,6 +1007,21 @@
             flex: 1;
         }
 
+        .pattern-row-3 {
+            display: flex;
+            gap: 10px;
+        }
+
+        .pattern-row-3 .pattern-card {
+            flex: 1;
+            padding: 14px;
+        }
+
+        .pattern-row-3 .pattern-card-value {
+            font-size: 26px;
+        }
+
+        /* Interactive bar charts */
         .pattern-bar-container {
             margin-top: 14px;
         }
@@ -979,7 +1029,19 @@
         .pattern-bar-row {
             display: flex;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            padding: 4px 0;
+            border-radius: 6px;
+            transition: background-color 0.15s;
+        }
+
+        .pattern-bar-row:active {
+            background-color: rgba(255,255,255,0.05);
+        }
+
+        .pattern-bar-row.selected {
+            background-color: rgba(74, 144, 164, 0.15);
         }
 
         .pattern-bar-label {
@@ -991,10 +1053,30 @@
 
         .pattern-bar-track {
             flex: 1;
-            height: 6px;
+            height: 8px;
             background-color: var(--border-color);
-            border-radius: 3px;
+            border-radius: 4px;
             overflow: hidden;
+            position: relative;
+        }
+
+        .pattern-bar-row.selected .pattern-bar-track {
+            height: 10px;
+        }
+
+        .pattern-bar-value {
+            min-width: 28px;
+            text-align: right;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-left: 10px;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        .pattern-bar-row.selected .pattern-bar-value,
+        .pattern-bar-container.show-values .pattern-bar-value {
+            opacity: 1;
         }
 
         .pattern-bar-fill {
@@ -1023,13 +1105,14 @@
             margin-left: 8px;
         }
 
-        /* Mini trend chart */
+        /* Mini trend chart - interactive */
         .pattern-trend {
             display: flex;
             align-items: flex-end;
-            gap: 4px;
-            height: 40px;
+            gap: 3px;
+            height: 50px;
             margin-top: 12px;
+            padding: 0 2px;
         }
 
         .pattern-trend-bar {
@@ -1037,7 +1120,18 @@
             background: linear-gradient(180deg, var(--accent) 0%, rgba(74, 144, 164, 0.4) 100%);
             border-radius: 3px 3px 0 0;
             min-height: 4px;
-            transition: height 0.4s ease-out;
+            transition: all 0.2s ease-out;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .pattern-trend-bar:active {
+            transform: scaleX(1.1);
+        }
+
+        .pattern-trend-bar.selected {
+            background: linear-gradient(180deg, #6bb3c9 0%, var(--accent) 100%);
+            box-shadow: 0 0 8px rgba(74, 144, 164, 0.5);
         }
 
         .pattern-trend-bar.empty {
@@ -1052,55 +1146,111 @@
             color: var(--text-muted);
         }
 
+        .pattern-trend-tooltip {
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--text-color);
+            color: var(--bg-color);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s;
+            z-index: 10;
+        }
+
+        .pattern-trend-bar.selected .pattern-trend-tooltip {
+            opacity: 1;
+        }
+
         /* Streak display */
         .pattern-streak {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-top: 8px;
+            gap: 10px;
         }
 
         .pattern-streak-flame {
-            font-size: 24px;
+            font-size: 28px;
             line-height: 1;
         }
 
+        .pattern-streak-info {
+            flex: 1;
+        }
+
         .pattern-streak-count {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: 700;
             color: var(--text-color);
+            line-height: 1;
         }
 
         .pattern-streak-label {
-            font-size: 13px;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .pattern-streak-best {
+            text-align: right;
+            font-size: 11px;
             color: var(--text-muted);
         }
 
-        /* Time of day blocks */
+        .pattern-streak-best span {
+            display: block;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        /* Time of day blocks - interactive */
         .pattern-time-blocks {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             margin-top: 12px;
         }
 
         .pattern-time-block {
             flex: 1;
             text-align: center;
-            padding: 10px 6px;
+            padding: 12px 6px;
             background-color: var(--input-bg);
-            border-radius: 8px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+
+        .pattern-time-block:active {
+            transform: scale(0.97);
         }
 
         .pattern-time-block.active {
             background: linear-gradient(135deg, var(--accent), rgba(74, 144, 164, 0.6));
         }
 
+        .pattern-time-block.selected {
+            box-shadow: 0 0 0 2px var(--accent);
+        }
+
+        .pattern-time-block-icon {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
         .pattern-time-block-label {
-            font-size: 10px;
+            font-size: 9px;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
+            letter-spacing: 0.3px;
+            margin-bottom: 2px;
         }
 
         .pattern-time-block.active .pattern-time-block-label {
@@ -1108,7 +1258,7 @@
         }
 
         .pattern-time-block-value {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 600;
             color: var(--text-light);
         }
@@ -1117,22 +1267,29 @@
             color: white;
         }
 
-        /* Balance meter */
+        /* Balance meter - interactive */
         .pattern-balance {
             margin-top: 12px;
         }
 
         .pattern-balance-bar {
-            height: 8px;
+            height: 12px;
             background-color: var(--border-color);
-            border-radius: 4px;
+            border-radius: 6px;
             overflow: hidden;
             display: flex;
+            cursor: pointer;
+            transition: height 0.15s;
+        }
+
+        .pattern-balance-bar:active {
+            height: 14px;
         }
 
         .pattern-balance-captured {
             background: linear-gradient(90deg, #f0ad4e, #e09530);
             transition: width 0.4s ease-out;
+            position: relative;
         }
 
         .pattern-balance-completed {
@@ -1143,8 +1300,8 @@
         .pattern-balance-labels {
             display: flex;
             justify-content: space-between;
-            margin-top: 8px;
-            font-size: 11px;
+            margin-top: 10px;
+            font-size: 12px;
         }
 
         .pattern-balance-label {
@@ -1154,9 +1311,14 @@
             color: var(--text-muted);
         }
 
+        .pattern-balance-label span {
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
         .pattern-balance-dot {
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
         }
 
@@ -1168,29 +1330,63 @@
             background-color: #5cb85c;
         }
 
-        /* Insight card with icon */
-        .pattern-insight {
+        /* Compact stat inline */
+        .pattern-stat-inline {
             display: flex;
-            align-items: flex-start;
-            gap: 14px;
-            padding: 14px 0;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
             border-bottom: 1px solid var(--border-color);
         }
 
-        .pattern-insight:last-child {
+        .pattern-stat-inline:last-child {
             border-bottom: none;
             padding-bottom: 0;
         }
 
+        .pattern-stat-inline-label {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .pattern-stat-inline-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .pattern-stat-inline-value.positive {
+            color: var(--done-color);
+        }
+
+        .pattern-stat-inline-value.highlight {
+            color: var(--accent);
+        }
+
+        /* Insight card with icon */
+        .pattern-insight {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 14px;
+            background-color: var(--input-bg);
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .pattern-insight:last-child {
+            margin-bottom: 0;
+        }
+
         .pattern-insight-icon {
-            font-size: 20px;
+            font-size: 18px;
             line-height: 1;
-            margin-top: 2px;
+            margin-top: 1px;
         }
 
         .pattern-insight-text {
             flex: 1;
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-light);
             line-height: 1.5;
         }
@@ -1198,6 +1394,64 @@
         .pattern-insight-highlight {
             color: var(--text-color);
             font-weight: 600;
+        }
+
+        /* Tappable quote item */
+        .pattern-quote-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background-color 0.15s;
+            margin: 0 -8px;
+            padding-left: 8px;
+            padding-right: 8px;
+            border-radius: 8px;
+        }
+
+        .pattern-quote-item:last-child {
+            border-bottom: none;
+        }
+
+        .pattern-quote-item:active {
+            background-color: rgba(255,255,255,0.03);
+        }
+
+        .pattern-quote-text {
+            flex: 1;
+            font-size: 14px;
+            color: var(--text-light);
+            line-height: 1.4;
+        }
+
+        .pattern-quote-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        /* Detail row expandable */
+        .pattern-detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .pattern-detail-row span {
+            color: var(--text-light);
+        }
+
+        /* Tap hint */
+        .pattern-tap-hint {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 8px;
+            opacity: 0.7;
         }
 
         .backlog-item-wrapper {
@@ -1746,15 +2000,74 @@
             const oneDay = 24 * 60 * 60 * 1000;
             const oneWeekAgo = now - (7 * oneDay);
             const twoWeeksAgo = now - (14 * oneDay);
+            const fourWeeksAgo = now - (28 * oneDay);
 
-            // Calculate basic stats
+            // Calculate all stats upfront
             const totalCapturedTasks = thoughts.length + completedAllTime.length;
             const totalCaptured = totalCapturedTasks + worries.length;
             const totalCompleted = completedAllTime.length;
-            const thisWeekCompleted = completedAllTime.filter(t => t.completedAt && t.completedAt > oneWeekAgo).length;
-            const lastWeekCompleted = completedAllTime.filter(t => t.completedAt && t.completedAt > twoWeeksAgo && t.completedAt <= oneWeekAgo).length;
             const backlogSize = thoughts.length;
             const worriesReleased = worries.length;
+
+            // Weekly stats
+            const thisWeekCompleted = completedAllTime.filter(t => t.completedAt && t.completedAt > oneWeekAgo).length;
+            const lastWeekCompleted = completedAllTime.filter(t => t.completedAt && t.completedAt > twoWeeksAgo && t.completedAt <= oneWeekAgo).length;
+            const thisWeekCaptured = [...thoughts, ...completedAllTime].filter(t => t.createdAt && t.createdAt > oneWeekAgo).length;
+
+            // Completion timestamps for time analysis
+            const completionTimestamps = completedAllTime.map(t => t.completedAt).filter(Boolean);
+            const completedWithTimes = completedAllTime.filter(t => t.createdAt && t.completedAt);
+
+            // Day of week analysis
+            const completionDayCounts = [0, 0, 0, 0, 0, 0, 0];
+            const captureDayCounts = [0, 0, 0, 0, 0, 0, 0];
+            completedAllTime.forEach(t => {
+                if (t.completedAt) completionDayCounts[new Date(t.completedAt).getDay()]++;
+            });
+            [...thoughts, ...completedAllTime].forEach(t => {
+                if (t.createdAt) captureDayCounts[new Date(t.createdAt).getDay()]++;
+            });
+
+            // Time of day analysis
+            const timeBlocks = { morning: 0, afternoon: 0, evening: 0, night: 0 };
+            completionTimestamps.forEach(ts => {
+                const hour = new Date(ts).getHours();
+                if (hour >= 5 && hour < 12) timeBlocks.morning++;
+                else if (hour >= 12 && hour < 17) timeBlocks.afternoon++;
+                else if (hour >= 17 && hour < 21) timeBlocks.evening++;
+                else timeBlocks.night++;
+            });
+
+            // Streak calculation
+            let currentStreak = 0;
+            let bestStreak = 0;
+            let checkDate = new Date();
+            checkDate.setHours(0, 0, 0, 0);
+            const todayStart = checkDate.getTime();
+            const hasCompletedToday = completedAllTime.some(t =>
+                t.completedAt && t.completedAt >= todayStart && t.completedAt < todayStart + oneDay
+            );
+            if (!hasCompletedToday) checkDate.setDate(checkDate.getDate() - 1);
+            while (currentStreak <= 365) {
+                const dayStart = checkDate.getTime();
+                if (completedAllTime.some(t => t.completedAt && t.completedAt >= dayStart && t.completedAt < dayStart + oneDay)) {
+                    currentStreak++;
+                    checkDate.setDate(checkDate.getDate() - 1);
+                } else break;
+            }
+            // Calculate best streak (simplified - check last 90 days)
+            let tempStreak = 0;
+            for (let d = 0; d < 90; d++) {
+                const dayStart = now - (d * oneDay);
+                const dayEnd = dayStart + oneDay;
+                if (completedAllTime.some(t => t.completedAt && t.completedAt >= dayStart - oneDay && t.completedAt < dayEnd - oneDay)) {
+                    tempStreak++;
+                    bestStreak = Math.max(bestStreak, tempStreak);
+                } else {
+                    tempStreak = 0;
+                }
+            }
+            bestStreak = Math.max(bestStreak, currentStreak);
 
             // Not enough data
             if (totalCaptured < 3) {
@@ -1764,347 +2077,380 @@
 
             let html = '';
 
-            // ========== TOP ROW: Key Numbers ==========
-            html += '<div class="pattern-row">';
+            // ══════════════════════════════════════════════════════════════
+            // SECTION: OVERVIEW
+            // ══════════════════════════════════════════════════════════════
+            html += `<div class="pattern-section">
+                <div class="pattern-section-header">
+                    <span class="pattern-section-icon">📊</span>
+                    <span class="pattern-section-title">Overview</span>
+                </div>`;
+
+            // Key stats row
+            const completionRate = totalCapturedTasks > 0 ? Math.round((totalCompleted / totalCapturedTasks) * 100) : 0;
+            html += '<div class="pattern-row-3">';
             html += `<div class="pattern-card highlight">
-                <div class="pattern-card-label">completed</div>
+                <div class="pattern-card-label">done</div>
                 <div class="pattern-card-value">${totalCompleted}</div>
-                <div class="pattern-card-detail">all time</div>
             </div>`;
             html += `<div class="pattern-card">
                 <div class="pattern-card-label">waiting</div>
                 <div class="pattern-card-value">${backlogSize}</div>
-                <div class="pattern-card-detail">in backlog</div>
+            </div>`;
+            html += `<div class="pattern-card${completionRate >= 50 ? ' highlight-green' : ''}">
+                <div class="pattern-card-label">rate</div>
+                <div class="pattern-card-value">${completionRate}%</div>
             </div>`;
             html += '</div>';
 
-            // ========== COMPLETION RATE ==========
-            if (totalCapturedTasks > 0) {
-                const completionRate = Math.round((totalCompleted / totalCapturedTasks) * 100);
-                let rateDetail = '';
-                if (completionRate >= 70) rateDetail = 'excellent follow-through';
-                else if (completionRate >= 50) rateDetail = 'good progress';
-                else if (completionRate >= 30) rateDetail = 'building momentum';
-                else rateDetail = 'room to grow';
-
-                html += `<div class="pattern-card${completionRate >= 50 ? ' highlight' : ''}">
-                    <div class="pattern-card-label">completion rate</div>
-                    <div class="pattern-card-value">${completionRate}%</div>
-                    <div class="pattern-card-detail">${rateDetail}</div>
+            // Streak (if exists)
+            if (currentStreak >= 1) {
+                html += `<div class="pattern-card${currentStreak >= 3 ? ' highlight' : ''}">
+                    <div class="pattern-streak">
+                        <span class="pattern-streak-flame">${currentStreak >= 7 ? '🔥' : currentStreak >= 3 ? '✨' : '📈'}</span>
+                        <div class="pattern-streak-info">
+                            <div class="pattern-streak-count">${currentStreak}</div>
+                            <div class="pattern-streak-label">${currentStreak === 1 ? 'day' : 'days'} in a row</div>
+                        </div>
+                        ${bestStreak > currentStreak ? `<div class="pattern-streak-best">best<span>${bestStreak}</span></div>` : ''}
+                    </div>
                 </div>`;
             }
 
-            // ========== WEEKLY TREND CHART ==========
+            html += '</div>'; // end overview section
+
+            // ══════════════════════════════════════════════════════════════
+            // SECTION: THIS WEEK
+            // ══════════════════════════════════════════════════════════════
+            if (thisWeekCompleted > 0 || thisWeekCaptured > 0 || lastWeekCompleted > 0) {
+                html += `<div class="pattern-section">
+                    <div class="pattern-section-header">
+                        <span class="pattern-section-icon">📅</span>
+                        <span class="pattern-section-title">This Week</span>
+                    </div>`;
+
+                // Week comparison
+                let weekTrend = '';
+                let weekHighlight = false;
+                if (lastWeekCompleted > 0 && thisWeekCompleted > lastWeekCompleted) {
+                    const pctUp = Math.round(((thisWeekCompleted - lastWeekCompleted) / lastWeekCompleted) * 100);
+                    weekTrend = `+${pctUp}%`;
+                    weekHighlight = true;
+                } else if (lastWeekCompleted > 0 && thisWeekCompleted < lastWeekCompleted) {
+                    const pctDown = Math.round(((lastWeekCompleted - thisWeekCompleted) / lastWeekCompleted) * 100);
+                    weekTrend = `-${pctDown}%`;
+                }
+
+                html += `<div class="pattern-card${weekHighlight ? ' highlight' : ''}">
+                    <div class="pattern-stat-inline">
+                        <span class="pattern-stat-inline-label">Completed</span>
+                        <span class="pattern-stat-inline-value${weekHighlight ? ' positive' : ''}">${thisWeekCompleted}${weekTrend ? ` (${weekTrend})` : ''}</span>
+                    </div>
+                    <div class="pattern-stat-inline">
+                        <span class="pattern-stat-inline-label">Captured</span>
+                        <span class="pattern-stat-inline-value">${thisWeekCaptured}</span>
+                    </div>
+                    <div class="pattern-stat-inline">
+                        <span class="pattern-stat-inline-label">Last week</span>
+                        <span class="pattern-stat-inline-value">${lastWeekCompleted} completed</span>
+                    </div>
+                </div>`;
+
+                // Daily breakdown (interactive)
+                const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                const todayDay = new Date().getDay();
+                const weekDayCounts = dayNames.map(() => 0);
+                completedAllTime.forEach(t => {
+                    if (t.completedAt && t.completedAt > oneWeekAgo) {
+                        weekDayCounts[new Date(t.completedAt).getDay()]++;
+                    }
+                });
+                const maxDayThisWeek = Math.max(...weekDayCounts, 1);
+
+                html += `<div class="pattern-card">
+                    <div class="pattern-card-label">daily breakdown <span style="font-weight: normal; text-transform: none;">(tap for details)</span></div>
+                    <div class="pattern-bar-container" id="daily-bars">`;
+                dayNames.forEach((name, i) => {
+                    const count = weekDayCounts[i];
+                    const pct = Math.round((count / maxDayThisWeek) * 100);
+                    const isToday = i === todayDay;
+                    html += `<div class="pattern-bar-row${isToday ? ' selected' : ''}" data-day="${name}" data-count="${count}">
+                        <div class="pattern-bar-label">${name}</div>
+                        <div class="pattern-bar-track">
+                            <div class="pattern-bar-fill" style="width: ${pct}%; ${isToday ? 'background: linear-gradient(90deg, #5cb85c, #4caf50);' : ''}"></div>
+                        </div>
+                        <div class="pattern-bar-value">${count}</div>
+                    </div>`;
+                });
+                html += '</div></div>';
+
+                html += '</div>'; // end this week section
+            }
+
+            // ══════════════════════════════════════════════════════════════
+            // SECTION: TRENDS
+            // ══════════════════════════════════════════════════════════════
             const weeklyData = [];
+            const weekLabels = [];
             for (let i = 7; i >= 0; i--) {
                 const weekStart = now - ((i + 1) * 7 * oneDay);
                 const weekEnd = now - (i * 7 * oneDay);
-                const count = completedAllTime.filter(t =>
-                    t.completedAt && t.completedAt > weekStart && t.completedAt <= weekEnd
-                ).length;
+                const count = completedAllTime.filter(t => t.completedAt && t.completedAt > weekStart && t.completedAt <= weekEnd).length;
                 weeklyData.push(count);
+                const weekDate = new Date(weekEnd);
+                weekLabels.push(`${weekDate.getMonth() + 1}/${weekDate.getDate()}`);
             }
             const maxWeekly = Math.max(...weeklyData, 1);
+            const totalWeeklySum = weeklyData.reduce((a, b) => a + b, 0);
 
-            if (weeklyData.some(w => w > 0)) {
+            if (totalWeeklySum > 0) {
+                html += `<div class="pattern-section">
+                    <div class="pattern-section-header">
+                        <span class="pattern-section-icon">📈</span>
+                        <span class="pattern-section-title">Trends</span>
+                    </div>`;
+
+                // Weekly trend chart (interactive)
                 html += `<div class="pattern-card">
-                    <div class="pattern-card-label">weekly completions</div>
-                    <div class="pattern-trend">`;
-                weeklyData.forEach(count => {
-                    const height = Math.max(4, Math.round((count / maxWeekly) * 40));
-                    html += `<div class="pattern-trend-bar${count === 0 ? ' empty' : ''}" style="height: ${height}px" title="${count}"></div>`;
+                    <div class="pattern-card-label">8-week history <span style="font-weight: normal; text-transform: none;">(tap bars)</span></div>
+                    <div class="pattern-trend" id="weekly-trend">`;
+                weeklyData.forEach((count, i) => {
+                    const height = Math.max(4, Math.round((count / maxWeekly) * 50));
+                    html += `<div class="pattern-trend-bar${count === 0 ? ' empty' : ''}" style="height: ${height}px" data-count="${count}" data-week="${weekLabels[i]}">
+                        <div class="pattern-trend-tooltip">${count} done<br>${weekLabels[i]}</div>
+                    </div>`;
                 });
                 html += `</div>
                     <div class="pattern-trend-labels">
-                        <span>8 weeks ago</span>
-                        <span>this week</span>
+                        <span>8 wks ago</span>
+                        <span>now</span>
                     </div>
+                    <div class="pattern-tap-hint">tap a bar for exact count</div>
                 </div>`;
-            }
 
-            // ========== THIS WEEK VS LAST WEEK ==========
-            if (thisWeekCompleted > 0 || lastWeekCompleted > 0) {
-                let velocityDetail = '';
-                let highlight = false;
-                if (lastWeekCompleted > 0 && thisWeekCompleted > lastWeekCompleted) {
-                    const pctUp = Math.round(((thisWeekCompleted - lastWeekCompleted) / lastWeekCompleted) * 100);
-                    velocityDetail = `+${pctUp}% from last week`;
-                    highlight = true;
-                } else if (lastWeekCompleted > 0 && thisWeekCompleted < lastWeekCompleted) {
-                    velocityDetail = `down from ${lastWeekCompleted} last week`;
-                } else if (lastWeekCompleted > 0) {
-                    velocityDetail = `same as last week`;
-                } else {
-                    velocityDetail = 'this week';
-                }
-                html += `<div class="pattern-card${highlight ? ' highlight' : ''}">
-                    <div class="pattern-card-label">this week</div>
-                    <div class="pattern-card-value">${thisWeekCompleted}</div>
-                    <div class="pattern-card-detail">${velocityDetail}</div>
-                </div>`;
-            }
+                // Capture vs Complete balance
+                const recentCaptured = [...thoughts, ...completedAllTime].filter(t => t.createdAt && t.createdAt > fourWeeksAgo).length;
+                const recentCompleted = completedAllTime.filter(t => t.completedAt && t.completedAt > fourWeeksAgo).length;
 
-            // ========== COMPLETION STREAK ==========
-            let currentStreak = 0;
-            let checkDate = new Date();
-            checkDate.setHours(0, 0, 0, 0);
+                if (recentCaptured > 0 || recentCompleted > 0) {
+                    const total = recentCaptured + recentCompleted;
+                    const capturedPct = Math.round((recentCaptured / total) * 100);
+                    const completedPct = 100 - capturedPct;
+                    let flowStatus = recentCompleted >= recentCaptured ? 'Clearing backlog' :
+                                     recentCaptured > recentCompleted * 1.5 ? 'Building backlog' : 'Balanced';
 
-            // Check if completed something today
-            const todayStart = checkDate.getTime();
-            const todayEnd = todayStart + oneDay;
-            const completedToday = completedAllTime.some(t =>
-                t.completedAt && t.completedAt >= todayStart && t.completedAt < todayEnd
-            );
-
-            // If nothing today, start checking from yesterday
-            if (!completedToday) {
-                checkDate.setDate(checkDate.getDate() - 1);
-            }
-
-            // Count consecutive days with completions
-            while (true) {
-                const dayStart = checkDate.getTime();
-                const dayEnd = dayStart + oneDay;
-                const hasCompletion = completedAllTime.some(t =>
-                    t.completedAt && t.completedAt >= dayStart && t.completedAt < dayEnd
-                );
-                if (hasCompletion) {
-                    currentStreak++;
-                    checkDate.setDate(checkDate.getDate() - 1);
-                } else {
-                    break;
-                }
-                if (currentStreak > 365) break; // Safety limit
-            }
-
-            if (currentStreak >= 2) {
-                html += `<div class="pattern-card highlight">
-                    <div class="pattern-card-label">current streak</div>
-                    <div class="pattern-streak">
-                        <span class="pattern-streak-flame">🔥</span>
-                        <span class="pattern-streak-count">${currentStreak}</span>
-                        <span class="pattern-streak-label">days in a row</span>
-                    </div>
-                </div>`;
-            }
-
-            // ========== AVERAGE TIME TO COMPLETION ==========
-            const completedWithTimes = completedAllTime.filter(t => t.createdAt && t.completedAt);
-            if (completedWithTimes.length >= 3) {
-                const avgMs = completedWithTimes.reduce((sum, t) => sum + (t.completedAt - t.createdAt), 0) / completedWithTimes.length;
-                const avgDays = avgMs / oneDay;
-
-                let avgText, avgDetail;
-                if (avgDays < 1) {
-                    const avgHours = Math.round(avgMs / (60 * 60 * 1000));
-                    avgText = avgHours <= 1 ? '<1 hr' : `${avgHours} hrs`;
-                    avgDetail = 'quick turnaround';
-                } else if (avgDays < 7) {
-                    avgText = `${Math.round(avgDays)} days`;
-                    avgDetail = avgDays <= 2 ? 'fast execution' : 'steady pace';
-                } else {
-                    const weeks = Math.round(avgDays / 7);
-                    avgText = `${weeks} week${weeks > 1 ? 's' : ''}`;
-                    avgDetail = 'thoughtful approach';
-                }
-
-                html += `<div class="pattern-card">
-                    <div class="pattern-card-label">avg time to done</div>
-                    <div class="pattern-card-value">${avgText}</div>
-                    <div class="pattern-card-detail">${avgDetail}</div>
-                </div>`;
-            }
-
-            // ========== TIME OF DAY ACTIVITY ==========
-            const completionTimestamps = completedAllTime.map(t => t.completedAt).filter(Boolean);
-            if (completionTimestamps.length >= 5) {
-                const timeBlocks = { morning: 0, afternoon: 0, evening: 0, night: 0 };
-                completionTimestamps.forEach(ts => {
-                    const hour = new Date(ts).getHours();
-                    if (hour >= 5 && hour < 12) timeBlocks.morning++;
-                    else if (hour >= 12 && hour < 17) timeBlocks.afternoon++;
-                    else if (hour >= 17 && hour < 21) timeBlocks.evening++;
-                    else timeBlocks.night++;
-                });
-
-                const maxBlock = Math.max(...Object.values(timeBlocks));
-                const activeBlock = Object.entries(timeBlocks).find(([_, v]) => v === maxBlock)?.[0];
-
-                html += `<div class="pattern-card">
-                    <div class="pattern-card-label">when you get things done</div>
-                    <div class="pattern-time-blocks">
-                        <div class="pattern-time-block${activeBlock === 'morning' ? ' active' : ''}">
-                            <div class="pattern-time-block-label">morning</div>
-                            <div class="pattern-time-block-value">${timeBlocks.morning}</div>
-                        </div>
-                        <div class="pattern-time-block${activeBlock === 'afternoon' ? ' active' : ''}">
-                            <div class="pattern-time-block-label">afternoon</div>
-                            <div class="pattern-time-block-value">${timeBlocks.afternoon}</div>
-                        </div>
-                        <div class="pattern-time-block${activeBlock === 'evening' ? ' active' : ''}">
-                            <div class="pattern-time-block-label">evening</div>
-                            <div class="pattern-time-block-value">${timeBlocks.evening}</div>
-                        </div>
-                        <div class="pattern-time-block${activeBlock === 'night' ? ' active' : ''}">
-                            <div class="pattern-time-block-label">night</div>
-                            <div class="pattern-time-block-value">${timeBlocks.night}</div>
-                        </div>
-                    </div>
-                </div>`;
-            }
-
-            // ========== MOST PRODUCTIVE DAY ==========
-            const completionDayCounts = [0, 0, 0, 0, 0, 0, 0]; // Sun-Sat
-            completedAllTime.forEach(t => {
-                if (t.completedAt) {
-                    completionDayCounts[new Date(t.completedAt).getDay()]++;
-                }
-            });
-            const maxDayCount = Math.max(...completionDayCounts);
-            if (maxDayCount >= 2) {
-                const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-                const mostProductiveDay = completionDayCounts.indexOf(maxDayCount);
-                html += `<div class="pattern-card">
-                    <div class="pattern-card-label">most productive day</div>
-                    <div class="pattern-card-value">${dayNames[mostProductiveDay]}</div>
-                    <div class="pattern-card-detail">${maxDayCount} completions total</div>
-                </div>`;
-            }
-
-            // ========== CAPTURE VS COMPLETE BALANCE ==========
-            const recentCaptured = [
-                ...thoughts.filter(t => t.createdAt && t.createdAt > twoWeeksAgo),
-                ...completedAllTime.filter(t => t.createdAt && t.createdAt > twoWeeksAgo)
-            ].length;
-            const recentCompleted = completedAllTime.filter(t => t.completedAt && t.completedAt > twoWeeksAgo).length;
-
-            if (recentCaptured > 0 || recentCompleted > 0) {
-                const total = recentCaptured + recentCompleted;
-                const capturedPct = Math.round((recentCaptured / total) * 100);
-                const completedPct = 100 - capturedPct;
-
-                let balanceInsight = '';
-                if (recentCompleted > recentCaptured) {
-                    balanceInsight = 'clearing more than adding - nice!';
-                } else if (recentCaptured > recentCompleted * 2) {
-                    balanceInsight = 'lots of new ideas flowing';
-                } else {
-                    balanceInsight = 'healthy balance';
-                }
-
-                html += `<div class="pattern-card">
-                    <div class="pattern-card-label">last 2 weeks</div>
-                    <div class="pattern-balance">
-                        <div class="pattern-balance-bar">
-                            <div class="pattern-balance-captured" style="width: ${capturedPct}%"></div>
-                            <div class="pattern-balance-completed" style="width: ${completedPct}%"></div>
-                        </div>
-                        <div class="pattern-balance-labels">
-                            <div class="pattern-balance-label">
-                                <span class="pattern-balance-dot captured"></span>
-                                ${recentCaptured} captured
-                            </div>
-                            <div class="pattern-balance-label">
-                                <span class="pattern-balance-dot completed"></span>
-                                ${recentCompleted} completed
-                            </div>
-                        </div>
-                    </div>
-                    <div class="pattern-card-detail" style="margin-top: 10px;">${balanceInsight}</div>
-                </div>`;
-            }
-
-            // ========== OLDEST ITEM ==========
-            const thoughtsWithDates = thoughts.filter(t => t.createdAt);
-            if (thoughtsWithDates.length > 0) {
-                const oldest = thoughtsWithDates.reduce((a, b) => a.createdAt < b.createdAt ? a : b);
-                const daysOld = Math.floor((now - oldest.createdAt) / oneDay);
-                if (daysOld >= 3) {
-                    const truncated = oldest.text.length > 40 ? oldest.text.slice(0, 40) + '...' : oldest.text;
-                    const timeStr = daysOld >= 14 ? `${Math.floor(daysOld / 7)} weeks` : `${daysOld} days`;
                     html += `<div class="pattern-card">
-                        <div class="pattern-card-label">oldest in backlog</div>
-                        <div class="pattern-quote">"${truncated}"</div>
-                        <div class="pattern-card-detail">${timeStr} old</div>
+                        <div class="pattern-card-label">4-week flow</div>
+                        <div class="pattern-balance">
+                            <div class="pattern-balance-bar" id="balance-bar" data-captured="${recentCaptured}" data-completed="${recentCompleted}">
+                                <div class="pattern-balance-captured" style="width: ${capturedPct}%"></div>
+                                <div class="pattern-balance-completed" style="width: ${completedPct}%"></div>
+                            </div>
+                            <div class="pattern-balance-labels">
+                                <div class="pattern-balance-label">
+                                    <span class="pattern-balance-dot captured"></span>
+                                    <span>${recentCaptured}</span> in
+                                </div>
+                                <div class="pattern-balance-label">
+                                    <span class="pattern-balance-dot completed"></span>
+                                    <span>${recentCompleted}</span> out
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pattern-card-detail">${flowStatus}</div>
                     </div>`;
                 }
+
+                html += '</div>'; // end trends section
             }
 
-            // ========== FREQUENTLY DEFERRED ==========
-            const frequentlySkipped = thoughts.filter(t => t.skips >= 2).sort((a, b) => b.skips - a.skips);
-            if (frequentlySkipped.length > 0) {
-                html += `<div class="pattern-card">
-                    <div class="pattern-card-label">keeps getting pushed back</div>`;
-                frequentlySkipped.slice(0, 3).forEach(item => {
-                    const truncated = item.text.length > 35 ? item.text.slice(0, 35) + '...' : item.text;
-                    html += `<div class="pattern-quote">"${truncated}"<span class="pattern-quote-skip">${item.skips}x</span></div>`;
-                });
-                html += '</div>';
-            }
+            // ══════════════════════════════════════════════════════════════
+            // SECTION: YOUR RHYTHM
+            // ══════════════════════════════════════════════════════════════
+            if (completionTimestamps.length >= 5) {
+                html += `<div class="pattern-section">
+                    <div class="pattern-section-header">
+                        <span class="pattern-section-icon">⏰</span>
+                        <span class="pattern-section-title">Your Rhythm</span>
+                    </div>`;
 
-            // ========== WORRIES RELEASED ==========
-            if (worriesReleased > 0) {
+                // Time of day blocks (interactive)
+                const maxBlock = Math.max(...Object.values(timeBlocks), 1);
+                const activeBlock = Object.entries(timeBlocks).reduce((a, b) => b[1] > a[1] ? b : a)[0];
+                const timeIcons = { morning: '🌅', afternoon: '☀️', evening: '🌆', night: '🌙' };
+                const timeRanges = { morning: '5am-12pm', afternoon: '12-5pm', evening: '5-9pm', night: '9pm-5am' };
+
                 html += `<div class="pattern-card">
-                    <div class="pattern-card-label">worries released</div>
-                    <div class="pattern-card-value">${worriesReleased}</div>
-                    <div class="pattern-card-detail">captured and let go</div>
+                    <div class="pattern-card-label">peak productivity <span style="font-weight: normal; text-transform: none;">(tap to see time range)</span></div>
+                    <div class="pattern-time-blocks" id="time-blocks">
+                        ${Object.entries(timeBlocks).map(([period, count]) => `
+                            <div class="pattern-time-block${period === activeBlock ? ' active' : ''}" data-period="${period}" data-range="${timeRanges[period]}" data-count="${count}">
+                                <div class="pattern-time-block-icon">${timeIcons[period]}</div>
+                                <div class="pattern-time-block-label">${period}</div>
+                                <div class="pattern-time-block-value">${count}</div>
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>`;
+
+                // Best day + avg time combined
+                const maxDayCount = Math.max(...completionDayCounts);
+                const dayNamesFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const bestDay = dayNamesFull[completionDayCounts.indexOf(maxDayCount)];
+
+                let avgTimeText = '';
+                if (completedWithTimes.length >= 3) {
+                    const avgMs = completedWithTimes.reduce((sum, t) => sum + (t.completedAt - t.createdAt), 0) / completedWithTimes.length;
+                    const avgDays = avgMs / oneDay;
+                    if (avgDays < 1) {
+                        const hrs = Math.round(avgMs / (60 * 60 * 1000));
+                        avgTimeText = hrs <= 1 ? '< 1 hour' : `${hrs} hours`;
+                    } else if (avgDays < 7) {
+                        avgTimeText = `${Math.round(avgDays)} days`;
+                    } else {
+                        avgTimeText = `${Math.round(avgDays / 7)} weeks`;
+                    }
+                }
+
+                html += `<div class="pattern-card">
+                    <div class="pattern-stat-inline">
+                        <span class="pattern-stat-inline-label">Best day</span>
+                        <span class="pattern-stat-inline-value highlight">${bestDay}</span>
+                    </div>
+                    ${avgTimeText ? `<div class="pattern-stat-inline">
+                        <span class="pattern-stat-inline-label">Avg time to done</span>
+                        <span class="pattern-stat-inline-value">${avgTimeText}</span>
+                    </div>` : ''}
+                    <div class="pattern-stat-inline">
+                        <span class="pattern-stat-inline-label">Weekend vs weekday</span>
+                        <span class="pattern-stat-inline-value">${completionDayCounts[0] + completionDayCounts[6]} / ${completionDayCounts.slice(1, 6).reduce((a, b) => a + b, 0)}</span>
+                    </div>
+                </div>`;
+
+                html += '</div>'; // end rhythm section
             }
 
-            // ========== PERSONALIZED INSIGHTS ==========
+            // ══════════════════════════════════════════════════════════════
+            // SECTION: BACKLOG HEALTH
+            // ══════════════════════════════════════════════════════════════
+            const thoughtsWithDates = thoughts.filter(t => t.createdAt);
+            const frequentlySkipped = thoughts.filter(t => t.skips >= 2).sort((a, b) => b.skips - a.skips);
+            const oldest = thoughtsWithDates.length > 0 ? thoughtsWithDates.reduce((a, b) => a.createdAt < b.createdAt ? a : b) : null;
+            const oldestDays = oldest ? Math.floor((now - oldest.createdAt) / oneDay) : 0;
+
+            if (backlogSize > 0 && (oldestDays >= 3 || frequentlySkipped.length > 0)) {
+                html += `<div class="pattern-section">
+                    <div class="pattern-section-header">
+                        <span class="pattern-section-icon">📋</span>
+                        <span class="pattern-section-title">Backlog Health</span>
+                    </div>`;
+
+                // Backlog age distribution
+                const ageGroups = { fresh: 0, week: 0, twoWeeks: 0, older: 0 };
+                thoughtsWithDates.forEach(t => {
+                    const age = (now - t.createdAt) / oneDay;
+                    if (age < 3) ageGroups.fresh++;
+                    else if (age < 7) ageGroups.week++;
+                    else if (age < 14) ageGroups.twoWeeks++;
+                    else ageGroups.older++;
+                });
+
+                html += `<div class="pattern-card">
+                    <div class="pattern-card-label">age distribution</div>
+                    <div class="pattern-stat-inline">
+                        <span class="pattern-stat-inline-label">Fresh (< 3 days)</span>
+                        <span class="pattern-stat-inline-value positive">${ageGroups.fresh}</span>
+                    </div>
+                    <div class="pattern-stat-inline">
+                        <span class="pattern-stat-inline-label">This week</span>
+                        <span class="pattern-stat-inline-value">${ageGroups.week}</span>
+                    </div>
+                    <div class="pattern-stat-inline">
+                        <span class="pattern-stat-inline-label">1-2 weeks</span>
+                        <span class="pattern-stat-inline-value">${ageGroups.twoWeeks}</span>
+                    </div>
+                    <div class="pattern-stat-inline">
+                        <span class="pattern-stat-inline-label">Older</span>
+                        <span class="pattern-stat-inline-value${ageGroups.older > 3 ? '' : ''}">${ageGroups.older}</span>
+                    </div>
+                </div>`;
+
+                // Oldest + frequently skipped
+                if (oldestDays >= 3 || frequentlySkipped.length > 0) {
+                    html += `<div class="pattern-card">
+                        <div class="pattern-card-label">needs attention</div>`;
+
+                    if (oldest && oldestDays >= 3) {
+                        const truncated = oldest.text.length > 40 ? oldest.text.slice(0, 40) + '...' : oldest.text;
+                        const timeStr = oldestDays >= 14 ? `${Math.floor(oldestDays / 7)} weeks` : `${oldestDays} days`;
+                        html += `<div class="pattern-quote-item" data-action="oldest">
+                            <div class="pattern-quote-text">"${truncated}"</div>
+                            <div class="pattern-quote-meta">${timeStr}</div>
+                        </div>`;
+                    }
+
+                    frequentlySkipped.slice(0, 2).forEach(item => {
+                        const truncated = item.text.length > 40 ? item.text.slice(0, 40) + '...' : item.text;
+                        html += `<div class="pattern-quote-item">
+                            <div class="pattern-quote-text">"${truncated}"</div>
+                            <div class="pattern-quote-meta">skipped ${item.skips}x</div>
+                        </div>`;
+                    });
+
+                    html += '</div>';
+                }
+
+                html += '</div>'; // end backlog health section
+            }
+
+            // ══════════════════════════════════════════════════════════════
+            // SECTION: INSIGHTS
+            // ══════════════════════════════════════════════════════════════
             const insights = [];
 
-            // Fast completer insight
+            // Generate insights
             if (completedWithTimes.length >= 3) {
                 const avgDays = completedWithTimes.reduce((sum, t) => sum + (t.completedAt - t.createdAt), 0) / completedWithTimes.length / oneDay;
                 if (avgDays < 2) {
-                    insights.push({ icon: '⚡', text: `You're a <span class="pattern-insight-highlight">fast executor</span> - most items done within ${Math.round(avgDays * 24)} hours of capture.` });
+                    insights.push({ icon: '⚡', text: `<span class="pattern-insight-highlight">Fast executor</span> — most items done within ${Math.round(avgDays * 24)} hours` });
                 }
             }
 
-            // Weekend warrior insight
-            const weekendCompletions = completionDayCounts[0] + completionDayCounts[6];
-            const weekdayCompletions = completionDayCounts.slice(1, 6).reduce((a, b) => a + b, 0);
-            if (weekendCompletions > weekdayCompletions && weekendCompletions >= 3) {
-                insights.push({ icon: '🏖️', text: `You're a <span class="pattern-insight-highlight">weekend warrior</span> - you get more done on Sat/Sun than weekdays.` });
+            const weekendTotal = completionDayCounts[0] + completionDayCounts[6];
+            const weekdayTotal = completionDayCounts.slice(1, 6).reduce((a, b) => a + b, 0);
+            if (weekendTotal > weekdayTotal && weekendTotal >= 3) {
+                insights.push({ icon: '🏖️', text: `<span class="pattern-insight-highlight">Weekend warrior</span> — you get more done on Sat/Sun` });
             }
 
-            // Morning person insight
             if (completionTimestamps.length >= 5) {
-                const morningCount = completionTimestamps.filter(ts => {
-                    const h = new Date(ts).getHours();
-                    return h >= 5 && h < 12;
-                }).length;
-                if (morningCount > completionTimestamps.length * 0.5) {
-                    insights.push({ icon: '🌅', text: `You're a <span class="pattern-insight-highlight">morning person</span> - most of your completions happen before noon.` });
+                const morningPct = timeBlocks.morning / completionTimestamps.length;
+                const nightPct = (timeBlocks.night) / completionTimestamps.length;
+                if (morningPct > 0.5) {
+                    insights.push({ icon: '🌅', text: `<span class="pattern-insight-highlight">Morning person</span> — ${Math.round(morningPct * 100)}% of completions before noon` });
+                } else if (nightPct > 0.3) {
+                    insights.push({ icon: '🦉', text: `<span class="pattern-insight-highlight">Night owl</span> — you often get things done late at night` });
                 }
             }
 
-            // Night owl insight
-            if (completionTimestamps.length >= 5) {
-                const nightCount = completionTimestamps.filter(ts => {
-                    const h = new Date(ts).getHours();
-                    return h >= 21 || h < 5;
-                }).length;
-                if (nightCount > completionTimestamps.length * 0.3) {
-                    insights.push({ icon: '🦉', text: `You're a <span class="pattern-insight-highlight">night owl</span> - you often get things done late at night.` });
-                }
-            }
-
-            // Streak milestone
             if (currentStreak >= 7) {
-                insights.push({ icon: '🔥', text: `<span class="pattern-insight-highlight">${currentStreak} day streak!</span> You've been consistently completing tasks for over a week.` });
+                insights.push({ icon: '🔥', text: `<span class="pattern-insight-highlight">${currentStreak} day streak!</span> — consistently completing tasks` });
             }
 
-            // Backlog clearer
             if (totalCompleted > backlogSize * 2 && totalCompleted >= 10) {
-                insights.push({ icon: '✨', text: `You've completed <span class="pattern-insight-highlight">${totalCompleted} items</span> - more than double your current backlog. Great execution!` });
+                insights.push({ icon: '✨', text: `<span class="pattern-insight-highlight">Backlog clearer</span> — ${totalCompleted} done, more than 2x your waiting list` });
+            }
+
+            if (worriesReleased >= 3) {
+                insights.push({ icon: '🧘', text: `<span class="pattern-insight-highlight">${worriesReleased} worries released</span> — captured and let go` });
             }
 
             if (insights.length > 0) {
-                html += `<div class="pattern-card">
-                    <div class="pattern-card-label">insights about you</div>`;
-                insights.slice(0, 3).forEach(insight => {
+                html += `<div class="pattern-section">
+                    <div class="pattern-section-header">
+                        <span class="pattern-section-icon">💡</span>
+                        <span class="pattern-section-title">About You</span>
+                    </div>`;
+                insights.slice(0, 4).forEach(insight => {
                     html += `<div class="pattern-insight">
                         <span class="pattern-insight-icon">${insight.icon}</span>
                         <span class="pattern-insight-text">${insight.text}</span>
@@ -2113,9 +2459,15 @@
                 html += '</div>';
             }
 
-            // ========== WEEKLY REFLECTIONS ==========
+            // ══════════════════════════════════════════════════════════════
+            // SECTION: HISTORY (Weekly Reflections)
+            // ══════════════════════════════════════════════════════════════
             if (weeklyReflections.length > 0) {
-                html += `<div class="section-title" style="margin-top: 24px;">weekly reflections</div>`;
+                html += `<div class="pattern-section">
+                    <div class="pattern-section-header">
+                        <span class="pattern-section-icon">📖</span>
+                        <span class="pattern-section-title">History</span>
+                    </div>`;
                 weeklyReflections.forEach(reflection => {
                     const date = new Date(reflection.date);
                     const weekLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -2127,9 +2479,47 @@
                         </div>
                     </div>`;
                 });
+                html += '</div>';
             }
 
             container.innerHTML = html;
+
+            // Add interactivity after rendering
+            setupPatternInteractivity();
+        }
+
+        function setupPatternInteractivity() {
+            // Weekly trend bar tap
+            const trendBars = document.querySelectorAll('#weekly-trend .pattern-trend-bar');
+            trendBars.forEach(bar => {
+                bar.addEventListener('click', () => {
+                    trendBars.forEach(b => b.classList.remove('selected'));
+                    bar.classList.add('selected');
+                });
+            });
+
+            // Daily breakdown bar tap
+            const dailyBars = document.querySelectorAll('#daily-bars .pattern-bar-row');
+            dailyBars.forEach(bar => {
+                bar.addEventListener('click', () => {
+                    const wasSelected = bar.classList.contains('selected');
+                    dailyBars.forEach(b => b.classList.remove('selected'));
+                    if (!wasSelected) bar.classList.add('selected');
+                });
+            });
+
+            // Time block tap
+            const timeBlocks = document.querySelectorAll('#time-blocks .pattern-time-block');
+            timeBlocks.forEach(block => {
+                block.addEventListener('click', () => {
+                    const wasSelected = block.classList.contains('selected');
+                    timeBlocks.forEach(b => b.classList.remove('selected'));
+                    if (!wasSelected) {
+                        block.classList.add('selected');
+                        // Could show time range tooltip here
+                    }
+                });
+            });
         }
 
         // ===== TAB SWITCHING =====
