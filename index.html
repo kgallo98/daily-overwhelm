@@ -277,8 +277,7 @@
         }
 
         /* Hide text input in bedtime mode */
-        body.bedtime-mode #thought-input,
-        body.bedtime-mode .drop-divider {
+        body.bedtime-mode #text-input-section {
             display: none;
         }
 
@@ -334,29 +333,6 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            padding-left: 24px;
-            padding-right: 24px;
-        }
-
-        /* Card-based capture area */
-        .drop-card {
-            background-color: var(--card-bg);
-            border-radius: 24px;
-            padding: 32px 24px;
-            width: 100%;
-            max-width: 320px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 24px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.2);
-        }
-
-        .drop-prompt {
-            font-size: 18px;
-            color: var(--text-muted);
-            font-weight: 400;
-            letter-spacing: 0.3px;
         }
 
         #mic-container {
@@ -367,8 +343,8 @@
         }
 
         #big-mic-button {
-            width: 120px;
-            height: 120px;
+            width: 180px;
+            height: 180px;
             border-radius: 50%;
             background-color: var(--accent);
             border: none;
@@ -377,19 +353,19 @@
             align-items: center;
             justify-content: center;
             color: white;
-            box-shadow: 0 4px 20px rgba(74, 144, 164, 0.3);
+            box-shadow: 0 4px 20px rgba(74, 144, 164, 0.4);
             transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s;
             position: relative;
             z-index: 2;
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            font-size: 13px;
-            font-weight: 500;
-            letter-spacing: 0.3px;
+            font-size: 15px;
+            font-weight: 400;
+            letter-spacing: 0.5px;
             text-transform: lowercase;
         }
 
         #big-mic-button:active {
-            transform: scale(0.96);
+            transform: scale(0.98);
         }
 
         #big-mic-button.listening {
@@ -400,8 +376,8 @@
 
         .ripple {
             position: absolute;
-            width: 120px;
-            height: 120px;
+            width: 180px;
+            height: 180px;
             border-radius: 50%;
             border: 1px solid var(--accent);
             opacity: 0;
@@ -409,13 +385,13 @@
             pointer-events: none;
         }
 
-        .ripple-1 { animation: ripple 6s ease-out infinite; }
-        .ripple-2 { animation: ripple 6s ease-out infinite 2s; }
+        .ripple-1 { animation: ripple 7s ease-out infinite; }
+        .ripple-2 { animation: ripple 7s ease-out infinite 2s; }
 
         @keyframes ripple {
-            0% { transform: scale(1); opacity: 0.3; }
-            50% { transform: scale(2); opacity: 0; }
-            100% { transform: scale(2); opacity: 0; }
+            0% { transform: scale(1); opacity: 0.4; }
+            57% { transform: scale(1.8); opacity: 0; }
+            100% { transform: scale(1.8); opacity: 0; }
         }
 
         @keyframes pulse-listening {
@@ -429,52 +405,8 @@
             opacity: 0;
         }
 
-        .drop-divider {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            width: 100%;
-            color: var(--text-muted);
-            font-size: 12px;
-            opacity: 0.6;
-        }
-
-        .drop-divider::before,
-        .drop-divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background-color: var(--border-color);
-        }
-
-        #thought-input {
-            width: 100%;
-            padding: 14px 16px;
-            font-size: 16px;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            background-color: var(--input-bg);
-            color: var(--text-color);
-            text-align: center;
-        }
-
-        #thought-input::placeholder {
-            color: var(--text-muted);
-        }
-
-        #thought-input:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-
-        .drop-status {
-            font-size: 12px;
-            color: var(--text-muted);
-            opacity: 0.7;
-        }
-
         #capture-confirmation {
-            margin-top: 20px;
+            margin-top: 30px;
             padding: 12px 24px;
             background-color: var(--card-bg);
             color: var(--text-color);
@@ -503,6 +435,26 @@
             30% { transform: scale(0.95); }
             60% { transform: scale(1.02); }
             100% { transform: scale(1); }
+        }
+
+        #text-input-section {
+            position: absolute;
+            bottom: 80px;
+            left: 20px;
+            right: 20px;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        #thought-input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            text-align: center;
         }
 
         #thought-input::placeholder {
@@ -1839,18 +1791,15 @@
                     <button class="weekly-action" id="weekly-action">save & view patterns</button>
                 </div>
 
-                <div class="drop-card">
-                    <div class="drop-prompt">what's on your mind?</div>
-                    <div id="mic-container">
-                        <div class="ripple ripple-1"></div>
-                        <div class="ripple ripple-2"></div>
-                        <button id="big-mic-button">tap to speak</button>
-                    </div>
-                    <div class="drop-divider">or</div>
-                    <input type="text" id="thought-input" placeholder="type it out">
-                    <div class="drop-status" id="drop-status"></div>
+                <div id="mic-container">
+                    <div class="ripple ripple-1"></div>
+                    <div class="ripple ripple-2"></div>
+                    <button id="big-mic-button">tap to drop</button>
                 </div>
                 <div id="capture-confirmation"></div>
+                <div id="text-input-section">
+                    <input type="text" id="thought-input" placeholder="or type here">
+                </div>
                 <div id="capture-swipe-hint">
                     <svg class="hint-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="18 15 12 9 6 15"></polyline>
@@ -2047,7 +1996,6 @@
             localStorage.setItem('worries', JSON.stringify(worries));
             localStorage.setItem('weeklyReflections', JSON.stringify(weeklyReflections));
             localStorage.setItem('lastResetDate', lastResetDate);
-            updateDropStatus();
         }
 
         function getTodayDate() {
@@ -2071,26 +2019,12 @@
             todayFocus = thoughts.slice(0, count).map(t => ({ ...t }));
         }
 
-        function updateDropStatus() {
-            const status = document.getElementById('drop-status');
-            if (!status) return;
-            const count = thoughts.length;
-            if (count === 0) {
-                status.textContent = 'nothing waiting';
-            } else if (count === 1) {
-                status.textContent = '1 thing waiting';
-            } else {
-                status.textContent = `${count} things waiting`;
-            }
-        }
-
         // Initialize on load
         checkDailyReset();
         if (todayFocus.length === 0 && thoughts.length > 0) {
             selectTodayFocus();
             saveAll();
         }
-        updateDropStatus();
 
         // Track focus overlay state (used by tab swiping)
         let focusVisible = false;
@@ -3004,7 +2938,7 @@
                 isListening = false;
                 bigMicButton.classList.remove('listening');
                 micContainer.classList.remove('listening');
-                bigMicButton.textContent = 'tap to speak';
+                bigMicButton.textContent = 'tap to drop';
             };
 
             let voiceUnavailable = false;
@@ -3019,27 +2953,28 @@
                     // In iOS standalone PWA, speech service is blocked even with mic permission
                     voiceUnavailable = true;
                     bigMicButton.textContent = 'voice unavailable';
-                    bigMicButton.style.fontSize = '12px';
+                    bigMicButton.style.fontSize = '14px';
+                    document.getElementById('text-input-section').style.bottom = '100px';
                     document.getElementById('thought-input').placeholder = 'type here instead';
                 } else if (e.error === 'no-speech') {
                     bigMicButton.textContent = 'no speech heard';
                     setTimeout(() => {
-                        bigMicButton.textContent = 'tap to speak';
+                        bigMicButton.textContent = 'tap to drop';
                     }, 2000);
                 } else if (e.error === 'network') {
                     bigMicButton.textContent = 'needs internet';
                     setTimeout(() => {
-                        bigMicButton.textContent = 'tap to speak';
+                        bigMicButton.textContent = 'tap to drop';
                     }, 2000);
                 } else if (e.error === 'audio-capture') {
                     bigMicButton.textContent = 'mic unavailable';
                     setTimeout(() => {
-                        bigMicButton.textContent = 'tap to speak';
+                        bigMicButton.textContent = 'tap to drop';
                     }, 2000);
                 } else {
                     bigMicButton.textContent = e.error || 'error';
                     setTimeout(() => {
-                        bigMicButton.textContent = 'tap to speak';
+                        bigMicButton.textContent = 'tap to drop';
                     }, 2000);
                 }
             };
@@ -3053,7 +2988,7 @@
                     console.log('Mic permission error:', err);
                     bigMicButton.textContent = 'mic blocked';
                     setTimeout(() => {
-                        bigMicButton.textContent = 'tap to speak';
+                        bigMicButton.textContent = 'tap to drop';
                     }, 2000);
                     return;
                 }
@@ -3068,7 +3003,7 @@
                     console.log('Speech start error:', err);
                     bigMicButton.textContent = 'use text below';
                     setTimeout(() => {
-                        bigMicButton.textContent = 'tap to speak';
+                        bigMicButton.textContent = 'tap to drop';
                     }, 2000);
                 }
             }
