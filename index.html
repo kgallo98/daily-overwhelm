@@ -63,18 +63,14 @@
         /* Capture tab needs absolute positioning for the icons since it uses flexbox centering */
         #capture-tab .tab-top-row {
             position: absolute;
-            top: 15px;
-            left: 15px;
-            right: 15px;
+            top: 20px;
+            left: 20px;
+            right: 20px;
             margin-bottom: 0;
         }
 
-        /* Remove top margin from first visible content after icons */
-        .tab-top-row + * {
-            margin-top: 0;
-        }
-
-        /* Today tab: the hidden old-items-section is between icons and first section-title */
+        /* Remove top margin from first content after icons - needs specificity to override .section-title */
+        .tab-top-row + .section-title,
         #today-tab > #old-items-section + .section-title {
             margin-top: 0;
         }
