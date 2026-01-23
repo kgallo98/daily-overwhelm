@@ -2813,6 +2813,7 @@
             const action = btn.getAttribute('data-action');
             if (action === 'settings') {
                 settingsPanel.classList.add('visible');
+                updateLastBackupInfo();
             } else if (action === 'bedtime') {
                 setBedtimeMode(!isBedtimeMode);
             }
@@ -3881,8 +3882,6 @@
             }
         };
 
-        // Update backup info on settings open
-        settingsToggle.addEventListener('click', updateLastBackupInfo);
 
         // ===== DEV TOOLS =====
         window.devGenerateThoughts = function() {
