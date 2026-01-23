@@ -1794,7 +1794,7 @@
                 <div id="mic-container">
                     <div class="ripple ripple-1"></div>
                     <div class="ripple ripple-2"></div>
-                    <button id="big-mic-button">tap to capture</button>
+                    <button id="big-mic-button">tap to drop</button>
                 </div>
                 <div id="capture-confirmation"></div>
                 <div id="text-input-section">
@@ -1926,7 +1926,7 @@
                 <line x1="12" y1="8" x2="12" y2="16"></line>
                 <line x1="8" y1="12" x2="16" y2="12"></line>
             </svg>
-            <span>Capture</span>
+            <span>Drop</span>
         </button>
         <button class="tab-button" data-tab="today-tab">
             <svg class="tab-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -2938,7 +2938,7 @@
                 isListening = false;
                 bigMicButton.classList.remove('listening');
                 micContainer.classList.remove('listening');
-                bigMicButton.textContent = 'tap to capture';
+                bigMicButton.textContent = 'tap to drop';
             };
 
             let voiceUnavailable = false;
@@ -2959,22 +2959,22 @@
                 } else if (e.error === 'no-speech') {
                     bigMicButton.textContent = 'no speech heard';
                     setTimeout(() => {
-                        bigMicButton.textContent = 'tap to capture';
+                        bigMicButton.textContent = 'tap to drop';
                     }, 2000);
                 } else if (e.error === 'network') {
                     bigMicButton.textContent = 'needs internet';
                     setTimeout(() => {
-                        bigMicButton.textContent = 'tap to capture';
+                        bigMicButton.textContent = 'tap to drop';
                     }, 2000);
                 } else if (e.error === 'audio-capture') {
                     bigMicButton.textContent = 'mic unavailable';
                     setTimeout(() => {
-                        bigMicButton.textContent = 'tap to capture';
+                        bigMicButton.textContent = 'tap to drop';
                     }, 2000);
                 } else {
                     bigMicButton.textContent = e.error || 'error';
                     setTimeout(() => {
-                        bigMicButton.textContent = 'tap to capture';
+                        bigMicButton.textContent = 'tap to drop';
                     }, 2000);
                 }
             };
@@ -2988,7 +2988,7 @@
                     console.log('Mic permission error:', err);
                     bigMicButton.textContent = 'mic blocked';
                     setTimeout(() => {
-                        bigMicButton.textContent = 'tap to capture';
+                        bigMicButton.textContent = 'tap to drop';
                     }, 2000);
                     return;
                 }
@@ -3003,7 +3003,7 @@
                     console.log('Speech start error:', err);
                     bigMicButton.textContent = 'use text below';
                     setTimeout(() => {
-                        bigMicButton.textContent = 'tap to capture';
+                        bigMicButton.textContent = 'tap to drop';
                     }, 2000);
                 }
             }
