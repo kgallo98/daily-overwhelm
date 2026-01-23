@@ -1502,31 +1502,6 @@
             overflow: hidden;
         }
 
-        .backlog-swipe-bg {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            font-size: 14px;
-            font-weight: 500;
-            color: white;
-            opacity: 0;
-            transition: opacity 0.15s;
-        }
-
-        .backlog-swipe-delete {
-            background-color: #e74c3c;
-            justify-content: flex-end;
-        }
-
-        .backlog-swipe-delete.confirm {
-            justify-content: center;
-            cursor: pointer;
-        }
-
         .backlog-item {
             padding: 16px 18px;
             background-color: var(--card-bg);
@@ -1645,18 +1620,14 @@
         }
 
         .delete-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: var(--card-bg);
-            border-top: 1px solid var(--border-color);
-            padding: 12px 20px;
-            padding-bottom: max(20px, calc(env(safe-area-inset-bottom) + 12px));
+            background-color: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
             display: none;
             justify-content: space-between;
             align-items: center;
-            z-index: 100;
         }
 
         .delete-bar.visible {
@@ -1997,11 +1968,11 @@
                     <div class="section-title">backlog</div>
                     <button id="edit-backlog-btn" class="edit-btn">edit</button>
                 </div>
-                <div id="backlog-list"></div>
                 <div id="delete-bar" class="delete-bar">
                     <span id="delete-count">0 selected</span>
                     <button id="delete-selected-btn">delete</button>
                 </div>
+                <div id="backlog-list"></div>
             </div>
 
             <!-- PATTERNS TAB -->
@@ -3543,7 +3514,6 @@
                 const checkboxSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
 
                 wrapper.innerHTML = `
-                    <div class="backlog-swipe-bg backlog-swipe-delete">delete</div>
                     <div class="backlog-item">
                         <div class="backlog-checkbox">${checkboxSvg}</div>
                         <div class="backlog-item-text">${item.text}</div>
@@ -3557,45 +3527,13 @@
 
         function setupBacklogInteraction(wrapper, item, originalIndex, backlog) {
             const itemEl = wrapper.querySelector('.backlog-item');
-            const deleteBg = wrapper.querySelector('.backlog-swipe-delete');
 
             let startX = 0, startY = 0, currentX = 0, currentY = 0;
-            let swiping = false, dragging = false, pendingDelete = false;
+            let swiping = false, dragging = false;
             let longPressTimer = null;
             let wrapperRect = null;
             let allWrappers = [];
             const LONG_PRESS_DURATION = 400;
-
-            function confirmDelete() {
-                itemEl.style.transform = 'translateX(-100vw)';
-                haptic('medium');
-                setTimeout(() => {
-                    wrapper.classList.add('removing');
-                    setTimeout(() => {
-                        thoughts = thoughts.filter(t => t.text !== item.text);
-                        todayFocus = todayFocus.filter(t => t.text !== item.text);
-                        saveAll();
-                        renderAllTab();
-                        renderFocusCards();
-                    }, 300);
-                }, 150);
-            }
-
-            function cancelPendingDelete() {
-                pendingDelete = false;
-                deleteBg.classList.remove('confirm');
-                deleteBg.textContent = 'delete';
-                itemEl.style.transform = '';
-                deleteBg.style.opacity = 0;
-            }
-
-            // Tap on delete background to confirm
-            deleteBg.addEventListener('click', e => {
-                if (pendingDelete) {
-                    e.stopPropagation();
-                    confirmDelete();
-                }
-            });
 
             function startDragMode(e) {
                 dragging = true;
@@ -3627,11 +3565,6 @@
             }
 
             itemEl.addEventListener('touchstart', e => {
-                // Cancel any pending delete when starting new interaction
-                if (pendingDelete) {
-                    cancelPendingDelete();
-                }
-
                 startX = e.touches[0].clientX;
                 startY = e.touches[0].clientY;
                 currentX = startX;
@@ -3639,14 +3572,12 @@
                 swiping = true;
                 itemEl.classList.add('swiping');
 
-                // Start long press timer (but not in edit mode)
-                if (!editMode) {
-                    longPressTimer = setTimeout(() => {
-                        if (swiping && Math.abs(currentX - startX) < 10 && Math.abs(currentY - startY) < 10) {
-                            startDragMode(e);
-                        }
-                    }, LONG_PRESS_DURATION);
-                }
+                // Start long press timer for reorder
+                longPressTimer = setTimeout(() => {
+                    if (swiping && Math.abs(currentX - startX) < 10 && Math.abs(currentY - startY) < 10) {
+                        startDragMode(e);
+                    }
+                }, LONG_PRESS_DURATION);
             }, { passive: true });
 
             itemEl.addEventListener('touchmove', e => {
@@ -3683,23 +3614,6 @@
                         backlogList.insertBefore(placeholder, insertBefore);
                     } else {
                         backlogList.appendChild(placeholder);
-                    }
-                } else if (swiping && !editMode) {
-                    const diffX = currentX - startX;
-                    const diffY = Math.abs(currentY - startY);
-
-                    // If tab swipe is happening globally, or local indicators suggest tab swipe - don't show delete
-                    const isTabSwipe = tabSwiping || tabSwipeConfirmed || diffY > 20 || startX < 60 || startX > window.innerWidth - 60;
-
-                    // Swipe mode - move horizontally (left only), but not if this looks like a tab swipe
-                    if (diffX < 0 && !isTabSwipe) {
-                        itemEl.style.transform = `translateX(${diffX}px)`;
-                        const opacity = Math.min(1, (-diffX - 30) / 50);
-                        deleteBg.style.opacity = Math.max(0, opacity);
-                    } else {
-                        // Reset if it looks like tab swipe
-                        itemEl.style.transform = '';
-                        deleteBg.style.opacity = 0;
                     }
                 }
             }, { passive: true });
@@ -3767,9 +3681,10 @@
                     // Check if this was a tab swipe (global state or local indicators)
                     const isTabSwipe = tabSwiping || tabSwipeConfirmed || Math.abs(diffY) > 20 || startX < 60 || startX > window.innerWidth - 60;
 
-                    if (editMode) {
-                        // In edit mode, tap toggles selection
-                        if (Math.abs(diffX) < 10 && Math.abs(diffY) < 10) {
+                    if (Math.abs(diffX) < 10 && Math.abs(diffY) < 10) {
+                        // Simple tap
+                        if (editMode) {
+                            // In edit mode, tap toggles selection
                             const text = item.text;
                             if (selectedItems.has(text)) {
                                 selectedItems.delete(text);
@@ -3780,27 +3695,10 @@
                             }
                             updateDeleteBar();
                             haptic('light');
+                        } else {
+                            // Normal mode - add to today's focus
+                            addToTodayFocus(item);
                         }
-                        itemEl.style.transform = '';
-                        deleteBg.style.opacity = 0;
-                    } else if (diffX < -100 && !isTabSwipe) {
-                        // Show delete confirmation
-                        pendingDelete = true;
-                        const itemWidth = itemEl.offsetWidth;
-                        itemEl.style.transform = `translateX(-${itemWidth}px)`;
-                        deleteBg.style.opacity = 1;
-                        deleteBg.classList.add('confirm');
-                        deleteBg.textContent = 'tap to delete';
-                        haptic('light');
-                    } else if (Math.abs(diffX) < 10 && Math.abs(diffY) < 10) {
-                        // Simple tap - add to today's focus
-                        itemEl.style.transform = '';
-                        deleteBg.style.opacity = 0;
-                        addToTodayFocus(item);
-                    } else {
-                        // Snap back
-                        itemEl.style.transform = '';
-                        deleteBg.style.opacity = 0;
                     }
                 }
             });
@@ -3813,11 +3711,8 @@
                 }
                 swiping = false;
                 dragging = false;
-                if (pendingDelete) cancelPendingDelete();
                 itemEl.classList.remove('swiping');
                 wrapper.classList.remove('dragging');
-                itemEl.style.transform = '';
-                deleteBg.style.opacity = 0;
             });
         }
 
