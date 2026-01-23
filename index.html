@@ -329,7 +329,8 @@
 
         /* Disable scrolling during tab swipe */
         #tabs-container.tab-swiping .tab-content {
-            pointer-events: none;
+            overflow-y: hidden !important;
+            overscroll-behavior: none;
         }
 
         /* ===== CAPTURE TAB ===== */
@@ -2646,8 +2647,9 @@
             tabsTrack.classList.remove('animating');
 
             if (isFromEdge || isFromTopZone || isFromBottomZone) {
-                // Safe zone - definitely a tab swipe
+                // Safe zone - definitely a tab swipe, disable scroll immediately
                 tabSwiping = true;
+                tabsContainer.classList.add('tab-swiping');
             } else {
                 // Check if touch started on a swipeable card
                 const target = e.target;
@@ -2660,6 +2662,7 @@
                     tabSwipePending = true;
                 } else {
                     tabSwiping = true;
+                    tabsContainer.classList.add('tab-swiping');
                 }
             }
         }, { passive: true });
@@ -2687,6 +2690,7 @@
                     // Fast, very horizontal swipe - take over as tab swipe
                     tabSwiping = true;
                     tabSwipePending = false;
+                    tabsContainer.classList.add('tab-swiping');
                 } else if (absX > 30 || absY > 20) {
                     // Gesture has started but not fast/horizontal enough - let card handle it
                     tabSwipePending = false;
@@ -2699,6 +2703,7 @@
             if (!tabSwipeConfirmed) {
                 if (Math.abs(diffY) > Math.abs(diffX) + 10) {
                     tabSwiping = false;
+                    tabsContainer.classList.remove('tab-swiping');
                     return;
                 }
                 if (Math.abs(diffX) > 10) {
