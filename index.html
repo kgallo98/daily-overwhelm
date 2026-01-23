@@ -4094,6 +4094,13 @@
             location.reload();
         };
 
+        // ===== INITIAL RENDER =====
+        // Render all tabs on load so they're ready when swiped to
+        renderTodayTab();
+        renderAllTab();
+        renderPatterns();
+        renderFocusCards();
+
         // ===== SERVICE WORKER =====
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('service-worker.js')
