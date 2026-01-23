@@ -327,11 +327,6 @@
             min-width: 100vw;
         }
 
-        /* Disable scrolling during tab swipe */
-        #tabs-container.tab-swiping .tab-content {
-            pointer-events: none;
-        }
-
         /* ===== CAPTURE TAB ===== */
         #capture-tab {
             position: relative;
@@ -2614,6 +2609,7 @@
         let tabSwipeConfirmed = false;
         let tabSwipePending = false; // Started on card, but might become tab swipe
         let cardSwipeInProgress = false; // Global flag for card swipes
+        let lockedScrollTop = 0; // Store scroll position to prevent scroll during tab swipe
 
         const tabsContainer = document.getElementById('tabs-container');
 
@@ -2644,6 +2640,10 @@
             tabSwipeConfirmed = false;
             tabSwipePending = false;
             tabsTrack.classList.remove('animating');
+
+            // Store current scroll position of active tab
+            const activeTab = document.getElementById(tabIds[currentTabIndex]);
+            lockedScrollTop = activeTab ? activeTab.scrollTop : 0;
 
             if (isFromEdge || isFromTopZone || isFromBottomZone) {
                 // Safe zone - definitely a tab swipe
@@ -2707,8 +2707,11 @@
             }
 
             if (tabSwipeConfirmed) {
-                // Disable scrolling on tabs during swipe
-                tabsContainer.classList.add('tab-swiping');
+                // Lock scroll position to prevent scrolling during tab swipe
+                const activeTab = document.getElementById(tabIds[currentTabIndex]);
+                if (activeTab && activeTab.scrollTop !== lockedScrollTop) {
+                    activeTab.scrollTop = lockedScrollTop;
+                }
 
                 // Calculate the new position based on swipe
                 const baseOffset = -currentTabIndex * window.innerWidth;
@@ -2724,9 +2727,6 @@
 
         tabsContainer.addEventListener('touchend', e => {
             tabSwipePending = false;
-
-            // Re-enable scrolling
-            tabsContainer.classList.remove('tab-swiping');
 
             if (!tabSwiping) return;
             tabSwiping = false;
@@ -2750,7 +2750,6 @@
         });
 
         tabsContainer.addEventListener('touchcancel', () => {
-            tabsContainer.classList.remove('tab-swiping');
             tabSwiping = false;
             tabSwipePending = false;
             tabSwipeConfirmed = false;
