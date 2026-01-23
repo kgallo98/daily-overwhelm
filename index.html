@@ -1654,6 +1654,12 @@
             opacity: 0.8;
         }
 
+        #delete-selected-btn:disabled {
+            background-color: var(--border-color);
+            color: var(--text-muted);
+            cursor: default;
+        }
+
         /* ===== TAB BAR ===== */
         #tab-bar {
             display: flex;
@@ -3454,8 +3460,9 @@
 
         function updateDeleteBar() {
             const count = selectedItems.size;
-            deleteBar.classList.toggle('visible', editMode && count > 0);
-            deleteCount.textContent = count === 1 ? '1 selected' : `${count} selected`;
+            deleteBar.classList.toggle('visible', editMode);
+            deleteCount.textContent = count === 0 ? 'select items to delete' : (count === 1 ? '1 selected' : `${count} selected`);
+            deleteSelectedBtn.disabled = count === 0;
         }
 
         function deleteSelectedItems() {
