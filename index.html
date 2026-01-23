@@ -929,17 +929,9 @@
         }
 
         .pattern-section-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
             margin-bottom: 14px;
             padding-bottom: 8px;
             border-bottom: 1px solid var(--border-color);
-        }
-
-        .pattern-section-icon {
-            font-size: 18px;
-            line-height: 1;
         }
 
         .pattern-section-title {
@@ -2143,7 +2135,6 @@
             // ══════════════════════════════════════════════════════════════
             html += `<div class="pattern-section">
                 <div class="pattern-section-header">
-                    <span class="pattern-section-icon">📊</span>
                     <span class="pattern-section-title">Overview</span>
                 </div>`;
 
@@ -2186,7 +2177,6 @@
             if (thisWeekCompleted > 0 || thisWeekCaptured > 0 || lastWeekCompleted > 0) {
                 html += `<div class="pattern-section">
                     <div class="pattern-section-header">
-                        <span class="pattern-section-icon">📅</span>
                         <span class="pattern-section-title">This Week</span>
                     </div>`;
 
@@ -2267,7 +2257,6 @@
             if (totalWeeklySum > 0) {
                 html += `<div class="pattern-section">
                     <div class="pattern-section-header">
-                        <span class="pattern-section-icon">📈</span>
                         <span class="pattern-section-title">Trends</span>
                     </div>`;
 
@@ -2331,7 +2320,6 @@
             if (completionTimestamps.length >= 5) {
                 html += `<div class="pattern-section">
                     <div class="pattern-section-header">
-                        <span class="pattern-section-icon">⏰</span>
                         <span class="pattern-section-title">Your Rhythm</span>
                     </div>`;
 
@@ -2402,7 +2390,6 @@
             if (backlogSize > 0 && (oldestDays >= 3 || frequentlySkipped.length > 0)) {
                 html += `<div class="pattern-section">
                     <div class="pattern-section-header">
-                        <span class="pattern-section-icon">📋</span>
                         <span class="pattern-section-title">Backlog Health</span>
                     </div>`;
 
@@ -2508,7 +2495,6 @@
             if (insights.length > 0) {
                 html += `<div class="pattern-section">
                     <div class="pattern-section-header">
-                        <span class="pattern-section-icon">💡</span>
                         <span class="pattern-section-title">About You</span>
                     </div>`;
                 insights.slice(0, 4).forEach(insight => {
@@ -2526,7 +2512,6 @@
             if (weeklyReflections.length > 0) {
                 html += `<div class="pattern-section">
                     <div class="pattern-section-header">
-                        <span class="pattern-section-icon">📖</span>
                         <span class="pattern-section-title">History</span>
                     </div>`;
                 weeklyReflections.forEach(reflection => {
@@ -3516,12 +3501,21 @@
                         backlogList.appendChild(placeholder);
                     }
                 } else if (swiping) {
-                    // Swipe mode - move horizontally (left only)
                     const diffX = currentX - startX;
-                    if (diffX < 0) {
+                    const diffY = Math.abs(currentY - startY);
+
+                    // If vertical movement is significant or started from edge, this is likely a tab swipe - don't show delete
+                    const isTabSwipe = diffY > 20 || startX < 60 || startX > window.innerWidth - 60;
+
+                    // Swipe mode - move horizontally (left only), but not if this looks like a tab swipe
+                    if (diffX < 0 && !isTabSwipe) {
                         itemEl.style.transform = `translateX(${diffX}px)`;
                         const opacity = Math.min(1, (-diffX - 30) / 50);
                         deleteBg.style.opacity = Math.max(0, opacity);
+                    } else {
+                        // Reset if it looks like tab swipe
+                        itemEl.style.transform = '';
+                        deleteBg.style.opacity = 0;
                     }
                 }
             }, { passive: true });
@@ -3586,7 +3580,10 @@
                     const diffX = currentX - startX;
                     const diffY = currentY - startY;
 
-                    if (diffX < -100) {
+                    // Check if this was a tab swipe (started from edge or significant vertical movement)
+                    const isTabSwipe = Math.abs(diffY) > 20 || startX < 60 || startX > window.innerWidth - 60;
+
+                    if (diffX < -100 && !isTabSwipe) {
                         // Show delete confirmation
                         pendingDelete = true;
                         const itemWidth = itemEl.offsetWidth;
