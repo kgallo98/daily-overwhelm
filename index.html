@@ -3470,6 +3470,8 @@
             const textsToDelete = Array.from(selectedItems);
             thoughts = thoughts.filter(t => !textsToDelete.includes(t.text));
             selectedItems.clear();
+            editMode = false;
+            editBacklogBtn.textContent = 'edit';
             saveAll();
             updateDeleteBar();
             renderAllTab();
