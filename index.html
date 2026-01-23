@@ -2609,7 +2609,6 @@
         let tabSwipeConfirmed = false;
         let tabSwipePending = false; // Started on card, but might become tab swipe
         let cardSwipeInProgress = false; // Global flag for card swipes
-        let lockedScrollTop = 0; // Store scroll position to prevent scroll during tab swipe
 
         const tabsContainer = document.getElementById('tabs-container');
 
@@ -2640,10 +2639,6 @@
             tabSwipeConfirmed = false;
             tabSwipePending = false;
             tabsTrack.classList.remove('animating');
-
-            // Store current scroll position of active tab
-            const activeTab = document.getElementById(tabIds[currentTabIndex]);
-            lockedScrollTop = activeTab ? activeTab.scrollTop : 0;
 
             if (isFromEdge || isFromTopZone || isFromBottomZone) {
                 // Safe zone - definitely a tab swipe
@@ -2707,11 +2702,8 @@
             }
 
             if (tabSwipeConfirmed) {
-                // Lock scroll position to prevent scrolling during tab swipe
-                const activeTab = document.getElementById(tabIds[currentTabIndex]);
-                if (activeTab && activeTab.scrollTop !== lockedScrollTop) {
-                    activeTab.scrollTop = lockedScrollTop;
-                }
+                // Prevent scroll and other default behaviors during tab swipe
+                e.preventDefault();
 
                 // Calculate the new position based on swipe
                 const baseOffset = -currentTabIndex * window.innerWidth;
@@ -2723,7 +2715,7 @@
 
                 tabsTrack.style.transform = `translateX(${clampedOffset}px)`;
             }
-        }, { passive: true });
+        }, { passive: false });
 
         tabsContainer.addEventListener('touchend', e => {
             tabSwipePending = false;
@@ -3521,8 +3513,8 @@
                     const diffX = currentX - startX;
                     const diffY = Math.abs(currentY - startY);
 
-                    // If vertical movement is significant or started from edge, this is likely a tab swipe - don't show delete
-                    const isTabSwipe = diffY > 20 || startX < 60 || startX > window.innerWidth - 60;
+                    // If tab swipe is happening globally, or local indicators suggest tab swipe - don't show delete
+                    const isTabSwipe = tabSwiping || tabSwipeConfirmed || diffY > 20 || startX < 60 || startX > window.innerWidth - 60;
 
                     // Swipe mode - move horizontally (left only), but not if this looks like a tab swipe
                     if (diffX < 0 && !isTabSwipe) {
@@ -3597,8 +3589,8 @@
                     const diffX = currentX - startX;
                     const diffY = currentY - startY;
 
-                    // Check if this was a tab swipe (started from edge or significant vertical movement)
-                    const isTabSwipe = Math.abs(diffY) > 20 || startX < 60 || startX > window.innerWidth - 60;
+                    // Check if this was a tab swipe (global state or local indicators)
+                    const isTabSwipe = tabSwiping || tabSwipeConfirmed || Math.abs(diffY) > 20 || startX < 60 || startX > window.innerWidth - 60;
 
                     if (diffX < -100 && !isTabSwipe) {
                         // Show delete confirmation
