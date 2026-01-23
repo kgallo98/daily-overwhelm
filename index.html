@@ -327,6 +327,11 @@
             min-width: 100vw;
         }
 
+        /* Disable scrolling during tab swipe */
+        #tabs-container.tab-swiping .tab-content {
+            overflow-y: hidden;
+        }
+
         /* ===== CAPTURE TAB ===== */
         #capture-tab {
             position: relative;
@@ -2702,6 +2707,9 @@
             }
 
             if (tabSwipeConfirmed) {
+                // Disable scrolling on tabs during swipe
+                tabsContainer.classList.add('tab-swiping');
+
                 // Calculate the new position based on swipe
                 const baseOffset = -currentTabIndex * window.innerWidth;
                 const newOffset = baseOffset + diffX;
@@ -2716,6 +2724,9 @@
 
         tabsContainer.addEventListener('touchend', e => {
             tabSwipePending = false;
+
+            // Re-enable scrolling
+            tabsContainer.classList.remove('tab-swiping');
 
             if (!tabSwiping) return;
             tabSwiping = false;
@@ -2736,6 +2747,13 @@
             }
 
             switchToTab(newIndex);
+        });
+
+        tabsContainer.addEventListener('touchcancel', () => {
+            tabsContainer.classList.remove('tab-swiping');
+            tabSwiping = false;
+            tabSwipePending = false;
+            tabSwipeConfirmed = false;
         });
 
         // ===== BEDTIME MODE =====
