@@ -1743,8 +1743,10 @@
         // Swipe between tabs
         let tabSwipeStartX = 0;
         let tabSwipeStartY = 0;
+        let tabSwipeStartTime = 0;
         let tabSwiping = false;
         let tabSwipeConfirmed = false;
+        let tabSwipePending = false; // Started on card, but might become tab swipe
         let cardSwipeInProgress = false; // Global flag for card swipes
 
         const tabsContainer = document.getElementById('tabs-container');
@@ -1754,37 +1756,78 @@
             if (focusVisible) return;
 
             const touchX = e.touches[0].clientX;
+            const touchY = e.touches[0].clientY;
             const screenWidth = window.innerWidth;
-            const edgeThreshold = 30; // pixels from edge
+            const screenHeight = window.innerHeight;
+            const edgeThreshold = 60; // pixels from screen edge
+            const topZone = 120; // pixels from top where tab swipe always works
+            const bottomZone = 80; // pixels from bottom where tab swipe always works
 
             // Always allow tab swipe from screen edges
             const isFromEdge = touchX < edgeThreshold || touchX > screenWidth - edgeThreshold;
 
-            if (!isFromEdge) {
+            // Allow tab swipe from top zone (section titles area)
+            const isFromTopZone = touchY < topZone;
+
+            // Allow tab swipe from bottom zone (near tab bar)
+            const isFromBottomZone = touchY > screenHeight - bottomZone;
+
+            tabSwipeStartX = touchX;
+            tabSwipeStartY = touchY;
+            tabSwipeStartTime = Date.now();
+            tabSwipeConfirmed = false;
+            tabSwipePending = false;
+            tabsTrack.classList.remove('animating');
+
+            if (isFromEdge || isFromTopZone || isFromBottomZone) {
+                // Safe zone - definitely a tab swipe
+                tabSwiping = true;
+            } else {
                 // Check if touch started on a swipeable card
                 const target = e.target;
                 const isOnBacklogItem = target.closest('.backlog-item');
                 const isOnFocusCard = target.closest('.focus-card');
 
-                // If on a swipeable element, don't initiate tab swipe
                 if (isOnBacklogItem || isOnFocusCard) {
+                    // Started on card - use pending mode to decide based on gesture
                     tabSwiping = false;
-                    return;
+                    tabSwipePending = true;
+                } else {
+                    tabSwiping = true;
                 }
             }
-
-            tabSwipeStartX = touchX;
-            tabSwipeStartY = e.touches[0].clientY;
-            tabSwiping = true;
-            tabSwipeConfirmed = false;
-            tabsTrack.classList.remove('animating');
         }, { passive: true });
 
         tabsContainer.addEventListener('touchmove', e => {
-            if (!tabSwiping || focusVisible) return;
+            if (focusVisible) return;
 
-            const diffX = e.touches[0].clientX - tabSwipeStartX;
-            const diffY = e.touches[0].clientY - tabSwipeStartY;
+            const touchX = e.touches[0].clientX;
+            const touchY = e.touches[0].clientY;
+            const diffX = touchX - tabSwipeStartX;
+            const diffY = touchY - tabSwipeStartY;
+            const elapsed = Date.now() - tabSwipeStartTime;
+
+            // Handle pending swipes (started on card)
+            if (tabSwipePending && !tabSwiping) {
+                const absX = Math.abs(diffX);
+                const absY = Math.abs(diffY);
+
+                // Fast horizontal swipe = tab swipe (velocity check)
+                // Speed threshold: 0.5px/ms = fast swipe
+                const velocity = absX / Math.max(elapsed, 1);
+                const isVeryHorizontal = absX > absY * 3; // More than 3:1 horizontal ratio
+
+                if (absX > 15 && isVeryHorizontal && velocity > 0.4) {
+                    // Fast, very horizontal swipe - take over as tab swipe
+                    tabSwiping = true;
+                    tabSwipePending = false;
+                } else if (absX > 30 || absY > 20) {
+                    // Gesture has started but not fast/horizontal enough - let card handle it
+                    tabSwipePending = false;
+                }
+            }
+
+            if (!tabSwiping) return;
 
             // Determine if this is a horizontal swipe
             if (!tabSwipeConfirmed) {
@@ -1811,6 +1854,8 @@
         }, { passive: true });
 
         tabsContainer.addEventListener('touchend', e => {
+            tabSwipePending = false;
+
             if (!tabSwiping) return;
             tabSwiping = false;
 
