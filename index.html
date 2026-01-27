@@ -3360,21 +3360,34 @@
         // Voice capture
         let recognition = null;
         let isListening = false;
+        let interimTranscript = '';
 
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
             recognition.continuous = false;
-            recognition.interimResults = false;
+            recognition.interimResults = true;
             recognition.lang = 'en-US';
 
             recognition.onresult = function(e) {
-                recognition.stop();
-                captureThought(e.results[0][0].transcript);
+                let finalTranscript = '';
+                for (let i = e.resultIndex; i < e.results.length; i++) {
+                    if (e.results[i].isFinal) {
+                        finalTranscript += e.results[i][0].transcript;
+                    } else {
+                        interimTranscript = e.results[i][0].transcript;
+                    }
+                }
+                if (finalTranscript) {
+                    interimTranscript = '';
+                    recognition.stop();
+                    captureThought(finalTranscript);
+                }
             };
 
             recognition.onend = function() {
                 isListening = false;
+                interimTranscript = '';
                 bigMicButton.classList.remove('listening');
                 micContainer.classList.remove('listening');
                 bigMicButton.textContent = 'tap to drop';
@@ -3433,6 +3446,7 @@
                 }
 
                 try {
+                    interimTranscript = '';
                     recognition.start();
                     isListening = true;
                     bigMicButton.classList.add('listening');
@@ -3454,7 +3468,15 @@
                     return;
                 }
                 if (isListening) {
-                    recognition.stop();
+                    // If we have interim results, capture them before stopping
+                    if (interimTranscript.trim()) {
+                        const text = interimTranscript.trim();
+                        interimTranscript = '';
+                        recognition.stop();
+                        captureThought(text);
+                    } else {
+                        recognition.stop();
+                    }
                 } else {
                     startListening();
                 }
