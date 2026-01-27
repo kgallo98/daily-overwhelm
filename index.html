@@ -772,6 +772,75 @@
             opacity: 0.4;
         }
 
+        /* Focus progress bar */
+        #focus-progress {
+            margin: 0 20px 10px;
+            padding: 12px 14px;
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.1s;
+        }
+
+        #focus-progress:active {
+            transform: scale(0.98);
+            opacity: 0.8;
+        }
+
+        .focus-progress-bar {
+            height: 6px;
+            background-color: var(--border-color);
+            border-radius: 3px;
+            overflow: hidden;
+            display: flex;
+            margin-bottom: 8px;
+        }
+
+        .focus-progress-done {
+            background: linear-gradient(90deg, #4caf50, #66bb6a);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .focus-progress-later {
+            background: linear-gradient(90deg, #f0ad4e, #ffcc80);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .focus-progress-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .focus-progress-stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .focus-progress-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .focus-progress-dot.done {
+            background-color: #4caf50;
+        }
+
+        .focus-progress-dot.later {
+            background-color: #f0ad4e;
+        }
+
+        .focus-progress-tap {
+            font-size: 11px;
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
         #focus-cards-container {
             flex: 1;
             display: flex;
@@ -1940,6 +2009,17 @@
                     <option value="5">5</option>
                 </select>
             </div>
+
+            <div class="settings-item">
+                <div>
+                    <div class="settings-item-label">Auto-refill focus</div>
+                    <div class="settings-item-desc">Add new tasks when you complete or defer</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="setting-auto-refill" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
         </div>
 
         <div class="settings-section">
@@ -2195,6 +2275,23 @@
         <div id="focus-handle">
             <div class="handle-pill"></div>
         </div>
+        <div id="focus-progress">
+            <div class="focus-progress-bar">
+                <div class="focus-progress-done" style="width: 0%"></div>
+                <div class="focus-progress-later" style="width: 0%"></div>
+            </div>
+            <div class="focus-progress-stats">
+                <div class="focus-progress-stat">
+                    <span class="focus-progress-dot done"></span>
+                    <span id="focus-done-count">0 done</span>
+                </div>
+                <div class="focus-progress-stat">
+                    <span class="focus-progress-dot later"></span>
+                    <span id="focus-later-count">0 later</span>
+                </div>
+                <span class="focus-progress-tap">tap for details</span>
+            </div>
+        </div>
         <div id="focus-cards-container">
             <!-- Cards or message will be rendered here -->
         </div>
@@ -2327,6 +2424,44 @@
             saveAll();
             renderFocusCards();
         });
+
+        // Auto-refill setting
+        const settingAutoRefill = document.getElementById('setting-auto-refill');
+        const savedAutoRefill = localStorage.getItem('autoRefillFocus');
+        settingAutoRefill.checked = savedAutoRefill !== 'false'; // Default to true
+
+        settingAutoRefill.addEventListener('change', function() {
+            localStorage.setItem('autoRefillFocus', this.checked.toString());
+        });
+
+        function isAutoRefillEnabled() {
+            return localStorage.getItem('autoRefillFocus') !== 'false';
+        }
+
+        function refillTodayFocus() {
+            if (!isAutoRefillEnabled()) return;
+
+            const maxFocus = parseInt(localStorage.getItem('dailyFocusItems') || '3');
+            const handledTexts = [...laterToday.map(i => i.text), ...completedToday.map(i => i.text)];
+            const currentRemaining = todayFocus.filter(item => !handledTexts.includes(item.text));
+
+            // If we have fewer remaining than the max, try to add more
+            if (currentRemaining.length < maxFocus) {
+                const focusTexts = todayFocus.map(t => t.text);
+                const available = thoughts.filter(t => !focusTexts.includes(t.text));
+
+                const needed = maxFocus - currentRemaining.length;
+                const toAdd = available.slice(0, needed);
+
+                toAdd.forEach(item => {
+                    todayFocus.push({ ...item });
+                });
+
+                if (toAdd.length > 0) {
+                    saveAll();
+                }
+            }
+        }
 
         // ===== PATTERNS =====
         let currentPatternsSubtab = 'week';
@@ -3338,8 +3473,30 @@
             setTimeout(() => focusOverlay.classList.remove('animating'), 300);
         }
 
+        function updateFocusProgress() {
+            const doneCount = completedToday.length;
+            const laterCount = laterToday.length;
+            const total = todayFocus.length || 1;
+
+            const donePct = (doneCount / total) * 100;
+            const laterPct = (laterCount / total) * 100;
+
+            const doneBar = document.querySelector('.focus-progress-done');
+            const laterBar = document.querySelector('.focus-progress-later');
+            const doneCountEl = document.getElementById('focus-done-count');
+            const laterCountEl = document.getElementById('focus-later-count');
+
+            if (doneBar) doneBar.style.width = `${donePct}%`;
+            if (laterBar) laterBar.style.width = `${laterPct}%`;
+            if (doneCountEl) doneCountEl.textContent = `${doneCount} done`;
+            if (laterCountEl) laterCountEl.textContent = `${laterCount} later`;
+        }
+
         function renderFocusCards() {
             focusContainer.innerHTML = '';
+
+            // Update progress bar
+            updateFocusProgress();
 
             // Filter out items already handled today
             const handledTexts = [...laterToday.map(i => i.text), ...completedToday.map(i => i.text)];
@@ -3437,6 +3594,7 @@
                                 completedAt: Date.now(),
                                 createdAt: item.createdAt
                             });
+                            refillTodayFocus();
                             saveAll();
                             renderFocusCards();
                         }, 300);
@@ -3455,6 +3613,7 @@
                                 t.skips = (t.skips || 0) + 1;
                                 thoughts.push(t);
                             }
+                            refillTodayFocus();
                             saveAll();
                             renderFocusCards();
                         }, 300);
@@ -3550,6 +3709,12 @@
                 focusOverlay.style.transform = '';
                 setTimeout(() => focusOverlay.classList.remove('animating'), 300);
             }
+        });
+
+        // Focus progress bar click - navigate to Today tab
+        document.getElementById('focus-progress').addEventListener('click', () => {
+            closeFocusOverlay();
+            switchToTab(1); // Today tab
         });
 
         // ===== TODAY TAB =====
