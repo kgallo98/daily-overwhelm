@@ -4232,37 +4232,160 @@
             if (e.key === 'Enter') captureThought();
         });
 
-        // Voice capture
+        // Voice capture with multi-item support
         let recognition = null;
         let isListening = false;
         let interimTranscript = '';
 
+        // Multi-item voice capture settings
+        const PAUSE_SPLIT_MS = 700;      // Pause length to split items
+        const PAUSE_END_MS = 1400;       // Pause length to auto-end (2x split)
+        let voiceSegments = [];          // Collected speech segments with timestamps
+        let lastSpeechTime = 0;
+        let pauseCheckInterval = null;
+
+        // Conservative keyword patterns for splitting (only very clear separators)
+        const splitPatterns = [
+            /\s+and also\s+/i,
+            /\s+and then\s+/i,
+            /\s+also need(?:s)? to\s+/i,
+            /\s+also\s+/i,
+            /\s+plus\s+/i,
+            /\s+next\s+/i,
+            /\s+then\s+/i,
+            /,\s+and\s+/i,              // "milk, and eggs"
+            /\.\s+/,                     // Period as separator
+        ];
+
+        function splitIntoItems(transcript) {
+            // First, try to split on conservative keyword patterns
+            let items = [transcript];
+
+            for (const pattern of splitPatterns) {
+                const newItems = [];
+                for (const item of items) {
+                    const parts = item.split(pattern).map(p => p.trim()).filter(p => p.length > 0);
+                    newItems.push(...parts);
+                }
+                items = newItems;
+            }
+
+            return items;
+        }
+
+        function processVoiceCapture(fullTranscript) {
+            const items = splitIntoItems(fullTranscript.trim());
+
+            if (items.length === 0) return;
+
+            if (items.length === 1) {
+                // Single item - normal flow
+                captureThought(items[0]);
+            } else {
+                // Multiple items - process each
+                let listCount = 0;
+                let backlogCount = 0;
+
+                items.forEach(item => {
+                    const listMatch = detectListMatch(item);
+                    if (listMatch && listMatch.confidence === 'high' && !listMatch.action) {
+                        addToList(listMatch.listId, item);
+                        listCount++;
+                    } else if (listMatch && listMatch.action === 'create') {
+                        createCustomList(listMatch.name);
+                    } else if (!isWorry(item)) {
+                        // Add to backlog (skip disambiguation for multi-item)
+                        const vague = isVague(item);
+                        thoughts.push({
+                            text: item,
+                            skips: 0,
+                            createdAt: Date.now(),
+                            isVague: vague
+                        });
+                        backlogCount++;
+                    } else {
+                        // It's a worry
+                        worries.push({ text: item, createdAt: Date.now() });
+                    }
+                });
+
+                saveAll();
+
+                // Build confirmation message
+                let msg = `Added ${items.length} items`;
+                const details = items.map(i => i.length > 30 ? i.slice(0, 30) + '...' : i).join(' · ');
+                showConfirmation(msg, details);
+                haptic('medium');
+            }
+        }
+
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
-            recognition.continuous = false;
+            recognition.continuous = true;  // Keep listening for multiple items
             recognition.interimResults = true;
             recognition.lang = 'en-US';
 
+            let fullTranscript = '';
+
             recognition.onresult = function(e) {
-                let finalTranscript = '';
+                let interim = '';
+                let finalPart = '';
+
                 for (let i = e.resultIndex; i < e.results.length; i++) {
+                    const transcript = e.results[i][0].transcript;
                     if (e.results[i].isFinal) {
-                        finalTranscript += e.results[i][0].transcript;
+                        finalPart += transcript;
                     } else {
-                        interimTranscript = e.results[i][0].transcript;
+                        interim = transcript;
                     }
                 }
-                if (finalTranscript) {
-                    interimTranscript = '';
-                    recognition.stop();
-                    captureThought(finalTranscript);
+
+                if (finalPart) {
+                    fullTranscript += finalPart + ' ';
+                }
+
+                interimTranscript = interim;
+                lastSpeechTime = Date.now();
+
+                // Update button to show we're capturing
+                if (fullTranscript.trim() || interim) {
+                    bigMicButton.textContent = 'listening...';
                 }
             };
 
+            function checkForPause() {
+                if (!isListening) return;
+
+                const elapsed = Date.now() - lastSpeechTime;
+
+                if (elapsed >= PAUSE_END_MS && (fullTranscript.trim() || interimTranscript.trim())) {
+                    // Long pause - auto-end and process
+                    const finalText = (fullTranscript + interimTranscript).trim();
+                    stopListening();
+                    if (finalText) {
+                        processVoiceCapture(finalText);
+                    }
+                }
+            }
+
+            function stopListening() {
+                if (pauseCheckInterval) {
+                    clearInterval(pauseCheckInterval);
+                    pauseCheckInterval = null;
+                }
+                isListening = false;
+                recognition.stop();
+            }
+
             recognition.onend = function() {
+                if (pauseCheckInterval) {
+                    clearInterval(pauseCheckInterval);
+                    pauseCheckInterval = null;
+                }
                 isListening = false;
                 interimTranscript = '';
+                fullTranscript = '';
                 bigMicButton.classList.remove('listening');
                 micContainer.classList.remove('listening');
                 bigMicButton.textContent = 'tap to drop';
@@ -4272,12 +4395,15 @@
 
             recognition.onerror = function(e) {
                 console.log('Speech recognition error:', e.error, e);
+                if (pauseCheckInterval) {
+                    clearInterval(pauseCheckInterval);
+                    pauseCheckInterval = null;
+                }
                 isListening = false;
                 bigMicButton.classList.remove('listening');
                 micContainer.classList.remove('listening');
 
                 if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
-                    // In iOS standalone PWA, speech service is blocked even with mic permission
                     voiceUnavailable = true;
                     bigMicButton.textContent = 'voice unavailable';
                     bigMicButton.style.fontSize = '14px';
@@ -4307,10 +4433,9 @@
             };
 
             async function startListening() {
-                // Request mic permission explicitly first (helps with iOS PWA)
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    stream.getTracks().forEach(track => track.stop()); // Release immediately
+                    stream.getTracks().forEach(track => track.stop());
                 } catch (err) {
                     console.log('Mic permission error:', err);
                     bigMicButton.textContent = 'mic blocked';
@@ -4322,11 +4447,16 @@
 
                 try {
                     interimTranscript = '';
+                    fullTranscript = '';
+                    lastSpeechTime = Date.now();
                     recognition.start();
                     isListening = true;
                     bigMicButton.classList.add('listening');
                     micContainer.classList.add('listening');
                     bigMicButton.textContent = 'listening...';
+
+                    // Start checking for pauses
+                    pauseCheckInterval = setInterval(checkForPause, 200);
                 } catch (err) {
                     console.log('Speech start error:', err);
                     bigMicButton.textContent = 'use text below';
@@ -4338,19 +4468,15 @@
 
             bigMicButton.addEventListener('click', function() {
                 if (voiceUnavailable) {
-                    // Focus the text input instead
                     document.getElementById('thought-input').focus();
                     return;
                 }
                 if (isListening) {
-                    // If we have interim results, capture them before stopping
-                    if (interimTranscript.trim()) {
-                        const text = interimTranscript.trim();
-                        interimTranscript = '';
-                        recognition.stop();
-                        captureThought(text);
-                    } else {
-                        recognition.stop();
+                    // Manual stop - process what we have
+                    const finalText = (fullTranscript + interimTranscript).trim();
+                    stopListening();
+                    if (finalText) {
+                        processVoiceCapture(finalText);
                     }
                 } else {
                     startListening();
