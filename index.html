@@ -4257,6 +4257,116 @@
             /\.\s+/,                     // Period as separator
         ];
 
+        // Action verbs that signal the start of a new task (grouped by list context)
+        const contextVerbs = {
+            grocery: ['buy', 'get', 'grab', 'pick up', 'need'],
+            shopping: ['order', 'buy', 'get'],
+            work: ['email', 'call', 'message', 'schedule', 'review', 'send', 'submit', 'finish', 'prepare'],
+            home: ['clean', 'fix', 'repair', 'organize', 'wash', 'vacuum', 'mow', 'water', 'tidy']
+        };
+
+        // All action verbs flattened for detection
+        const allActionVerbs = [...new Set(Object.values(contextVerbs).flat())];
+
+        function getVerbContext(verb) {
+            // Returns which list contexts this verb belongs to
+            const contexts = [];
+            for (const [listId, verbs] of Object.entries(contextVerbs)) {
+                if (verbs.includes(verb.toLowerCase())) {
+                    contexts.push(listId);
+                }
+            }
+            return contexts;
+        }
+
+        function getTextContext(text) {
+            // Determine the likely list context of a piece of text
+            const lower = text.toLowerCase();
+
+            // Check grocery keywords
+            if (groceryKeywords.some(k => lower.includes(k))) {
+                return 'grocery';
+            }
+
+            // Check list patterns
+            for (const [listId, patterns] of Object.entries(listPatterns)) {
+                if (patterns.explicit?.some(e => lower.includes(e))) {
+                    return listId;
+                }
+                if (patterns.items?.some(i => lower.includes(i))) {
+                    return listId;
+                }
+            }
+
+            return null;
+        }
+
+        function splitByContext(transcript) {
+            // Split transcript when context switches (e.g., "clean bathroom buy milk")
+            const words = transcript.split(/\s+/);
+            const items = [];
+            let currentItem = [];
+            let currentContext = null;
+
+            for (let i = 0; i < words.length; i++) {
+                const word = words[i].toLowerCase().replace(/[^a-z]/g, '');
+
+                // Check if this word (or word + next word) is an action verb
+                let matchedVerb = null;
+                let verbLength = 1;
+
+                // Check two-word verbs first (e.g., "pick up")
+                if (i < words.length - 1) {
+                    const twoWord = word + ' ' + words[i + 1].toLowerCase().replace(/[^a-z]/g, '');
+                    if (allActionVerbs.includes(twoWord)) {
+                        matchedVerb = twoWord;
+                        verbLength = 2;
+                    }
+                }
+
+                // Check single word verb
+                if (!matchedVerb && allActionVerbs.includes(word)) {
+                    matchedVerb = word;
+                }
+
+                if (matchedVerb && currentItem.length > 0) {
+                    // We found an action verb and have existing content
+                    // Check if context is switching
+                    const verbContexts = getVerbContext(matchedVerb);
+                    const currentItemText = currentItem.join(' ');
+                    const itemContext = getTextContext(currentItemText);
+
+                    // If current item has a clear context and verb belongs to different context, split
+                    const contextSwitch = itemContext &&
+                        verbContexts.length > 0 &&
+                        !verbContexts.includes(itemContext);
+
+                    if (contextSwitch) {
+                        // Save current item and start new one
+                        items.push(currentItem.join(' '));
+                        currentItem = [];
+                        currentContext = verbContexts[0];
+                    }
+                }
+
+                // Add word(s) to current item
+                currentItem.push(words[i]);
+                if (verbLength === 2) {
+                    i++; // Skip next word since it's part of the verb
+                    if (i < words.length) {
+                        currentItem.push(words[i]);
+                    }
+                }
+            }
+
+            // Don't forget the last item
+            if (currentItem.length > 0) {
+                items.push(currentItem.join(' '));
+            }
+
+            return items.length > 0 ? items : [transcript];
+        }
+
         function splitByKeywords(transcript) {
             // Split on conservative keyword patterns
             let items = [transcript];
@@ -4275,13 +4385,18 @@
 
         function processVoiceCapture(segments) {
             // segments is an array of speech segments separated by pauses
-            // Apply keyword splitting within each segment, then flatten
+            // Apply all splitting methods: keywords first, then context-based
             let items = [];
             for (const segment of segments) {
                 const trimmed = segment.trim();
                 if (trimmed) {
+                    // First split by keywords
                     const keywordSplit = splitByKeywords(trimmed);
-                    items.push(...keywordSplit);
+                    // Then split each by context
+                    for (const part of keywordSplit) {
+                        const contextSplit = splitByContext(part);
+                        items.push(...contextSplit);
+                    }
                 }
             }
 
