@@ -679,7 +679,7 @@
             border-radius: 14px;
             padding: 16px;
             margin-bottom: 12px;
-            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(92, 184, 92, 0.06) 100%);
+            border-left: 3px solid var(--done-color);
         }
 
         .reflection-week {
@@ -999,11 +999,11 @@
         }
 
         .pattern-card.highlight {
-            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(74, 144, 164, 0.12) 100%);
+            border-left: 3px solid var(--accent);
         }
 
         .pattern-card.highlight-green {
-            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(92, 184, 92, 0.1) 100%);
+            border-left: 3px solid var(--done-color);
         }
 
         .pattern-card-label {
@@ -1075,6 +1075,8 @@
 
         .pattern-bar-row.selected {
             background-color: rgba(74, 144, 164, 0.15);
+            padding: 6px 8px;
+            margin: 0 -8px;
         }
 
         .pattern-bar-label {
@@ -1114,9 +1116,17 @@
 
         .pattern-bar-fill {
             height: 100%;
-            background: linear-gradient(90deg, var(--accent), #6bb3c9);
+            background: linear-gradient(90deg, #2d6a8a, #4a9eb8, #6bb8cc);
             border-radius: 3px;
             transition: width 0.4s ease-out;
+        }
+
+        .pattern-bar-fill.done {
+            background: linear-gradient(90deg, #4caf50, #66bb6a, #81c784);
+        }
+
+        .pattern-bar-fill.later {
+            background: linear-gradient(90deg, #f0ad4e, #f5b862, #ffcc80);
         }
 
         .pattern-quote {
@@ -1150,7 +1160,7 @@
 
         .pattern-trend-bar {
             flex: 1;
-            background: linear-gradient(180deg, var(--accent) 0%, rgba(74, 144, 164, 0.4) 100%);
+            background: linear-gradient(180deg, #4caf50 0%, #66bb6a 50%, #81c784 100%);
             border-radius: 3px 3px 0 0;
             min-height: 4px;
             transition: all 0.2s ease-out;
@@ -1163,12 +1173,17 @@
         }
 
         .pattern-trend-bar.selected {
-            background: linear-gradient(180deg, #6bb3c9 0%, var(--accent) 100%);
-            box-shadow: 0 0 8px rgba(74, 144, 164, 0.5);
+            background: linear-gradient(180deg, #43a047 0%, #4caf50 50%, #66bb6a 100%);
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
         }
 
         .pattern-trend-bar.empty {
             background: var(--border-color);
+        }
+
+        .pattern-trend-bar.placeholder {
+            background: var(--border-color);
+            opacity: 0.4;
         }
 
         .pattern-trend-labels {
@@ -1270,7 +1285,19 @@
         }
 
         .pattern-time-block.selected {
-            box-shadow: 0 0 0 2px var(--accent);
+            box-shadow: 0 0 0 2px var(--accent), 0 0 12px rgba(74, 144, 164, 0.3);
+        }
+
+        .pattern-time-block .selected-count {
+            font-size: 11px;
+            color: var(--accent);
+            margin-top: 4px;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        .pattern-time-block.selected .selected-count {
+            opacity: 1;
         }
 
         .pattern-time-block-icon {
@@ -1485,6 +1512,174 @@
             text-align: center;
             margin-top: 8px;
             opacity: 0.7;
+        }
+
+        /* Patterns sub-tabs */
+        .patterns-subtabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            padding: 4px;
+            background-color: var(--input-bg);
+            border-radius: 12px;
+        }
+
+        .patterns-subtab {
+            flex: 1;
+            padding: 10px 12px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .patterns-subtab:active {
+            transform: scale(0.97);
+        }
+
+        .patterns-subtab.active {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        /* Week detail panel */
+        .week-detail-panel {
+            background-color: var(--input-bg);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+            animation: slideDown 0.2s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .week-detail-header {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 8px;
+        }
+
+        .week-detail-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .week-detail-stats span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .week-detail-stats .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .week-detail-stats .dot.completed {
+            background-color: var(--done-color);
+        }
+
+        .week-detail-stats .dot.captured {
+            background-color: var(--later-color);
+        }
+
+        .week-detail-expand {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-size: 13px;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+
+        .week-detail-expand:active {
+            background-color: var(--border-color);
+        }
+
+        .week-detail-tasks {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .week-detail-task {
+            font-size: 13px;
+            color: var(--text-light);
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .week-detail-task:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        /* Collapsible backlog health section */
+        .backlog-health-section {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .backlog-health-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 12px 0;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        .backlog-health-toggle:active {
+            opacity: 0.7;
+        }
+
+        .backlog-health-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+        }
+
+        .backlog-health-toggle svg {
+            width: 16px;
+            height: 16px;
+            color: var(--text-muted);
+            transition: transform 0.2s ease;
+        }
+
+        .backlog-health-toggle.expanded svg {
+            transform: rotate(180deg);
+        }
+
+        .backlog-health-content {
+            display: none;
+            padding-bottom: 12px;
+        }
+
+        .backlog-health-content.visible {
+            display: block;
+            animation: slideDown 0.2s ease-out;
         }
 
         .backlog-item-wrapper {
@@ -2007,8 +2202,12 @@
                         </svg>
                     </button>
                 </div>
-                <div class="section-title">patterns</div>
-                <div id="patterns-container"></div>
+                <div class="patterns-subtabs">
+                    <button class="patterns-subtab active" data-subtab="week">This Week</button>
+                    <button class="patterns-subtab" data-subtab="trends">Trends</button>
+                    <button class="patterns-subtab" data-subtab="insights">Insights</button>
+                </div>
+                <div id="patterns-content"></div>
             </div>
         </div>
     </div>
@@ -2152,41 +2351,44 @@
         });
 
         // ===== PATTERNS =====
-        function renderPatterns() {
-            const container = document.getElementById('patterns-container');
+        let currentPatternsSubtab = 'week';
+        let selectedTrendWeek = null;
+
+        // SVG icons for rhythm section
+        const rhythmIcons = {
+            morning: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>',
+            afternoon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>',
+            evening: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 10V2"></path><path d="m4.93 10.93 1.41 1.41"></path><path d="M2 18h2"></path><path d="M20 18h2"></path><path d="m19.07 10.93-1.41 1.41"></path><path d="M22 22H2"></path><path d="m8 6 4-4 4 4"></path><path d="M16 18a4 4 0 0 0-8 0"></path></svg>',
+            night: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>',
+            streak: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>',
+            trendUp: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>'
+        };
+
+        function getPatternStats() {
             const now = Date.now();
             const oneDay = 24 * 60 * 60 * 1000;
             const oneWeekAgo = now - (7 * oneDay);
             const twoWeeksAgo = now - (14 * oneDay);
             const fourWeeksAgo = now - (28 * oneDay);
 
-            // Calculate all stats upfront
             const totalCapturedTasks = thoughts.length + completedAllTime.length;
             const totalCaptured = totalCapturedTasks + worries.length;
             const totalCompleted = completedAllTime.length;
             const backlogSize = thoughts.length;
             const worriesReleased = worries.length;
 
-            // Weekly stats
             const thisWeekCompleted = completedAllTime.filter(t => t.completedAt && t.completedAt > oneWeekAgo).length;
             const lastWeekCompleted = completedAllTime.filter(t => t.completedAt && t.completedAt > twoWeeksAgo && t.completedAt <= oneWeekAgo).length;
             const thisWeekCaptured = [...thoughts, ...completedAllTime].filter(t => t.createdAt && t.createdAt > oneWeekAgo).length;
 
-            // Completion timestamps for time analysis
             const completionTimestamps = completedAllTime.map(t => t.completedAt).filter(Boolean);
             const completedWithTimes = completedAllTime.filter(t => t.createdAt && t.completedAt);
 
-            // Day of week analysis
             const completionDayCounts = [0, 0, 0, 0, 0, 0, 0];
-            const captureDayCounts = [0, 0, 0, 0, 0, 0, 0];
             completedAllTime.forEach(t => {
                 if (t.completedAt) completionDayCounts[new Date(t.completedAt).getDay()]++;
             });
-            [...thoughts, ...completedAllTime].forEach(t => {
-                if (t.createdAt) captureDayCounts[new Date(t.createdAt).getDay()]++;
-            });
 
-            // Time of day analysis
             const timeBlocks = { morning: 0, afternoon: 0, evening: 0, night: 0 };
             completionTimestamps.forEach(ts => {
                 const hour = new Date(ts).getHours();
@@ -2213,7 +2415,6 @@
                     checkDate.setDate(checkDate.getDate() - 1);
                 } else break;
             }
-            // Calculate best streak (simplified - check last 90 days)
             let tempStreak = 0;
             for (let d = 0; d < 90; d++) {
                 const dayStart = now - (d * oneDay);
@@ -2227,23 +2428,52 @@
             }
             bestStreak = Math.max(bestStreak, currentStreak);
 
-            // Not enough data
-            if (totalCaptured < 3) {
-                container.innerHTML = '<div class="empty-section">capture a few more thoughts to see patterns</div>';
-                return;
+            return {
+                now, oneDay, oneWeekAgo, twoWeeksAgo, fourWeeksAgo,
+                totalCapturedTasks, totalCaptured, totalCompleted, backlogSize, worriesReleased,
+                thisWeekCompleted, lastWeekCompleted, thisWeekCaptured,
+                completionTimestamps, completedWithTimes, completionDayCounts, timeBlocks,
+                currentStreak, bestStreak
+            };
+        }
+
+        function getWeeklyTrendData(stats) {
+            const { now, oneDay } = stats;
+            const weeklyData = [];
+            const weekStartDates = [];
+
+            for (let i = 7; i >= 0; i--) {
+                const weekStart = now - ((i + 1) * 7 * oneDay);
+                const weekEnd = now - (i * 7 * oneDay);
+                const completed = completedAllTime.filter(t => t.completedAt && t.completedAt > weekStart && t.completedAt <= weekEnd);
+                const captured = [...thoughts, ...completedAllTime].filter(t => t.createdAt && t.createdAt > weekStart && t.createdAt <= weekEnd);
+
+                weeklyData.push({
+                    completed: completed.length,
+                    captured: captured.length,
+                    completedTasks: completed,
+                    weekEnd,
+                    weekStart
+                });
+                weekStartDates.push(new Date(weekStart));
             }
+            return { weeklyData, weekStartDates };
+        }
+
+        function getCompletedTasksForWeek(weekStart, weekEnd) {
+            return completedAllTime.filter(t =>
+                t.completedAt && t.completedAt > weekStart && t.completedAt <= weekEnd
+            );
+        }
+
+        function renderThisWeekContent(stats) {
+            const { oneDay, oneWeekAgo, thisWeekCompleted, lastWeekCompleted, thisWeekCaptured,
+                    completionTimestamps, completedWithTimes, completionDayCounts, timeBlocks,
+                    currentStreak, bestStreak, totalCompleted, backlogSize, totalCapturedTasks } = stats;
 
             let html = '';
 
-            // ══════════════════════════════════════════════════════════════
-            // SECTION: OVERVIEW
-            // ══════════════════════════════════════════════════════════════
-            html += `<div class="pattern-section">
-                <div class="pattern-section-header">
-                    <span class="pattern-section-title">Overview</span>
-                </div>`;
-
-            // Key stats row
+            // Overview stats row
             const completionRate = totalCapturedTasks > 0 ? Math.round((totalCompleted / totalCapturedTasks) * 100) : 0;
             html += '<div class="pattern-row-3">';
             html += `<div class="pattern-card highlight">
@@ -2260,11 +2490,12 @@
             </div>`;
             html += '</div>';
 
-            // Streak (if exists)
+            // Streak
             if (currentStreak >= 1) {
+                const streakIcon = currentStreak >= 3 ? rhythmIcons.streak : rhythmIcons.trendUp;
                 html += `<div class="pattern-card${currentStreak >= 3 ? ' highlight' : ''}">
                     <div class="pattern-streak">
-                        <span class="pattern-streak-flame">${currentStreak >= 7 ? '🔥' : currentStreak >= 3 ? '✨' : '📈'}</span>
+                        <span class="pattern-streak-flame">${streakIcon}</span>
                         <div class="pattern-streak-info">
                             <div class="pattern-streak-count">${currentStreak}</div>
                             <div class="pattern-streak-label">${currentStreak === 1 ? 'day' : 'days'} in a row</div>
@@ -2274,18 +2505,8 @@
                 </div>`;
             }
 
-            html += '</div>'; // end overview section
-
-            // ══════════════════════════════════════════════════════════════
-            // SECTION: THIS WEEK
-            // ══════════════════════════════════════════════════════════════
+            // Weekly stats
             if (thisWeekCompleted > 0 || thisWeekCaptured > 0 || lastWeekCompleted > 0) {
-                html += `<div class="pattern-section">
-                    <div class="pattern-section-header">
-                        <span class="pattern-section-title">This Week</span>
-                    </div>`;
-
-                // Week comparison
                 let weekTrend = '';
                 let weekHighlight = false;
                 if (lastWeekCompleted > 0 && thisWeekCompleted > lastWeekCompleted) {
@@ -2299,11 +2520,11 @@
 
                 html += `<div class="pattern-card${weekHighlight ? ' highlight' : ''}">
                     <div class="pattern-stat-inline">
-                        <span class="pattern-stat-inline-label">Completed</span>
+                        <span class="pattern-stat-inline-label">Completed this week</span>
                         <span class="pattern-stat-inline-value${weekHighlight ? ' positive' : ''}">${thisWeekCompleted}${weekTrend ? ` (${weekTrend})` : ''}</span>
                     </div>
                     <div class="pattern-stat-inline">
-                        <span class="pattern-stat-inline-label">Captured</span>
+                        <span class="pattern-stat-inline-label">Captured this week</span>
                         <span class="pattern-stat-inline-value">${thisWeekCaptured}</span>
                     </div>
                     <div class="pattern-stat-inline">
@@ -2312,7 +2533,7 @@
                     </div>
                 </div>`;
 
-                // Daily breakdown (interactive)
+                // Daily breakdown
                 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
                 const todayDay = new Date().getDay();
                 const weekDayCounts = dayNames.map(() => 0);
@@ -2324,7 +2545,7 @@
                 const maxDayThisWeek = Math.max(...weekDayCounts, 1);
 
                 html += `<div class="pattern-card">
-                    <div class="pattern-card-label">daily breakdown <span style="font-weight: normal; text-transform: none;">(tap for details)</span></div>
+                    <div class="pattern-card-label">daily breakdown</div>
                     <div class="pattern-bar-container" id="daily-bars">`;
                 dayNames.forEach((name, i) => {
                     const count = weekDayCounts[i];
@@ -2333,113 +2554,25 @@
                     html += `<div class="pattern-bar-row${isToday ? ' selected' : ''}" data-day="${name}" data-count="${count}">
                         <div class="pattern-bar-label">${name}</div>
                         <div class="pattern-bar-track">
-                            <div class="pattern-bar-fill" style="width: ${pct}%; ${isToday ? 'background: linear-gradient(90deg, #5cb85c, #4caf50);' : ''}"></div>
+                            <div class="pattern-bar-fill${isToday ? ' done' : ''}" style="width: ${pct}%;"></div>
                         </div>
                         <div class="pattern-bar-value">${count}</div>
                     </div>`;
                 });
                 html += '</div></div>';
-
-                html += '</div>'; // end this week section
             }
 
-            // ══════════════════════════════════════════════════════════════
-            // SECTION: TRENDS
-            // ══════════════════════════════════════════════════════════════
-            const weeklyData = [];
-            const weekLabels = [];
-            for (let i = 7; i >= 0; i--) {
-                const weekStart = now - ((i + 1) * 7 * oneDay);
-                const weekEnd = now - (i * 7 * oneDay);
-                const count = completedAllTime.filter(t => t.completedAt && t.completedAt > weekStart && t.completedAt <= weekEnd).length;
-                weeklyData.push(count);
-                const weekDate = new Date(weekEnd);
-                weekLabels.push(`${weekDate.getMonth() + 1}/${weekDate.getDate()}`);
-            }
-            const maxWeekly = Math.max(...weeklyData, 1);
-            const totalWeeklySum = weeklyData.reduce((a, b) => a + b, 0);
-
-            if (totalWeeklySum > 0) {
-                html += `<div class="pattern-section">
-                    <div class="pattern-section-header">
-                        <span class="pattern-section-title">Trends</span>
-                    </div>`;
-
-                // Weekly trend chart (interactive)
-                html += `<div class="pattern-card">
-                    <div class="pattern-card-label">8-week history <span style="font-weight: normal; text-transform: none;">(tap bars)</span></div>
-                    <div class="pattern-trend" id="weekly-trend">`;
-                weeklyData.forEach((count, i) => {
-                    const height = Math.max(4, Math.round((count / maxWeekly) * 50));
-                    html += `<div class="pattern-trend-bar${count === 0 ? ' empty' : ''}" style="height: ${height}px" data-count="${count}" data-week="${weekLabels[i]}">
-                        <div class="pattern-trend-tooltip">${count} done<br>${weekLabels[i]}</div>
-                    </div>`;
-                });
-                html += `</div>
-                    <div class="pattern-trend-labels">
-                        <span>8 wks ago</span>
-                        <span>now</span>
-                    </div>
-                    <div class="pattern-tap-hint">tap a bar for exact count</div>
-                </div>`;
-
-                // Capture vs Complete balance
-                const recentCaptured = [...thoughts, ...completedAllTime].filter(t => t.createdAt && t.createdAt > fourWeeksAgo).length;
-                const recentCompleted = completedAllTime.filter(t => t.completedAt && t.completedAt > fourWeeksAgo).length;
-
-                if (recentCaptured > 0 || recentCompleted > 0) {
-                    const total = recentCaptured + recentCompleted;
-                    const capturedPct = Math.round((recentCaptured / total) * 100);
-                    const completedPct = 100 - capturedPct;
-                    let flowStatus = recentCompleted >= recentCaptured ? 'Clearing backlog' :
-                                     recentCaptured > recentCompleted * 1.5 ? 'Building backlog' : 'Balanced';
-
-                    html += `<div class="pattern-card">
-                        <div class="pattern-card-label">4-week flow</div>
-                        <div class="pattern-balance">
-                            <div class="pattern-balance-bar" id="balance-bar" data-captured="${recentCaptured}" data-completed="${recentCompleted}">
-                                <div class="pattern-balance-captured" style="width: ${capturedPct}%"></div>
-                                <div class="pattern-balance-completed" style="width: ${completedPct}%"></div>
-                            </div>
-                            <div class="pattern-balance-labels">
-                                <div class="pattern-balance-label">
-                                    <span class="pattern-balance-dot captured"></span>
-                                    <span>${recentCaptured}</span> in
-                                </div>
-                                <div class="pattern-balance-label">
-                                    <span class="pattern-balance-dot completed"></span>
-                                    <span>${recentCompleted}</span> out
-                                </div>
-                            </div>
-                        </div>
-                        <div class="pattern-card-detail">${flowStatus}</div>
-                    </div>`;
-                }
-
-                html += '</div>'; // end trends section
-            }
-
-            // ══════════════════════════════════════════════════════════════
-            // SECTION: YOUR RHYTHM
-            // ══════════════════════════════════════════════════════════════
+            // Your Rhythm
             if (completionTimestamps.length >= 5) {
-                html += `<div class="pattern-section">
-                    <div class="pattern-section-header">
-                        <span class="pattern-section-title">Your Rhythm</span>
-                    </div>`;
-
-                // Time of day blocks (interactive)
-                const maxBlock = Math.max(...Object.values(timeBlocks), 1);
                 const activeBlock = Object.entries(timeBlocks).reduce((a, b) => b[1] > a[1] ? b : a)[0];
-                const timeIcons = { morning: '🌅', afternoon: '☀️', evening: '🌆', night: '🌙' };
                 const timeRanges = { morning: '5am-12pm', afternoon: '12-5pm', evening: '5-9pm', night: '9pm-5am' };
 
                 html += `<div class="pattern-card">
-                    <div class="pattern-card-label">peak productivity <span style="font-weight: normal; text-transform: none;">(tap to see time range)</span></div>
+                    <div class="pattern-card-label">your rhythm</div>
                     <div class="pattern-time-blocks" id="time-blocks">
                         ${Object.entries(timeBlocks).map(([period, count]) => `
                             <div class="pattern-time-block${period === activeBlock ? ' active' : ''}" data-period="${period}" data-range="${timeRanges[period]}" data-count="${count}">
-                                <div class="pattern-time-block-icon">${timeIcons[period]}</div>
+                                <div class="pattern-time-block-icon">${rhythmIcons[period]}</div>
                                 <div class="pattern-time-block-label">${period}</div>
                                 <div class="pattern-time-block-value">${count}</div>
                             </div>
@@ -2447,7 +2580,7 @@
                     </div>
                 </div>`;
 
-                // Best day + avg time combined
+                // Best day + avg time
                 const maxDayCount = Math.max(...completionDayCounts);
                 const dayNamesFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                 const bestDay = dayNamesFull[completionDayCounts.indexOf(maxDayCount)];
@@ -2480,172 +2613,234 @@
                         <span class="pattern-stat-inline-value">${completionDayCounts[0] + completionDayCounts[6]} / ${completionDayCounts.slice(1, 6).reduce((a, b) => a + b, 0)}</span>
                     </div>
                 </div>`;
-
-                html += '</div>'; // end rhythm section
             }
 
-            // ══════════════════════════════════════════════════════════════
-            // SECTION: BACKLOG HEALTH
-            // ══════════════════════════════════════════════════════════════
-            const thoughtsWithDates = thoughts.filter(t => t.createdAt);
-            const frequentlySkipped = thoughts.filter(t => t.skips >= 2).sort((a, b) => b.skips - a.skips);
-            const oldest = thoughtsWithDates.length > 0 ? thoughtsWithDates.reduce((a, b) => a.createdAt < b.createdAt ? a : b) : null;
-            const oldestDays = oldest ? Math.floor((now - oldest.createdAt) / oneDay) : 0;
+            return html;
+        }
 
-            if (backlogSize > 0 && (oldestDays >= 3 || frequentlySkipped.length > 0)) {
-                html += `<div class="pattern-section">
-                    <div class="pattern-section-header">
-                        <span class="pattern-section-title">Backlog Health</span>
-                    </div>`;
+        function renderTrendsContent(stats) {
+            const { now, oneDay } = stats;
+            const { weeklyData, weekStartDates } = getWeeklyTrendData(stats);
 
-                // Backlog age distribution
-                const ageGroups = { fresh: 0, week: 0, twoWeeks: 0, older: 0 };
-                thoughtsWithDates.forEach(t => {
-                    const age = (now - t.createdAt) / oneDay;
-                    if (age < 3) ageGroups.fresh++;
-                    else if (age < 7) ageGroups.week++;
-                    else if (age < 14) ageGroups.twoWeeks++;
-                    else ageGroups.older++;
-                });
+            const maxWeekly = Math.max(...weeklyData.map(w => w.completed), 1);
+            const totalWeeklySum = weeklyData.reduce((a, b) => a + b.completed, 0);
 
-                html += `<div class="pattern-card">
-                    <div class="pattern-card-label">age distribution</div>
-                    <div class="pattern-stat-inline">
-                        <span class="pattern-stat-inline-label">Fresh (< 3 days)</span>
-                        <span class="pattern-stat-inline-value positive">${ageGroups.fresh}</span>
-                    </div>
-                    <div class="pattern-stat-inline">
-                        <span class="pattern-stat-inline-label">This week</span>
-                        <span class="pattern-stat-inline-value">${ageGroups.week}</span>
-                    </div>
-                    <div class="pattern-stat-inline">
-                        <span class="pattern-stat-inline-label">1-2 weeks</span>
-                        <span class="pattern-stat-inline-value">${ageGroups.twoWeeks}</span>
-                    </div>
-                    <div class="pattern-stat-inline">
-                        <span class="pattern-stat-inline-label">Older</span>
-                        <span class="pattern-stat-inline-value${ageGroups.older > 3 ? '' : ''}">${ageGroups.older}</span>
-                    </div>
+            if (totalWeeklySum === 0) {
+                return '<div class="empty-section">complete some tasks to see trends</div>';
+            }
+
+            let html = '';
+
+            // 8-week chart with clickable bars
+            html += `<div class="pattern-card">
+                <div class="pattern-card-label">8-week history</div>
+                <div class="pattern-trend" id="weekly-trend">`;
+
+            weeklyData.forEach((week, i) => {
+                const height = Math.max(4, Math.round((week.completed / maxWeekly) * 50));
+                const weekDate = new Date(week.weekEnd);
+                const weekLabel = `${weekDate.getMonth() + 1}/${weekDate.getDate()}`;
+                const isEmpty = week.completed === 0;
+                const isSelected = selectedTrendWeek === i;
+
+                html += `<div class="pattern-trend-bar${isEmpty ? ' empty' : ''}${isSelected ? ' selected' : ''}"
+                    style="height: ${height}px"
+                    data-week-index="${i}"
+                    data-count="${week.completed}"
+                    data-captured="${week.captured}"
+                    data-week-start="${week.weekStart}"
+                    data-week-end="${week.weekEnd}"
+                    data-week-label="${weekLabel}">
+                    <div class="pattern-trend-tooltip">${week.completed} done<br>${weekLabel}</div>
+                </div>`;
+            });
+
+            html += `</div>
+                <div class="pattern-trend-labels">
+                    <span>8 wks ago</span>
+                    <span>now</span>
+                </div>
+            </div>`;
+
+            // Week detail panel (shown when a bar is selected)
+            html += '<div id="week-detail-container"></div>';
+
+            return html;
+        }
+
+        function renderWeekDetail(weekIndex) {
+            const stats = getPatternStats();
+            const { weeklyData } = getWeeklyTrendData(stats);
+            const week = weeklyData[weekIndex];
+
+            if (!week) return '';
+
+            const weekDate = new Date(week.weekStart);
+            const weekLabel = weekDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            const tasks = getCompletedTasksForWeek(week.weekStart, week.weekEnd);
+
+            let html = `<div class="week-detail-panel">
+                <div class="week-detail-header">Week of ${weekLabel}</div>
+                <div class="week-detail-stats">
+                    <span><span class="dot completed"></span>${week.completed} completed</span>
+                    <span><span class="dot captured"></span>${week.captured} captured</span>
                 </div>`;
 
-                // Oldest + frequently skipped
-                if (oldestDays >= 3 || frequentlySkipped.length > 0) {
-                    html += `<div class="pattern-card">
-                        <div class="pattern-card-label">needs attention</div>`;
-
-                    if (oldest && oldestDays >= 3) {
-                        const truncated = oldest.text.length > 40 ? oldest.text.slice(0, 40) + '...' : oldest.text;
-                        const timeStr = oldestDays >= 14 ? `${Math.floor(oldestDays / 7)} weeks` : `${oldestDays} days`;
-                        html += `<div class="pattern-quote-item" data-action="oldest">
-                            <div class="pattern-quote-text">"${truncated}"</div>
-                            <div class="pattern-quote-meta">${timeStr}</div>
-                        </div>`;
-                    }
-
-                    frequentlySkipped.slice(0, 2).forEach(item => {
-                        const truncated = item.text.length > 40 ? item.text.slice(0, 40) + '...' : item.text;
-                        html += `<div class="pattern-quote-item">
-                            <div class="pattern-quote-text">"${truncated}"</div>
-                            <div class="pattern-quote-meta">skipped ${item.skips}x</div>
-                        </div>`;
-                    });
-
-                    html += '</div>';
-                }
-
-                html += '</div>'; // end backlog health section
+            if (tasks.length > 0) {
+                html += `<button class="week-detail-expand" id="expand-week-tasks">View completed tasks</button>
+                    <div class="week-detail-tasks" id="week-tasks-list" style="display: none;">`;
+                tasks.forEach(task => {
+                    const truncated = task.text.length > 50 ? task.text.slice(0, 50) + '...' : task.text;
+                    html += `<div class="week-detail-task">${truncated}</div>`;
+                });
+                html += '</div>';
             }
 
-            // ══════════════════════════════════════════════════════════════
-            // SECTION: INSIGHTS
-            // ══════════════════════════════════════════════════════════════
+            html += '</div>';
+            return html;
+        }
+
+        function renderInsightsContent(stats) {
+            const { oneDay, completionTimestamps, completedWithTimes, completionDayCounts, timeBlocks,
+                    currentStreak, totalCompleted, backlogSize, worriesReleased } = stats;
+
             const insights = [];
 
             // Generate insights
             if (completedWithTimes.length >= 3) {
                 const avgDays = completedWithTimes.reduce((sum, t) => sum + (t.completedAt - t.createdAt), 0) / completedWithTimes.length / oneDay;
                 if (avgDays < 2) {
-                    insights.push({ icon: '⚡', text: `<span class="pattern-insight-highlight">Fast executor</span> — most items done within ${Math.round(avgDays * 24)} hours` });
+                    insights.push({ icon: rhythmIcons.streak, text: `<span class="pattern-insight-highlight">Fast executor</span> — most items done within ${Math.round(avgDays * 24)} hours` });
                 }
             }
 
             const weekendTotal = completionDayCounts[0] + completionDayCounts[6];
             const weekdayTotal = completionDayCounts.slice(1, 6).reduce((a, b) => a + b, 0);
             if (weekendTotal > weekdayTotal && weekendTotal >= 3) {
-                insights.push({ icon: '🏖️', text: `<span class="pattern-insight-highlight">Weekend warrior</span> — you get more done on Sat/Sun` });
+                insights.push({ icon: rhythmIcons.evening, text: `<span class="pattern-insight-highlight">Weekend warrior</span> — you get more done on Sat/Sun` });
             }
 
             if (completionTimestamps.length >= 5) {
                 const morningPct = timeBlocks.morning / completionTimestamps.length;
-                const nightPct = (timeBlocks.night) / completionTimestamps.length;
+                const nightPct = timeBlocks.night / completionTimestamps.length;
                 if (morningPct > 0.5) {
-                    insights.push({ icon: '🌅', text: `<span class="pattern-insight-highlight">Morning person</span> — ${Math.round(morningPct * 100)}% of completions before noon` });
+                    insights.push({ icon: rhythmIcons.morning, text: `<span class="pattern-insight-highlight">Morning person</span> — ${Math.round(morningPct * 100)}% of completions before noon` });
                 } else if (nightPct > 0.3) {
-                    insights.push({ icon: '🦉', text: `<span class="pattern-insight-highlight">Night owl</span> — you often get things done late at night` });
+                    insights.push({ icon: rhythmIcons.night, text: `<span class="pattern-insight-highlight">Night owl</span> — you often get things done late at night` });
                 }
             }
 
             if (currentStreak >= 7) {
-                insights.push({ icon: '🔥', text: `<span class="pattern-insight-highlight">${currentStreak} day streak!</span> — consistently completing tasks` });
+                insights.push({ icon: rhythmIcons.streak, text: `<span class="pattern-insight-highlight">${currentStreak} day streak!</span> — consistently completing tasks` });
             }
 
             if (totalCompleted > backlogSize * 2 && totalCompleted >= 10) {
-                insights.push({ icon: '✨', text: `<span class="pattern-insight-highlight">Backlog clearer</span> — ${totalCompleted} done, more than 2x your waiting list` });
+                insights.push({ icon: rhythmIcons.trendUp, text: `<span class="pattern-insight-highlight">Backlog clearer</span> — ${totalCompleted} done, more than 2x your waiting list` });
             }
 
             if (worriesReleased >= 3) {
-                insights.push({ icon: '🧘', text: `<span class="pattern-insight-highlight">${worriesReleased} worries released</span> — captured and let go` });
+                insights.push({ icon: rhythmIcons.night, text: `<span class="pattern-insight-highlight">${worriesReleased} worries released</span> — captured and let go` });
             }
 
-            if (insights.length > 0) {
-                html += `<div class="pattern-section">
-                    <div class="pattern-section-header">
-                        <span class="pattern-section-title">About You</span>
-                    </div>`;
-                insights.slice(0, 4).forEach(insight => {
-                    html += `<div class="pattern-insight">
-                        <span class="pattern-insight-icon">${insight.icon}</span>
-                        <span class="pattern-insight-text">${insight.text}</span>
-                    </div>`;
-                });
-                html += '</div>';
+            if (insights.length === 0) {
+                return '<div class="empty-section">keep completing tasks to unlock insights about your work style</div>';
             }
 
-            // ══════════════════════════════════════════════════════════════
-            // SECTION: HISTORY (Weekly Reflections)
-            // ══════════════════════════════════════════════════════════════
-            if (weeklyReflections.length > 0) {
-                html += `<div class="pattern-section">
-                    <div class="pattern-section-header">
-                        <span class="pattern-section-title">History</span>
-                    </div>`;
-                weeklyReflections.forEach(reflection => {
-                    const date = new Date(reflection.date);
-                    const weekLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                    html += `<div class="reflection-card">
-                        <div class="reflection-week">Week of ${weekLabel}</div>
-                        <div class="reflection-stats">
-                            <div class="reflection-stat"><span>${reflection.completed}</span> completed</div>
-                            <div class="reflection-stat"><span>${reflection.captured}</span> captured</div>
-                        </div>
-                    </div>`;
-                });
-                html += '</div>';
+            let html = `<div class="pattern-section">
+                <div class="pattern-section-header">
+                    <span class="pattern-section-title">About You</span>
+                </div>`;
+
+            insights.slice(0, 6).forEach(insight => {
+                html += `<div class="pattern-insight">
+                    <span class="pattern-insight-icon">${insight.icon}</span>
+                    <span class="pattern-insight-text">${insight.text}</span>
+                </div>`;
+            });
+
+            html += '</div>';
+            return html;
+        }
+
+        function renderPatterns() {
+            const container = document.getElementById('patterns-content');
+            const stats = getPatternStats();
+
+            if (stats.totalCaptured < 3) {
+                container.innerHTML = '<div class="empty-section">capture a few more thoughts to see patterns</div>';
+                return;
+            }
+
+            let html = '';
+
+            switch (currentPatternsSubtab) {
+                case 'week':
+                    html = renderThisWeekContent(stats);
+                    break;
+                case 'trends':
+                    html = renderTrendsContent(stats);
+                    break;
+                case 'insights':
+                    html = renderInsightsContent(stats);
+                    break;
             }
 
             container.innerHTML = html;
-
-            // Add interactivity after rendering
             setupPatternInteractivity();
         }
 
+        function switchPatternsSubtab(subtab) {
+            currentPatternsSubtab = subtab;
+            selectedTrendWeek = null;
+
+            // Update button states
+            document.querySelectorAll('.patterns-subtab').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.subtab === subtab);
+            });
+
+            renderPatterns();
+        }
+
+        // Sub-tab click handlers
+        document.addEventListener('click', e => {
+            const subtabBtn = e.target.closest('.patterns-subtab');
+            if (subtabBtn) {
+                switchPatternsSubtab(subtabBtn.dataset.subtab);
+            }
+        });
+
         function setupPatternInteractivity() {
-            // Weekly trend bar tap
+            // Weekly trend bar tap - with week detail panel
             const trendBars = document.querySelectorAll('#weekly-trend .pattern-trend-bar');
+            const weekDetailContainer = document.getElementById('week-detail-container');
+
             trendBars.forEach(bar => {
                 bar.addEventListener('click', () => {
+                    const weekIndex = parseInt(bar.dataset.weekIndex);
+                    const wasSelected = selectedTrendWeek === weekIndex;
+
                     trendBars.forEach(b => b.classList.remove('selected'));
-                    bar.classList.add('selected');
+
+                    if (wasSelected) {
+                        selectedTrendWeek = null;
+                        if (weekDetailContainer) weekDetailContainer.innerHTML = '';
+                    } else {
+                        selectedTrendWeek = weekIndex;
+                        bar.classList.add('selected');
+                        if (weekDetailContainer) {
+                            weekDetailContainer.innerHTML = renderWeekDetail(weekIndex);
+                            // Setup expand button handler
+                            const expandBtn = document.getElementById('expand-week-tasks');
+                            const tasksList = document.getElementById('week-tasks-list');
+                            if (expandBtn && tasksList) {
+                                expandBtn.addEventListener('click', () => {
+                                    const isVisible = tasksList.style.display !== 'none';
+                                    tasksList.style.display = isVisible ? 'none' : 'block';
+                                    expandBtn.textContent = isVisible ? 'View completed tasks' : 'Hide tasks';
+                                });
+                            }
+                        }
+                    }
                 });
             });
 
@@ -2659,15 +2854,14 @@
                 });
             });
 
-            // Time block tap
-            const timeBlocks = document.querySelectorAll('#time-blocks .pattern-time-block');
-            timeBlocks.forEach(block => {
+            // Time block tap with visual feedback
+            const timeBlockEls = document.querySelectorAll('#time-blocks .pattern-time-block');
+            timeBlockEls.forEach(block => {
                 block.addEventListener('click', () => {
                     const wasSelected = block.classList.contains('selected');
-                    timeBlocks.forEach(b => b.classList.remove('selected'));
+                    timeBlockEls.forEach(b => b.classList.remove('selected'));
                     if (!wasSelected) {
                         block.classList.add('selected');
-                        // Could show time range tooltip here
                     }
                 });
             });
@@ -3532,6 +3726,116 @@
                 setupBacklogInteraction(wrapper, item, index, backlog);
                 backlogList.appendChild(wrapper);
             });
+
+            // Add Backlog Health section
+            renderBacklogHealth();
+        }
+
+        function renderBacklogHealth() {
+            const now = Date.now();
+            const oneDay = 24 * 60 * 60 * 1000;
+            const thoughtsWithDates = thoughts.filter(t => t.createdAt);
+            const frequentlySkipped = thoughts.filter(t => t.skips >= 2).sort((a, b) => b.skips - a.skips);
+            const oldest = thoughtsWithDates.length > 0 ? thoughtsWithDates.reduce((a, b) => a.createdAt < b.createdAt ? a : b) : null;
+            const oldestDays = oldest ? Math.floor((now - oldest.createdAt) / oneDay) : 0;
+
+            // Only show if there's something interesting to display
+            if (thoughts.length === 0 || (oldestDays < 3 && frequentlySkipped.length === 0)) {
+                // Remove any existing health section
+                const existingSection = document.querySelector('.backlog-health-section');
+                if (existingSection) existingSection.remove();
+                return;
+            }
+
+            // Calculate age distribution
+            const ageGroups = { fresh: 0, week: 0, twoWeeks: 0, older: 0 };
+            thoughtsWithDates.forEach(t => {
+                const age = (now - t.createdAt) / oneDay;
+                if (age < 3) ageGroups.fresh++;
+                else if (age < 7) ageGroups.week++;
+                else if (age < 14) ageGroups.twoWeeks++;
+                else ageGroups.older++;
+            });
+
+            let healthHtml = `
+                <div class="backlog-health-section">
+                    <button class="backlog-health-toggle" id="backlog-health-toggle">
+                        <span class="backlog-health-title">Backlog Health</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <div class="backlog-health-content" id="backlog-health-content">
+                        <div class="pattern-card" style="margin-bottom: 12px;">
+                            <div class="pattern-card-label">age distribution</div>
+                            <div class="pattern-stat-inline">
+                                <span class="pattern-stat-inline-label">Fresh (< 3 days)</span>
+                                <span class="pattern-stat-inline-value positive">${ageGroups.fresh}</span>
+                            </div>
+                            <div class="pattern-stat-inline">
+                                <span class="pattern-stat-inline-label">This week</span>
+                                <span class="pattern-stat-inline-value">${ageGroups.week}</span>
+                            </div>
+                            <div class="pattern-stat-inline">
+                                <span class="pattern-stat-inline-label">1-2 weeks</span>
+                                <span class="pattern-stat-inline-value">${ageGroups.twoWeeks}</span>
+                            </div>
+                            <div class="pattern-stat-inline">
+                                <span class="pattern-stat-inline-label">Older</span>
+                                <span class="pattern-stat-inline-value">${ageGroups.older}</span>
+                            </div>
+                        </div>`;
+
+            // Needs attention section
+            if (oldestDays >= 3 || frequentlySkipped.length > 0) {
+                healthHtml += `<div class="pattern-card">
+                    <div class="pattern-card-label">needs attention</div>`;
+
+                if (oldest && oldestDays >= 3) {
+                    const truncated = oldest.text.length > 40 ? oldest.text.slice(0, 40) + '...' : oldest.text;
+                    const timeStr = oldestDays >= 14 ? `${Math.floor(oldestDays / 7)} weeks` : `${oldestDays} days`;
+                    healthHtml += `<div class="pattern-quote-item">
+                        <div class="pattern-quote-text">"${truncated}"</div>
+                        <div class="pattern-quote-meta">${timeStr}</div>
+                    </div>`;
+                }
+
+                frequentlySkipped.slice(0, 2).forEach(item => {
+                    const truncated = item.text.length > 40 ? item.text.slice(0, 40) + '...' : item.text;
+                    healthHtml += `<div class="pattern-quote-item">
+                        <div class="pattern-quote-text">"${truncated}"</div>
+                        <div class="pattern-quote-meta">skipped ${item.skips}x</div>
+                    </div>`;
+                });
+
+                healthHtml += '</div>';
+            }
+
+            healthHtml += '</div></div>';
+
+            // Remove existing and add new
+            const existingSection = document.querySelector('.backlog-health-section');
+            if (existingSection) existingSection.remove();
+
+            backlogList.insertAdjacentHTML('afterend', healthHtml);
+
+            // Setup toggle
+            const toggle = document.getElementById('backlog-health-toggle');
+            const content = document.getElementById('backlog-health-content');
+            if (toggle && content) {
+                // Check saved state
+                const isExpanded = localStorage.getItem('backlogHealthExpanded') === 'true';
+                if (isExpanded) {
+                    toggle.classList.add('expanded');
+                    content.classList.add('visible');
+                }
+
+                toggle.addEventListener('click', () => {
+                    const expanded = toggle.classList.toggle('expanded');
+                    content.classList.toggle('visible', expanded);
+                    localStorage.setItem('backlogHealthExpanded', expanded.toString());
+                });
+            }
         }
 
         function setupBacklogInteraction(wrapper, item, originalIndex, backlog) {
