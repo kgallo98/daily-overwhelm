@@ -3672,7 +3672,13 @@
             haptic('medium');
         }
 
-        editBacklogBtn.addEventListener('click', toggleEditMode);
+        let editModeTransitioning = false;
+        editBacklogBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            editModeTransitioning = true;
+            toggleEditMode();
+            setTimeout(() => { editModeTransitioning = false; }, 100);
+        });
         deleteSelectedBtn.addEventListener('click', deleteSelectedItems);
 
         function renderAllTab() {
@@ -3994,7 +4000,7 @@
                     // Check if this was a tab swipe (global state or local indicators)
                     const isTabSwipe = tabSwiping || tabSwipeConfirmed || Math.abs(diffY) > 20 || startX < 60 || startX > window.innerWidth - 60;
 
-                    if (Math.abs(diffX) < 10 && Math.abs(diffY) < 10) {
+                    if (Math.abs(diffX) < 10 && Math.abs(diffY) < 10 && !editModeTransitioning) {
                         // Simple tap
                         if (editMode) {
                             // In edit mode, tap toggles selection
