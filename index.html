@@ -4257,8 +4257,8 @@
             /\.\s+/,                     // Period as separator
         ];
 
-        function splitIntoItems(transcript) {
-            // First, try to split on conservative keyword patterns
+        function splitByKeywords(transcript) {
+            // Split on conservative keyword patterns
             let items = [transcript];
 
             for (const pattern of splitPatterns) {
@@ -4273,8 +4273,20 @@
             return items;
         }
 
-        function processVoiceCapture(fullTranscript) {
-            const items = splitIntoItems(fullTranscript.trim());
+        function processVoiceCapture(segments) {
+            // segments is an array of speech segments separated by pauses
+            // Apply keyword splitting within each segment, then flatten
+            let items = [];
+            for (const segment of segments) {
+                const trimmed = segment.trim();
+                if (trimmed) {
+                    const keywordSplit = splitByKeywords(trimmed);
+                    items.push(...keywordSplit);
+                }
+            }
+
+            // Filter out empty items
+            items = items.filter(item => item.trim().length > 0);
 
             if (items.length === 0) return;
 
@@ -4326,7 +4338,9 @@
             recognition.interimResults = true;
             recognition.lang = 'en-US';
 
-            let fullTranscript = '';
+            let speechSegments = [];        // Array of finalized speech segments
+            let currentSegment = '';        // Current segment being built
+            let segmentHadPause = false;    // Flag to start new segment on next speech
 
             recognition.onresult = function(e) {
                 let interim = '';
@@ -4341,16 +4355,31 @@
                     }
                 }
 
+                const now = Date.now();
+                const elapsed = now - lastSpeechTime;
+
+                // Check if we should start a new segment (pause was detected)
+                if (segmentHadPause && (finalPart || interim)) {
+                    // Save current segment and start new one
+                    if (currentSegment.trim()) {
+                        speechSegments.push(currentSegment.trim());
+                    }
+                    currentSegment = '';
+                    segmentHadPause = false;
+                }
+
                 if (finalPart) {
-                    fullTranscript += finalPart + ' ';
+                    currentSegment += finalPart + ' ';
                 }
 
                 interimTranscript = interim;
-                lastSpeechTime = Date.now();
+                lastSpeechTime = now;
 
                 // Update button to show we're capturing
-                if (fullTranscript.trim() || interim) {
-                    bigMicButton.textContent = 'listening...';
+                const hasContent = speechSegments.length > 0 || currentSegment.trim() || interim;
+                if (hasContent) {
+                    const itemCount = speechSegments.length + (currentSegment.trim() || interim ? 1 : 0);
+                    bigMicButton.textContent = itemCount > 1 ? `${itemCount} items...` : 'listening...';
                 }
             };
 
@@ -4358,13 +4387,36 @@
                 if (!isListening) return;
 
                 const elapsed = Date.now() - lastSpeechTime;
+                const hasContent = speechSegments.length > 0 || currentSegment.trim() || interimTranscript.trim();
 
-                if (elapsed >= PAUSE_END_MS && (fullTranscript.trim() || interimTranscript.trim())) {
+                // Check for split pause (mark that next speech should be new segment)
+                if (elapsed >= PAUSE_SPLIT_MS && elapsed < PAUSE_END_MS && !segmentHadPause) {
+                    if (currentSegment.trim() || interimTranscript.trim()) {
+                        // Commit interim to current segment before marking pause
+                        if (interimTranscript.trim()) {
+                            currentSegment += interimTranscript + ' ';
+                            interimTranscript = '';
+                        }
+                        segmentHadPause = true;
+                    }
+                }
+
+                // Check for end pause
+                if (elapsed >= PAUSE_END_MS && hasContent) {
                     // Long pause - auto-end and process
-                    const finalText = (fullTranscript + interimTranscript).trim();
+                    // Add any remaining content as final segment
+                    let finalSegment = currentSegment;
+                    if (interimTranscript.trim()) {
+                        finalSegment += interimTranscript;
+                    }
+                    if (finalSegment.trim()) {
+                        speechSegments.push(finalSegment.trim());
+                    }
+
+                    const segments = [...speechSegments];
                     stopListening();
-                    if (finalText) {
-                        processVoiceCapture(finalText);
+                    if (segments.length > 0) {
+                        processVoiceCapture(segments);
                     }
                 }
             }
@@ -4385,7 +4437,9 @@
                 }
                 isListening = false;
                 interimTranscript = '';
-                fullTranscript = '';
+                speechSegments = [];
+                currentSegment = '';
+                segmentHadPause = false;
                 bigMicButton.classList.remove('listening');
                 micContainer.classList.remove('listening');
                 bigMicButton.textContent = 'tap to drop';
@@ -4447,7 +4501,9 @@
 
                 try {
                     interimTranscript = '';
-                    fullTranscript = '';
+                    speechSegments = [];
+                    currentSegment = '';
+                    segmentHadPause = false;
                     lastSpeechTime = Date.now();
                     recognition.start();
                     isListening = true;
@@ -4473,10 +4529,17 @@
                 }
                 if (isListening) {
                     // Manual stop - process what we have
-                    const finalText = (fullTranscript + interimTranscript).trim();
+                    let finalSegment = currentSegment;
+                    if (interimTranscript.trim()) {
+                        finalSegment += interimTranscript;
+                    }
+                    if (finalSegment.trim()) {
+                        speechSegments.push(finalSegment.trim());
+                    }
+                    const segments = [...speechSegments];
                     stopListening();
-                    if (finalText) {
-                        processVoiceCapture(finalText);
+                    if (segments.length > 0) {
+                        processVoiceCapture(segments);
                     }
                 } else {
                     startListening();
