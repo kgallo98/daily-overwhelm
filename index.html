@@ -1916,6 +1916,280 @@
             background-color: #c0392b;
         }
 
+        /* ===== LISTS TAB ===== */
+        .lists-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .lists-header .section-title {
+            margin: 0;
+        }
+
+        .list-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .list-card-header {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            cursor: pointer;
+        }
+
+        .list-card-name {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .list-card-count {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-right: 8px;
+        }
+
+        .list-card-chevron {
+            width: 20px;
+            height: 20px;
+            color: var(--text-muted);
+            transition: transform 0.2s;
+        }
+
+        .list-card.expanded .list-card-chevron {
+            transform: rotate(180deg);
+        }
+
+        .list-card-items {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .list-card.expanded .list-card-items {
+            max-height: 2000px;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-top: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .list-item.completed .list-item-text {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        .list-item-checkbox {
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            margin-right: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .list-item.completed .list-item-checkbox {
+            background-color: var(--done-color);
+            border-color: var(--done-color);
+        }
+
+        .list-item-text {
+            flex: 1;
+        }
+
+        .list-item-wrapper {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .list-item-wrapper.edit-mode .list-item {
+            padding-left: 44px;
+        }
+
+        .list-minus-btn {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 26px;
+            height: 26px;
+            border: none;
+            border-radius: 50%;
+            background-color: #e74c3c;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            z-index: 2;
+        }
+
+        .list-item-wrapper.edit-mode .list-minus-btn {
+            display: flex;
+        }
+
+        .list-minus-btn.rotated {
+            transform: translateY(-50%) rotate(90deg);
+        }
+
+        .list-minus-btn svg {
+            width: 14px;
+            height: 14px;
+            stroke: white;
+            stroke-width: 3;
+        }
+
+        .list-delete-btn {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transform: translateX(100%);
+            transition: transform 0.2s ease;
+            z-index: 1;
+        }
+
+        .list-item-wrapper.delete-expanded .list-delete-btn {
+            transform: translateX(0);
+        }
+
+        .list-delete-btn:active {
+            background-color: #c0392b;
+        }
+
+        .list-actions {
+            display: flex;
+            gap: 10px;
+            padding: 12px 16px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .list-clear-btn,
+        .list-delete-all-btn {
+            flex: 1;
+            padding: 10px;
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .list-delete-all-btn {
+            border-color: #e74c3c;
+            color: #e74c3c;
+        }
+
+        .list-clear-btn:active,
+        .list-delete-all-btn:active {
+            opacity: 0.7;
+        }
+
+        .list-empty {
+            padding: 16px;
+            color: var(--text-muted);
+            font-size: 14px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        /* Disambiguation bottom sheet */
+        .disambiguation-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--card-bg);
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            padding-bottom: max(20px, calc(env(safe-area-inset-bottom) + 20px));
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .disambiguation-sheet.visible {
+            transform: translateY(0);
+        }
+
+        .disambiguation-handle {
+            width: 36px;
+            height: 4px;
+            background-color: var(--border-color);
+            border-radius: 2px;
+            margin: 0 auto 16px;
+        }
+
+        .disambiguation-text {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .disambiguation-item {
+            font-size: 16px;
+            color: var(--text-color);
+            margin-bottom: 8px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .disambiguation-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .disambiguation-option {
+            padding: 12px 20px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            color: var(--text-color);
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .disambiguation-option:active {
+            background-color: var(--accent);
+        }
+
+        .disambiguation-backlog {
+            width: 100%;
+            padding: 14px;
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-muted);
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .disambiguation-backlog:active {
+            background-color: var(--input-bg);
+        }
+
         /* ===== TAB BAR ===== */
         #tab-bar {
             display: flex;
@@ -2211,6 +2485,39 @@
                 <ul id="completed-today-list" class="task-list"></ul>
             </div>
 
+            <!-- LISTS TAB -->
+            <div id="lists-tab" class="tab-content">
+                <div class="tab-top-row">
+                    <button class="tab-top-btn" data-action="settings">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                    </button>
+                    <button class="tab-top-btn" data-action="bedtime">
+                        <svg class="icon-moon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                        <svg class="icon-sun" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="lists-header">
+                    <div class="section-title">lists</div>
+                    <button id="edit-lists-btn" class="edit-btn">edit</button>
+                </div>
+                <div id="lists-container"></div>
+            </div>
+
             <!-- ALL TAB -->
             <div id="all-tab" class="tab-content">
                 <div class="tab-top-row">
@@ -2325,6 +2632,13 @@
             </svg>
             <span>Today</span>
         </button>
+        <button class="tab-button" data-tab="lists-tab">
+            <svg class="tab-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 11l3 3L22 4"></path>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+            </svg>
+            <span>Lists</span>
+        </button>
         <button class="tab-button" data-tab="all-tab">
             <svg class="tab-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="8" y1="6" x2="21" y2="6"></line>
@@ -2346,6 +2660,17 @@
         </button>
     </div>
 
+    <!-- LIST DISAMBIGUATION BOTTOM SHEET -->
+    <div id="list-disambiguation" class="disambiguation-sheet">
+        <div class="disambiguation-handle"></div>
+        <div class="disambiguation-content">
+            <div class="disambiguation-text">Which list?</div>
+            <div class="disambiguation-item" id="disambiguation-item"></div>
+            <div class="disambiguation-options" id="disambiguation-options"></div>
+            <button class="disambiguation-backlog" id="disambiguation-backlog">Add to backlog instead</button>
+        </div>
+    </div>
+
     <script>
         // ===== DATA MODEL =====
         let thoughts = JSON.parse(localStorage.getItem('thoughts')) || [];
@@ -2356,6 +2681,12 @@
         let worries = JSON.parse(localStorage.getItem('worries')) || [];
         let weeklyReflections = JSON.parse(localStorage.getItem('weeklyReflections')) || [];
         let lastResetDate = localStorage.getItem('lastResetDate') || '';
+        let lists = JSON.parse(localStorage.getItem('lists')) || [
+            { id: 'grocery', name: 'Grocery', isDefault: true, items: [] },
+            { id: 'shopping', name: 'Shopping', isDefault: true, items: [] },
+            { id: 'work', name: 'Work', isDefault: true, items: [] },
+            { id: 'home', name: 'Home', isDefault: true, items: [] }
+        ];
 
         // Migrate old formats
         thoughts = thoughts.map(item => {
@@ -2385,6 +2716,7 @@
             localStorage.setItem('worries', JSON.stringify(worries));
             localStorage.setItem('weeklyReflections', JSON.stringify(weeklyReflections));
             localStorage.setItem('lastResetDate', lastResetDate);
+            localStorage.setItem('lists', JSON.stringify(lists));
         }
 
         function getTodayDate() {
@@ -2993,7 +3325,7 @@
         // ===== TAB SWITCHING =====
         const tabButtons = document.querySelectorAll('.tab-button');
         const tabsTrack = document.getElementById('tabs-track');
-        const tabIds = ['capture-tab', 'today-tab', 'all-tab', 'patterns-tab'];
+        const tabIds = ['capture-tab', 'today-tab', 'lists-tab', 'all-tab', 'patterns-tab'];
         let currentTabIndex = 0;
 
         function switchToTab(index, animate = true) {
@@ -3013,6 +3345,7 @@
             }
 
             if (tabIds[index] === 'today-tab') renderTodayTab();
+            if (tabIds[index] === 'lists-tab') renderListsTab();
             if (tabIds[index] === 'all-tab') renderAllTab();
             if (tabIds[index] === 'patterns-tab') renderPatterns();
         }
@@ -3037,7 +3370,8 @@
         tabsContainer.addEventListener('touchstart', e => {
             // Don't start tab swipe if focus overlay is open or in edit mode on All tab
             if (focusVisible) return;
-            if (editMode && currentTabIndex === 2) return; // All tab is index 2
+            if (editMode && currentTabIndex === 3) return; // All tab is index 3
+            if (listsEditMode && currentTabIndex === 2) return; // Lists tab is index 2
 
             const touchX = e.touches[0].clientX;
             const touchY = e.touches[0].clientY;
@@ -3289,6 +3623,517 @@
             return vaguePatterns.some(pattern => pattern.test(lower));
         }
 
+        // ===== LISTS FEATURE =====
+        let listsEditMode = false;
+        let expandedListId = null;
+        let expandedListDeleteItem = null;
+        let pendingDisambiguation = null;
+
+        // Grocery/food keywords
+        const groceryKeywords = [
+            // Produce
+            'apple', 'apples', 'banana', 'bananas', 'orange', 'oranges', 'lemon', 'lemons', 'lime', 'limes',
+            'grape', 'grapes', 'strawberry', 'strawberries', 'blueberry', 'blueberries', 'raspberry', 'raspberries',
+            'tomato', 'tomatoes', 'potato', 'potatoes', 'onion', 'onions', 'garlic', 'carrot', 'carrots',
+            'broccoli', 'lettuce', 'spinach', 'kale', 'avocado', 'avocados', 'pepper', 'peppers',
+            'cucumber', 'cucumbers', 'celery', 'mushroom', 'mushrooms', 'corn', 'beans', 'peas',
+            // Dairy
+            'milk', 'cheese', 'yogurt', 'butter', 'cream', 'egg', 'eggs', 'sour cream',
+            // Meat & Protein
+            'chicken', 'beef', 'pork', 'fish', 'salmon', 'tuna', 'shrimp', 'bacon', 'sausage', 'turkey', 'ham',
+            // Pantry
+            'bread', 'rice', 'pasta', 'noodles', 'cereal', 'oatmeal', 'flour', 'sugar', 'salt', 'pepper',
+            'oil', 'olive oil', 'vinegar', 'sauce', 'ketchup', 'mustard', 'mayo', 'mayonnaise',
+            // Beverages
+            'juice', 'coffee', 'tea', 'water', 'soda', 'beer', 'wine',
+            // Generic food
+            'groceries', 'food', 'snack', 'snacks', 'fruit', 'fruits', 'vegetable', 'vegetables', 'veggies',
+            'meat', 'produce', 'dairy'
+        ];
+
+        // List matching patterns
+        const listPatterns = {
+            grocery: {
+                verbs: ['buy', 'get', 'pick up', 'grab', 'need'],
+                explicit: ['grocery list', 'groceries', 'from the store', 'at the store', 'supermarket', 'market']
+            },
+            shopping: {
+                verbs: ['order', 'buy', 'get', 'need'],
+                explicit: ['shopping list', 'amazon', 'online', 'store'],
+                items: ['shirt', 'shoes', 'pants', 'dress', 'jacket', 'coat', 'hat', 'socks',
+                    'headphones', 'charger', 'cable', 'battery', 'phone', 'laptop', 'tablet',
+                    'gift', 'present', 'book', 'books']
+            },
+            work: {
+                verbs: ['email', 'call', 'message', 'schedule', 'review', 'prepare', 'send', 'submit', 'finish', 'complete'],
+                explicit: ['work', 'meeting', 'deadline', 'project', 'client', 'boss', 'coworker', 'colleague',
+                    'office', 'presentation', 'report', 'proposal']
+            },
+            home: {
+                verbs: ['clean', 'fix', 'repair', 'organize', 'wash', 'vacuum', 'mow', 'water', 'tidy', 'declutter'],
+                explicit: ['house', 'home', 'apartment', 'room', 'kitchen', 'bathroom', 'bedroom', 'garage',
+                    'yard', 'garden', 'laundry', 'dishes', 'trash', 'garbage']
+            }
+        };
+
+        function detectListMatch(text) {
+            const lower = text.toLowerCase();
+
+            // Check for explicit "add to X list" or "X list:"
+            const explicitMatch = lower.match(/(?:add to |put on )?(?:my )?(\w+) list[:\s]?(.+)?/i);
+            if (explicitMatch) {
+                const listName = explicitMatch[1];
+                const item = explicitMatch[2]?.trim() || text;
+                const list = lists.find(l => l.name.toLowerCase() === listName || l.id === listName);
+                if (list) return { listId: list.id, item: item, confidence: 'high' };
+            }
+
+            // Check for "create a X list"
+            const createMatch = lower.match(/^create (?:a |an )?(.+?) list$/i);
+            if (createMatch) {
+                return { action: 'create', name: createMatch[1], confidence: 'high' };
+            }
+
+            // Check grocery keywords (food items)
+            const hasGroceryKeyword = groceryKeywords.some(keyword => {
+                const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+                return regex.test(lower);
+            });
+
+            if (hasGroceryKeyword) {
+                // Check if it also matches shopping patterns
+                const hasShoppingContext = listPatterns.shopping.items?.some(i => lower.includes(i)) ||
+                    listPatterns.shopping.explicit?.some(e => lower.includes(e));
+                if (hasShoppingContext) {
+                    return { listId: 'grocery', item: text, confidence: 'low', alternatives: ['grocery', 'shopping'] };
+                }
+                return { listId: 'grocery', item: text, confidence: 'medium', alternatives: ['shopping'] };
+            }
+
+            // Check pattern matches for each list type
+            const matches = [];
+            for (const [listId, patterns] of Object.entries(listPatterns)) {
+                let score = 0;
+
+                // Check verbs at start or in context
+                if (patterns.verbs?.some(v => lower.startsWith(v + ' ') || lower.includes(' ' + v + ' '))) {
+                    score += 2;
+                }
+
+                // Check explicit mentions
+                if (patterns.explicit?.some(e => lower.includes(e))) {
+                    score += 3;
+                }
+
+                // Check specific items
+                if (patterns.items?.some(i => lower.includes(i))) {
+                    score += 2;
+                }
+
+                if (score > 0) {
+                    matches.push({ listId, score, item: text });
+                }
+            }
+
+            if (matches.length === 0) return null;
+
+            matches.sort((a, b) => b.score - a.score);
+
+            // Clear winner
+            if (matches.length === 1 || (matches[0].score >= 3 && matches[0].score > matches[1].score + 1)) {
+                return { listId: matches[0].listId, item: text, confidence: 'high' };
+            }
+
+            // Multiple matches - need disambiguation
+            return {
+                item: text,
+                confidence: 'low',
+                alternatives: matches.slice(0, 3).map(m => m.listId)
+            };
+        }
+
+        // ===== DISAMBIGUATION =====
+        function showDisambiguation(item, alternatives) {
+            pendingDisambiguation = item;
+            const sheet = document.getElementById('list-disambiguation');
+            const itemEl = document.getElementById('disambiguation-item');
+            const optionsEl = document.getElementById('disambiguation-options');
+
+            itemEl.textContent = `"${item}"`;
+            optionsEl.innerHTML = alternatives.map(listId => {
+                const list = lists.find(l => l.id === listId);
+                return `<button class="disambiguation-option" data-list="${listId}">${list ? list.name : listId}</button>`;
+            }).join('');
+
+            sheet.classList.add('visible');
+        }
+
+        function hideDisambiguation() {
+            document.getElementById('list-disambiguation').classList.remove('visible');
+            pendingDisambiguation = null;
+        }
+
+        // Dismiss disambiguation by clicking handle or swiping down
+        (function() {
+            const sheet = document.getElementById('list-disambiguation');
+            const handle = sheet.querySelector('.disambiguation-handle');
+            let startY = 0, dragging = false;
+
+            // Click on handle to dismiss
+            handle.addEventListener('click', () => {
+                if (pendingDisambiguation) {
+                    // Add to backlog and dismiss
+                    const vague = isVague(pendingDisambiguation);
+                    thoughts.push({
+                        text: pendingDisambiguation,
+                        skips: 0,
+                        createdAt: Date.now(),
+                        isVague: vague
+                    });
+                    saveAll();
+                    showConfirmation(null, pendingDisambiguation);
+                    haptic('light');
+                    hideDisambiguation();
+                }
+            });
+
+            // Swipe down to dismiss
+            sheet.addEventListener('touchstart', e => {
+                startY = e.touches[0].clientY;
+                dragging = true;
+            }, { passive: true });
+
+            sheet.addEventListener('touchmove', e => {
+                if (!dragging) return;
+                const diffY = e.touches[0].clientY - startY;
+                if (diffY > 0) {
+                    sheet.style.transform = `translateY(${diffY}px)`;
+                }
+            }, { passive: true });
+
+            sheet.addEventListener('touchend', e => {
+                if (!dragging) return;
+                dragging = false;
+                const diffY = e.changedTouches[0].clientY - startY;
+                if (diffY > 80 && pendingDisambiguation) {
+                    // Add to backlog and dismiss
+                    const vague = isVague(pendingDisambiguation);
+                    thoughts.push({
+                        text: pendingDisambiguation,
+                        skips: 0,
+                        createdAt: Date.now(),
+                        isVague: vague
+                    });
+                    saveAll();
+                    showConfirmation(null, pendingDisambiguation);
+                    haptic('light');
+                    hideDisambiguation();
+                }
+                sheet.style.transform = '';
+            });
+        })();
+
+        // Disambiguation event handlers
+        document.addEventListener('click', e => {
+            const option = e.target.closest('.disambiguation-option');
+            if (option && pendingDisambiguation) {
+                const listId = option.dataset.list;
+                addToList(listId, pendingDisambiguation);
+                const list = lists.find(l => l.id === listId);
+                showConfirmation(`Added to ${list.name}`, pendingDisambiguation);
+                haptic('medium');
+                hideDisambiguation();
+                return;
+            }
+
+            const backlogBtn = e.target.closest('#disambiguation-backlog');
+            if (backlogBtn && pendingDisambiguation) {
+                // Add to regular backlog
+                const vague = isVague(pendingDisambiguation);
+                thoughts.push({
+                    text: pendingDisambiguation,
+                    skips: 0,
+                    createdAt: Date.now(),
+                    isVague: vague
+                });
+                saveAll();
+                showConfirmation(null, pendingDisambiguation);
+                haptic('medium');
+                hideDisambiguation();
+            }
+        });
+
+        // ===== LIST HELPER FUNCTIONS =====
+        function addToList(listId, itemText) {
+            const list = lists.find(l => l.id === listId);
+            if (!list) return;
+
+            list.items.push({
+                text: itemText,
+                completed: false,
+                createdAt: Date.now()
+            });
+            saveAll();
+        }
+
+        function createCustomList(name) {
+            const id = 'custom-' + Date.now();
+            lists.push({
+                id,
+                name: name.charAt(0).toUpperCase() + name.slice(1),
+                isDefault: false,
+                items: []
+            });
+            saveAll();
+        }
+
+        function toggleListItemComplete(listId, itemText) {
+            const list = lists.find(l => l.id === listId);
+            const item = list?.items.find(i => i.text === itemText);
+            if (item) {
+                item.completed = !item.completed;
+                item.completedAt = item.completed ? Date.now() : null;
+                saveAll();
+                renderListItems(list);
+            }
+        }
+
+        function deleteListItem(listId, itemText) {
+            const list = lists.find(l => l.id === listId);
+            if (list) {
+                list.items = list.items.filter(i => i.text !== itemText);
+                expandedListDeleteItem = null;
+                saveAll();
+                renderListItems(list);
+            }
+        }
+
+        function clearCompletedItems(listId) {
+            const list = lists.find(l => l.id === listId);
+            if (list) {
+                list.items = list.items.filter(i => !i.completed);
+                saveAll();
+                renderListItems(list);
+            }
+        }
+
+        function deleteAllListItems(listId) {
+            const list = lists.find(l => l.id === listId);
+            if (list) {
+                list.items = [];
+                saveAll();
+                renderListItems(list);
+            }
+        }
+
+        function deleteList(listId) {
+            lists = lists.filter(l => l.id !== listId);
+            expandedListId = null;
+            saveAll();
+            renderListsTab();
+        }
+
+        function toggleListExpand(listId) {
+            if (expandedListId === listId) {
+                expandedListId = null;
+            } else {
+                expandedListId = listId;
+            }
+            expandedListDeleteItem = null;
+            renderListsTab();
+        }
+
+        // ===== LISTS TAB UI =====
+        function renderListsTab() {
+            const container = document.getElementById('lists-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const chevronSvg = `<svg class="list-card-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>`;
+
+            lists.forEach(list => {
+                const card = document.createElement('div');
+                card.className = 'list-card' + (expandedListId === list.id ? ' expanded' : '');
+                card.dataset.listId = list.id;
+
+                const activeCount = list.items.filter(i => !i.completed).length;
+                const completedCount = list.items.filter(i => i.completed).length;
+
+                let countText = activeCount.toString();
+                if (completedCount > 0) {
+                    countText += ` · ${completedCount} done`;
+                }
+
+                card.innerHTML = `
+                    <div class="list-card-header">
+                        <div class="list-card-name">${list.name}</div>
+                        <div class="list-card-count">${countText}</div>
+                        ${chevronSvg}
+                    </div>
+                    <div class="list-card-items" id="list-items-${list.id}"></div>
+                `;
+
+                card.querySelector('.list-card-header').addEventListener('click', () => {
+                    toggleListExpand(list.id);
+                });
+
+                container.appendChild(card);
+
+                if (expandedListId === list.id) {
+                    renderListItems(list);
+                }
+            });
+        }
+
+        function renderListItems(list) {
+            const container = document.getElementById(`list-items-${list.id}`);
+            if (!container) return;
+
+            const minusSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
+
+            if (list.items.length === 0) {
+                container.innerHTML = '<div class="list-empty">No items yet</div>';
+                return;
+            }
+
+            // Sort: active items first, then completed
+            const sorted = [...list.items].sort((a, b) => {
+                if (a.completed !== b.completed) return a.completed ? 1 : -1;
+                return b.createdAt - a.createdAt;
+            });
+
+            container.innerHTML = sorted.map(item => {
+                const isDeleteExpanded = expandedListDeleteItem === item.text;
+                return `
+                    <div class="list-item-wrapper${listsEditMode ? ' edit-mode' : ''}${isDeleteExpanded ? ' delete-expanded' : ''}" data-text="${item.text.replace(/"/g, '&quot;')}">
+                        <button class="list-minus-btn${isDeleteExpanded ? ' rotated' : ''}">${minusSvg}</button>
+                        <div class="list-item${item.completed ? ' completed' : ''}">
+                            <div class="list-item-checkbox" data-text="${item.text.replace(/"/g, '&quot;')}"></div>
+                            <div class="list-item-text">${item.text}</div>
+                        </div>
+                        <button class="list-delete-btn">Delete</button>
+                    </div>
+                `;
+            }).join('');
+
+            // Add actions row in edit mode
+            if (listsEditMode && list.items.length > 0) {
+                const hasCompleted = list.items.some(i => i.completed);
+                let actionsHtml = '<div class="list-actions">';
+                if (hasCompleted) {
+                    actionsHtml += '<button class="list-clear-btn" data-list="' + list.id + '">Clear completed</button>';
+                }
+                actionsHtml += '<button class="list-delete-all-btn" data-list="' + list.id + '">Delete all</button>';
+                actionsHtml += '</div>';
+                container.innerHTML += actionsHtml;
+            }
+
+            // Set up event listeners
+            setupListItemInteractions(list);
+        }
+
+        function setupListItemInteractions(list) {
+            const container = document.getElementById(`list-items-${list.id}`);
+            if (!container) return;
+
+            // Checkbox click (toggle complete)
+            container.querySelectorAll('.list-item-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const text = checkbox.dataset.text;
+                    toggleListItemComplete(list.id, text);
+                    haptic('light');
+                });
+            });
+
+            // Minus button click (show delete)
+            container.querySelectorAll('.list-minus-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const wrapper = btn.closest('.list-item-wrapper');
+                    const text = wrapper.dataset.text;
+
+                    if (expandedListDeleteItem === text) {
+                        // Collapse
+                        expandedListDeleteItem = null;
+                        wrapper.classList.remove('delete-expanded');
+                        btn.classList.remove('rotated');
+                    } else {
+                        // Collapse any other expanded item
+                        collapseListDeleteButton();
+                        // Expand this one
+                        expandedListDeleteItem = text;
+                        wrapper.classList.add('delete-expanded');
+                        btn.classList.add('rotated');
+                    }
+                });
+            });
+
+            // Delete button click
+            container.querySelectorAll('.list-delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const wrapper = btn.closest('.list-item-wrapper');
+                    const text = wrapper.dataset.text;
+                    deleteListItem(list.id, text);
+                    haptic('medium');
+                });
+            });
+
+            // Clear completed button
+            container.querySelectorAll('.list-clear-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    clearCompletedItems(btn.dataset.list);
+                    haptic('medium');
+                });
+            });
+
+            // Delete all button
+            container.querySelectorAll('.list-delete-all-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteAllListItems(btn.dataset.list);
+                    haptic('medium');
+                });
+            });
+        }
+
+        function collapseListDeleteButton() {
+            if (expandedListDeleteItem) {
+                const wrapper = document.querySelector(`.list-item-wrapper[data-text="${CSS.escape(expandedListDeleteItem)}"]`);
+                if (wrapper) {
+                    wrapper.classList.remove('delete-expanded');
+                    const minusBtn = wrapper.querySelector('.list-minus-btn');
+                    if (minusBtn) minusBtn.classList.remove('rotated');
+                }
+                expandedListDeleteItem = null;
+            }
+        }
+
+        // Edit mode for lists
+        const editListsBtn = document.getElementById('edit-lists-btn');
+        if (editListsBtn) {
+            editListsBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                listsEditMode = !listsEditMode;
+                editListsBtn.textContent = listsEditMode ? 'done' : 'edit';
+                expandedListDeleteItem = null;
+                renderListsTab();
+            });
+        }
+
+        // Click outside to collapse delete button in lists
+        document.addEventListener('click', (e) => {
+            if (!listsEditMode || !expandedListDeleteItem) return;
+            const wrapper = e.target.closest('.list-item-wrapper');
+            if (!wrapper || wrapper.dataset.text !== expandedListDeleteItem) {
+                collapseListDeleteButton();
+            }
+        });
+
         // ===== CAPTURE =====
         const input = document.getElementById('thought-input');
         const bigMicButton = document.getElementById('big-mic-button');
@@ -3333,7 +4178,36 @@
                 return;
             }
 
-            // It's a task - check if vague
+            // Check for list match
+            const listMatch = detectListMatch(thought);
+
+            if (listMatch) {
+                if (listMatch.action === 'create') {
+                    // Create new custom list
+                    createCustomList(listMatch.name);
+                    showConfirmation(`Created "${listMatch.name}" list`);
+                    haptic('medium');
+                    return;
+                }
+
+                if (listMatch.confidence === 'high') {
+                    // Direct add to list
+                    addToList(listMatch.listId, listMatch.item);
+                    const list = lists.find(l => l.id === listMatch.listId);
+                    showConfirmation(`Added to ${list.name}`, listMatch.item);
+                    haptic('medium');
+                    return;
+                }
+
+                if (listMatch.confidence === 'low' || listMatch.confidence === 'medium') {
+                    // Show disambiguation
+                    const alternatives = listMatch.alternatives || [listMatch.listId];
+                    showDisambiguation(listMatch.item, alternatives);
+                    return;
+                }
+            }
+
+            // It's a regular task - check if vague
             const vague = isVague(thought);
             thoughts.push({
                 text: thought,
@@ -4363,7 +5237,7 @@
             // Don't save duplicate
             if (weeklyReflections.find(r => r.week === weekKey)) {
                 dismissWeekly();
-                switchToTab(3); // Go to patterns tab
+                switchToTab(4); // Go to patterns tab
                 return;
             }
 
@@ -4379,7 +5253,7 @@
 
             saveAll();
             dismissWeekly();
-            switchToTab(3); // Go to patterns tab
+            switchToTab(4); // Go to patterns tab
         }
 
         weeklyClose.addEventListener('click', dismissWeekly);
@@ -4420,6 +5294,7 @@
                 worries,
                 weeklyReflections,
                 lastResetDate,
+                lists,
                 backupDate: new Date().toISOString(),
                 version: 1
             };
@@ -4481,6 +5356,12 @@
                 worries = data.worries || [];
                 weeklyReflections = data.weeklyReflections || [];
                 lastResetDate = data.lastResetDate || '';
+                lists = data.lists || [
+                    { id: 'grocery', name: 'Grocery', isDefault: true, items: [] },
+                    { id: 'shopping', name: 'Shopping', isDefault: true, items: [] },
+                    { id: 'work', name: 'Work', isDefault: true, items: [] },
+                    { id: 'home', name: 'Home', isDefault: true, items: [] }
+                ];
 
                 saveAll();
                 alert('Restored successfully!');
@@ -4492,7 +5373,7 @@
 
 
         // ===== DEV TOOLS =====
-        const devDataKeys = ['thoughts', 'todayFocus', 'laterToday', 'completedToday', 'completedAllTime', 'worries', 'weeklyReflections', 'lastResetDate'];
+        const devDataKeys = ['thoughts', 'todayFocus', 'laterToday', 'completedToday', 'completedAllTime', 'worries', 'weeklyReflections', 'lastResetDate', 'lists'];
 
         function getDevMode() {
             return localStorage.getItem('devMode') || 'fresh';
@@ -4612,6 +5493,7 @@
         // ===== INITIAL RENDER =====
         // Render all tabs on load so they're ready when swiped to
         renderTodayTab();
+        renderListsTab();
         renderAllTab();
         renderPatterns();
         renderFocusCards();
