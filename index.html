@@ -1778,81 +1778,63 @@
             padding-left: 44px;
         }
 
-        .backlog-checkbox {
+        .backlog-minus-btn {
             position: absolute;
-            left: 14px;
+            left: 10px;
             top: 50%;
             transform: translateY(-50%);
-            width: 22px;
-            height: 22px;
-            border: 2px solid var(--border-color);
+            width: 26px;
+            height: 26px;
+            border: none;
             border-radius: 50%;
-            background: transparent;
+            background-color: #e74c3c;
             display: none;
             align-items: center;
             justify-content: center;
-            transition: all 0.15s;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            z-index: 2;
         }
 
-        .backlog-item-wrapper.edit-mode .backlog-checkbox {
+        .backlog-item-wrapper.edit-mode .backlog-minus-btn {
             display: flex;
         }
 
-        .backlog-item-wrapper.selected .backlog-checkbox {
-            background-color: var(--accent);
-            border-color: var(--accent);
+        .backlog-minus-btn.rotated {
+            transform: translateY(-50%) rotate(90deg);
         }
 
-        .backlog-checkbox svg {
+        .backlog-minus-btn svg {
             width: 14px;
             height: 14px;
             stroke: white;
-            opacity: 0;
+            stroke-width: 3;
         }
 
-        .backlog-item-wrapper.selected .backlog-checkbox svg {
-            opacity: 1;
-        }
-
-        .delete-bar {
-            background-color: rgba(231, 76, 60, 0.1);
-            border: 1px solid rgba(231, 76, 60, 0.3);
-            border-radius: 10px;
-            padding: 12px 16px;
-            margin-bottom: 12px;
-            display: none;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .delete-bar.visible {
-            display: flex;
-        }
-
-        #delete-count {
-            color: var(--text-muted);
-            font-size: 14px;
-        }
-
-        #delete-selected-btn {
+        .backlog-delete-btn {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
             background-color: #e74c3c;
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
+            padding: 0 20px;
             font-size: 14px;
             font-weight: 500;
             cursor: pointer;
+            border-radius: 0 12px 12px 0;
+            transform: translateX(100%);
+            transition: transform 0.2s ease;
+            z-index: 1;
         }
 
-        #delete-selected-btn:active {
-            opacity: 0.8;
+        .backlog-item-wrapper.delete-expanded .backlog-delete-btn {
+            transform: translateX(0);
         }
 
-        #delete-selected-btn:disabled {
-            background-color: var(--border-color);
-            color: var(--text-muted);
-            cursor: default;
+        .backlog-delete-btn:active {
+            background-color: #c0392b;
         }
 
         /* ===== TAB BAR ===== */
@@ -2168,10 +2150,6 @@
                 <div class="backlog-header">
                     <div class="section-title">backlog</div>
                     <button id="edit-backlog-btn" class="edit-btn">edit</button>
-                </div>
-                <div id="delete-bar" class="delete-bar">
-                    <span id="delete-count">0 selected</span>
-                    <button id="delete-selected-btn">delete</button>
                 </div>
                 <div id="backlog-list"></div>
             </div>
@@ -2912,8 +2890,9 @@
         const tabsContainer = document.getElementById('tabs-container');
 
         tabsContainer.addEventListener('touchstart', e => {
-            // Don't start tab swipe if focus overlay is open
+            // Don't start tab swipe if focus overlay is open or in edit mode on All tab
             if (focusVisible) return;
+            if (editMode && currentTabIndex === 2) return; // All tab is index 2
 
             const touchX = e.touches[0].clientX;
             const touchY = e.touches[0].clientY;
@@ -2960,6 +2939,7 @@
 
         tabsContainer.addEventListener('touchmove', e => {
             if (focusVisible) return;
+            if (editMode && currentTabIndex === 2) return;
 
             const touchX = e.touches[0].clientX;
             const touchY = e.touches[0].clientY;
@@ -3635,39 +3615,35 @@
         // ===== ALL TAB =====
         const backlogList = document.getElementById('backlog-list');
         const editBacklogBtn = document.getElementById('edit-backlog-btn');
-        const deleteBar = document.getElementById('delete-bar');
-        const deleteCount = document.getElementById('delete-count');
-        const deleteSelectedBtn = document.getElementById('delete-selected-btn');
         let draggedItem = null;
         let draggedIndex = -1;
         let placeholder = null;
         let editMode = false;
-        let selectedItems = new Set();
+        let expandedDeleteItem = null; // Track which item has delete button showing
 
         function toggleEditMode() {
             editMode = !editMode;
             editBacklogBtn.textContent = editMode ? 'done' : 'edit';
-            selectedItems.clear();
-            updateDeleteBar();
+            expandedDeleteItem = null;
             renderAllTab();
         }
 
-        function updateDeleteBar() {
-            const count = selectedItems.size;
-            deleteBar.classList.toggle('visible', editMode);
-            deleteCount.textContent = count === 0 ? 'select items to delete' : (count === 1 ? '1 selected' : `${count} selected`);
-            deleteSelectedBtn.disabled = count === 0;
+        function collapseDeleteButton() {
+            if (expandedDeleteItem) {
+                const wrapper = document.querySelector(`.backlog-item-wrapper[data-text="${CSS.escape(expandedDeleteItem)}"]`);
+                if (wrapper) {
+                    wrapper.classList.remove('delete-expanded');
+                    const minusBtn = wrapper.querySelector('.backlog-minus-btn');
+                    if (minusBtn) minusBtn.classList.remove('rotated');
+                }
+                expandedDeleteItem = null;
+            }
         }
 
-        function deleteSelectedItems() {
-            if (selectedItems.size === 0) return;
-            const textsToDelete = Array.from(selectedItems);
-            thoughts = thoughts.filter(t => !textsToDelete.includes(t.text));
-            selectedItems.clear();
-            editMode = false;
-            editBacklogBtn.textContent = 'edit';
+        function deleteBacklogItem(text) {
+            thoughts = thoughts.filter(t => t.text !== text);
+            expandedDeleteItem = null;
             saveAll();
-            updateDeleteBar();
             renderAllTab();
             haptic('medium');
         }
@@ -3679,7 +3655,15 @@
             toggleEditMode();
             setTimeout(() => { editModeTransitioning = false; }, 100);
         });
-        deleteSelectedBtn.addEventListener('click', deleteSelectedItems);
+
+        // Click outside to collapse delete button
+        document.addEventListener('click', (e) => {
+            if (!editMode || !expandedDeleteItem) return;
+            const wrapper = e.target.closest('.backlog-item-wrapper');
+            if (!wrapper || wrapper.dataset.text !== expandedDeleteItem) {
+                collapseDeleteButton();
+            }
+        });
 
         function renderAllTab() {
             // Show thoughts not in today's focus
@@ -3691,7 +3675,6 @@
                 if (editMode) {
                     editMode = false;
                     editBacklogBtn.textContent = 'edit';
-                    deleteBar.classList.remove('visible');
                 }
                 return;
             }
@@ -3700,7 +3683,7 @@
             backlog.forEach((item, index) => {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'backlog-item-wrapper' + (editMode ? ' edit-mode' : '');
-                if (selectedItems.has(item.text)) wrapper.classList.add('selected');
+                if (expandedDeleteItem === item.text) wrapper.classList.add('delete-expanded');
                 wrapper.dataset.index = index;
                 wrapper.dataset.text = item.text;
 
@@ -3720,14 +3703,15 @@
                     metaHtml = `<div class="backlog-item-meta">${metaParts.map(p => `<span>${p}</span>`).join('')}</div>`;
                 }
 
-                const checkboxSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                const minusSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
 
                 wrapper.innerHTML = `
+                    <button class="backlog-minus-btn${expandedDeleteItem === item.text ? ' rotated' : ''}">${minusSvg}</button>
                     <div class="backlog-item">
-                        <div class="backlog-checkbox">${checkboxSvg}</div>
                         <div class="backlog-item-text">${item.text}</div>
                         ${metaHtml}
                     </div>
+                    <button class="backlog-delete-btn">Delete</button>
                 `;
                 setupBacklogInteraction(wrapper, item, index, backlog);
                 backlogList.appendChild(wrapper);
@@ -3846,6 +3830,8 @@
 
         function setupBacklogInteraction(wrapper, item, originalIndex, backlog) {
             const itemEl = wrapper.querySelector('.backlog-item');
+            const minusBtn = wrapper.querySelector('.backlog-minus-btn');
+            const deleteBtn = wrapper.querySelector('.backlog-delete-btn');
 
             let startX = 0, startY = 0, currentX = 0, currentY = 0;
             let swiping = false, dragging = false;
@@ -3854,7 +3840,34 @@
             let allWrappers = [];
             const LONG_PRESS_DURATION = 400;
 
+            // Minus button click - toggle delete button visibility
+            minusBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const text = item.text;
+
+                if (expandedDeleteItem === text) {
+                    // Collapse this one
+                    collapseDeleteButton();
+                } else {
+                    // Collapse any other, expand this one
+                    collapseDeleteButton();
+                    expandedDeleteItem = text;
+                    wrapper.classList.add('delete-expanded');
+                    minusBtn.classList.add('rotated');
+                }
+                haptic('light');
+            });
+
+            // Delete button click - delete the item
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteBacklogItem(item.text);
+            });
+
             function startDragMode(e) {
+                // Don't allow drag in edit mode
+                if (editMode) return;
+
                 dragging = true;
                 swiping = false;
                 draggedItem = item;
@@ -3884,6 +3897,9 @@
             }
 
             itemEl.addEventListener('touchstart', e => {
+                // Don't process if in edit mode (use buttons instead)
+                if (editMode) return;
+
                 startX = e.touches[0].clientX;
                 startY = e.touches[0].clientY;
                 currentX = startX;
@@ -3900,6 +3916,8 @@
             }, { passive: true });
 
             itemEl.addEventListener('touchmove', e => {
+                if (editMode) return;
+
                 currentX = e.touches[0].clientX;
                 currentY = e.touches[0].clientY;
 
@@ -3938,6 +3956,8 @@
             }, { passive: true });
 
             itemEl.addEventListener('touchend', e => {
+                if (editMode) return;
+
                 // Clear long press timer
                 if (longPressTimer) {
                     clearTimeout(longPressTimer);
@@ -3997,27 +4017,9 @@
                     const diffX = currentX - startX;
                     const diffY = currentY - startY;
 
-                    // Check if this was a tab swipe (global state or local indicators)
-                    const isTabSwipe = tabSwiping || tabSwipeConfirmed || Math.abs(diffY) > 20 || startX < 60 || startX > window.innerWidth - 60;
-
                     if (Math.abs(diffX) < 10 && Math.abs(diffY) < 10 && !editModeTransitioning) {
-                        // Simple tap
-                        if (editMode) {
-                            // In edit mode, tap toggles selection
-                            const text = item.text;
-                            if (selectedItems.has(text)) {
-                                selectedItems.delete(text);
-                                wrapper.classList.remove('selected');
-                            } else {
-                                selectedItems.add(text);
-                                wrapper.classList.add('selected');
-                            }
-                            updateDeleteBar();
-                            haptic('light');
-                        } else {
-                            // Normal mode - add to today's focus
-                            addToTodayFocus(item);
-                        }
+                        // Simple tap - add to today's focus
+                        addToTodayFocus(item);
                     }
                 }
             });
