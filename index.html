@@ -3701,13 +3701,14 @@
             });
 
             if (hasGroceryKeyword) {
-                // Check if it also matches shopping patterns
-                const hasShoppingContext = listPatterns.shopping.items?.some(i => lower.includes(i)) ||
-                    listPatterns.shopping.explicit?.some(e => lower.includes(e));
-                if (hasShoppingContext) {
+                // Check if it also matches shopping patterns (non-food items)
+                const hasShoppingItem = listPatterns.shopping.items?.some(i => lower.includes(i));
+                if (hasShoppingItem) {
+                    // Ambiguous - could be either list
                     return { listId: 'grocery', item: text, confidence: 'low', alternatives: ['grocery', 'shopping'] };
                 }
-                return { listId: 'grocery', item: text, confidence: 'medium', alternatives: ['shopping'] };
+                // Food keyword without shopping context = definitely grocery
+                return { listId: 'grocery', item: text, confidence: 'high' };
             }
 
             // Check pattern matches for each list type
