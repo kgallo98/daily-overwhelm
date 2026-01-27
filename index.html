@@ -4238,8 +4238,8 @@
         let interimTranscript = '';
 
         // Multi-item voice capture settings
-        const PAUSE_SPLIT_MS = 700;      // Pause length to split items
-        const PAUSE_END_MS = 2500;       // Pause length to auto-end (~2.5 sec)
+        const PAUSE_SPLIT_MS = 3000;     // 3 sec pause = split into separate item
+        const PAUSE_END_MS = 5000;       // 5 sec pause = end recording
         let voiceSegments = [];          // Collected speech segments with timestamps
         let lastSpeechTime = 0;
         let pauseCheckInterval = null;
