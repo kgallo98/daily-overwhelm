@@ -2115,6 +2115,100 @@
             text-align: center;
         }
 
+        /* Today tab lists */
+        #today-lists-container {
+            margin-bottom: 20px;
+        }
+
+        #today-lists-container .section-title {
+            margin-top: 0;
+        }
+
+        .today-list-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .today-list-header {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            cursor: pointer;
+        }
+
+        .today-list-header:active {
+            opacity: 0.7;
+        }
+
+        .today-list-name {
+            flex: 1;
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        .today-list-count {
+            background-color: var(--accent);
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-right: 10px;
+        }
+
+        .today-list-chevron {
+            width: 18px;
+            height: 18px;
+            color: var(--text-muted);
+            transition: transform 0.2s;
+        }
+
+        .today-list-card.expanded .today-list-chevron {
+            transform: rotate(180deg);
+        }
+
+        .today-list-items {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .today-list-card.expanded .today-list-items {
+            max-height: 500px;
+        }
+
+        .today-list-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .today-list-checkbox {
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            margin-right: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .today-list-checkbox:active {
+            transform: scale(0.9);
+            background-color: var(--done-color);
+            border-color: var(--done-color);
+        }
+
+        .today-list-item-text {
+            flex: 1;
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
         /* Disambiguation bottom sheet */
         .disambiguation-sheet {
             position: fixed;
@@ -2477,6 +2571,7 @@
                         </svg>
                     </button>
                 </div>
+                <div id="today-lists-container"></div>
                 <div id="old-items-section" style="display: none;">
                     <div class="section-title">been on your mind</div>
                     <ul id="old-items-list" class="task-list"></ul>
@@ -3629,6 +3724,7 @@
         let expandedListId = null;
         let expandedListDeleteItem = null;
         let pendingDisambiguation = null;
+        let todayExpandedLists = new Set();  // Track expanded lists in Today tab
 
         // Grocery/food keywords
         const groceryKeywords = [
@@ -3876,6 +3972,9 @@
                 createdAt: Date.now()
             });
             saveAll();
+            // Re-render if on Lists or Today tab
+            if (currentTabIndex === 1) renderTodayLists();
+            if (currentTabIndex === 2) renderListsTab();
         }
 
         function createCustomList(name) {
@@ -3896,7 +3995,8 @@
                 item.completed = !item.completed;
                 item.completedAt = item.completed ? Date.now() : null;
                 saveAll();
-                renderListsTab();  // Re-render entire tab to update header count
+                renderListsTab();  // Re-render Lists tab
+                renderTodayLists();  // Re-render Today tab lists
             }
         }
 
@@ -3906,7 +4006,8 @@
                 list.items = list.items.filter(i => i.text !== itemText);
                 expandedListDeleteItem = null;
                 saveAll();
-                renderListsTab();  // Re-render entire tab to update header count
+                renderListsTab();
+                renderTodayLists();
             }
         }
 
@@ -3916,7 +4017,8 @@
                 list.items = list.items.filter(i => !i.completed);
                 expandedListDeleteItem = null;
                 saveAll();
-                renderListsTab();  // Re-render entire tab to update header count
+                renderListsTab();
+                renderTodayLists();
             }
         }
 
@@ -3927,15 +4029,18 @@
                 editingListId = null;  // Exit edit mode
                 expandedListDeleteItem = null;
                 saveAll();
-                renderListsTab();  // Re-render entire tab to update header count
+                renderListsTab();
+                renderTodayLists();
             }
         }
 
         function deleteList(listId) {
             lists = lists.filter(l => l.id !== listId);
             expandedListId = null;
+            todayExpandedLists.delete(listId);
             saveAll();
             renderListsTab();
+            renderTodayLists();
         }
 
         function toggleListExpand(listId) {
@@ -4960,7 +5065,81 @@
             }
         }
 
+        function renderTodayLists() {
+            const container = document.getElementById('today-lists-container');
+            if (!container) return;
+
+            // Get lists with active (non-completed) items
+            const activeLists = lists.filter(list => list.items.some(i => !i.completed));
+
+            if (activeLists.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const chevronSvg = `<svg class="today-list-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>`;
+
+            let html = '<div class="section-title">LISTS</div>';
+
+            activeLists.forEach(list => {
+                const isExpanded = todayExpandedLists.has(list.id);
+                const activeItems = list.items.filter(i => !i.completed);
+                const activeCount = activeItems.length;
+
+                html += `
+                    <div class="today-list-card${isExpanded ? ' expanded' : ''}" data-list-id="${list.id}">
+                        <div class="today-list-header">
+                            <div class="today-list-name">${list.name}</div>
+                            <div class="today-list-count">${activeCount}</div>
+                            ${chevronSvg}
+                        </div>
+                        <div class="today-list-items">
+                            ${activeItems.map(item => `
+                                <div class="today-list-item" data-list="${list.id}" data-text="${item.text.replace(/"/g, '&quot;')}">
+                                    <div class="today-list-checkbox"></div>
+                                    <div class="today-list-item-text">${item.text}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+
+            // Set up event listeners
+            container.querySelectorAll('.today-list-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const card = header.closest('.today-list-card');
+                    const listId = card.dataset.listId;
+                    if (todayExpandedLists.has(listId)) {
+                        todayExpandedLists.delete(listId);
+                    } else {
+                        todayExpandedLists.add(listId);
+                    }
+                    renderTodayLists();
+                });
+            });
+
+            // Checkbox clicks
+            container.querySelectorAll('.today-list-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const item = checkbox.closest('.today-list-item');
+                    const listId = item.dataset.list;
+                    const text = item.dataset.text;
+                    toggleListItemComplete(listId, text);
+                    haptic('light');
+                });
+            });
+        }
+
         function renderTodayTab() {
+            // Render lists first
+            renderTodayLists();
+
             // Old items (2+ weeks old, not in today's focus)
             const twoWeeksAgo = Date.now() - (14 * 24 * 60 * 60 * 1000);
             const focusTexts = todayFocus.map(t => t.text);
