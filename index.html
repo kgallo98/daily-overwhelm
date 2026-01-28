@@ -1964,6 +1964,10 @@
             transform: rotate(180deg);
         }
 
+        .list-edit-btn {
+            margin-right: 8px;
+        }
+
         .list-card-items {
             max-height: 0;
             overflow: hidden;
@@ -2511,10 +2515,7 @@
                         </svg>
                     </button>
                 </div>
-                <div class="lists-header">
-                    <div class="section-title">lists</div>
-                    <button id="edit-lists-btn" class="edit-btn">edit</button>
-                </div>
+                <div class="section-title">lists</div>
                 <div id="lists-container"></div>
             </div>
 
@@ -3371,7 +3372,7 @@
             // Don't start tab swipe if focus overlay is open or in edit mode on All tab
             if (focusVisible) return;
             if (editMode && currentTabIndex === 3) return; // All tab is index 3
-            if (listsEditMode && currentTabIndex === 2) return; // Lists tab is index 2
+            if (editingListId && currentTabIndex === 2) return; // Lists tab is index 2
 
             const touchX = e.touches[0].clientX;
             const touchY = e.touches[0].clientY;
@@ -3624,7 +3625,7 @@
         }
 
         // ===== LISTS FEATURE =====
-        let listsEditMode = false;
+        let editingListId = null;        // Which list is in edit mode (null = none)
         let expandedListId = null;
         let expandedListDeleteItem = null;
         let pendingDisambiguation = null;
@@ -3937,8 +3938,10 @@
         function toggleListExpand(listId) {
             if (expandedListId === listId) {
                 expandedListId = null;
+                editingListId = null;  // Exit edit mode when collapsing
             } else {
                 expandedListId = listId;
+                editingListId = null;  // Exit edit mode when switching lists
             }
             expandedListDeleteItem = null;
             renderListsTab();
@@ -3956,7 +3959,9 @@
 
             lists.forEach(list => {
                 const card = document.createElement('div');
-                card.className = 'list-card' + (expandedListId === list.id ? ' expanded' : '');
+                const isExpanded = expandedListId === list.id;
+                const isEditing = editingListId === list.id;
+                card.className = 'list-card' + (isExpanded ? ' expanded' : '');
                 card.dataset.listId = list.id;
 
                 const activeCount = list.items.filter(i => !i.completed).length;
@@ -3967,25 +3972,51 @@
                     countText += ` · ${completedCount} done`;
                 }
 
+                // Show edit button only when expanded
+                const editBtn = isExpanded ?
+                    `<button class="list-edit-btn edit-btn" data-list="${list.id}">${isEditing ? 'done' : 'edit'}</button>` : '';
+
                 card.innerHTML = `
                     <div class="list-card-header">
                         <div class="list-card-name">${list.name}</div>
                         <div class="list-card-count">${countText}</div>
+                        ${editBtn}
                         ${chevronSvg}
                     </div>
                     <div class="list-card-items" id="list-items-${list.id}"></div>
                 `;
 
-                card.querySelector('.list-card-header').addEventListener('click', () => {
+                // Header click to expand/collapse (but not on edit button)
+                card.querySelector('.list-card-header').addEventListener('click', (e) => {
+                    if (e.target.closest('.list-edit-btn')) return;
                     toggleListExpand(list.id);
                 });
 
+                // Edit button click
+                const editButton = card.querySelector('.list-edit-btn');
+                if (editButton) {
+                    editButton.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        toggleListEditMode(list.id);
+                    });
+                }
+
                 container.appendChild(card);
 
-                if (expandedListId === list.id) {
+                if (isExpanded) {
                     renderListItems(list);
                 }
             });
+        }
+
+        function toggleListEditMode(listId) {
+            if (editingListId === listId) {
+                editingListId = null;
+            } else {
+                editingListId = listId;
+            }
+            expandedListDeleteItem = null;
+            renderListsTab();
         }
 
         function renderListItems(list) {
@@ -4005,10 +4036,12 @@
                 return b.createdAt - a.createdAt;
             });
 
+            const isEditing = editingListId === list.id;
+
             container.innerHTML = sorted.map(item => {
                 const isDeleteExpanded = expandedListDeleteItem === item.text;
                 return `
-                    <div class="list-item-wrapper${listsEditMode ? ' edit-mode' : ''}${isDeleteExpanded ? ' delete-expanded' : ''}" data-text="${item.text.replace(/"/g, '&quot;')}">
+                    <div class="list-item-wrapper${isEditing ? ' edit-mode' : ''}${isDeleteExpanded ? ' delete-expanded' : ''}" data-text="${item.text.replace(/"/g, '&quot;')}">
                         <button class="list-minus-btn${isDeleteExpanded ? ' rotated' : ''}">${minusSvg}</button>
                         <div class="list-item${item.completed ? ' completed' : ''}">
                             <div class="list-item-checkbox" data-text="${item.text.replace(/"/g, '&quot;')}"></div>
@@ -4020,7 +4053,7 @@
             }).join('');
 
             // Add actions row in edit mode
-            if (listsEditMode && list.items.length > 0) {
+            if (isEditing && list.items.length > 0) {
                 const hasCompleted = list.items.some(i => i.completed);
                 let actionsHtml = '<div class="list-actions">';
                 if (hasCompleted) {
@@ -4114,21 +4147,9 @@
             }
         }
 
-        // Edit mode for lists
-        const editListsBtn = document.getElementById('edit-lists-btn');
-        if (editListsBtn) {
-            editListsBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                listsEditMode = !listsEditMode;
-                editListsBtn.textContent = listsEditMode ? 'done' : 'edit';
-                expandedListDeleteItem = null;
-                renderListsTab();
-            });
-        }
-
         // Click outside to collapse delete button in lists
         document.addEventListener('click', (e) => {
-            if (!listsEditMode || !expandedListDeleteItem) return;
+            if (!editingListId || !expandedListDeleteItem) return;
             const wrapper = e.target.closest('.list-item-wrapper');
             if (!wrapper || wrapper.dataset.text !== expandedListDeleteItem) {
                 collapseListDeleteButton();
