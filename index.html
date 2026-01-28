@@ -1965,7 +1965,7 @@
         }
 
         .list-edit-btn {
-            margin-right: 8px;
+            margin-left: 8px;
         }
 
         .list-card-items {
@@ -3896,7 +3896,7 @@
                 item.completed = !item.completed;
                 item.completedAt = item.completed ? Date.now() : null;
                 saveAll();
-                renderListItems(list);
+                renderListsTab();  // Re-render entire tab to update header count
             }
         }
 
@@ -3906,7 +3906,7 @@
                 list.items = list.items.filter(i => i.text !== itemText);
                 expandedListDeleteItem = null;
                 saveAll();
-                renderListItems(list);
+                renderListsTab();  // Re-render entire tab to update header count
             }
         }
 
@@ -3914,8 +3914,9 @@
             const list = lists.find(l => l.id === listId);
             if (list) {
                 list.items = list.items.filter(i => !i.completed);
+                expandedListDeleteItem = null;
                 saveAll();
-                renderListItems(list);
+                renderListsTab();  // Re-render entire tab to update header count
             }
         }
 
@@ -3923,8 +3924,10 @@
             const list = lists.find(l => l.id === listId);
             if (list) {
                 list.items = [];
+                editingListId = null;  // Exit edit mode
+                expandedListDeleteItem = null;
                 saveAll();
-                renderListItems(list);
+                renderListsTab();  // Re-render entire tab to update header count
             }
         }
 
@@ -3979,8 +3982,8 @@
                 card.innerHTML = `
                     <div class="list-card-header">
                         <div class="list-card-name">${list.name}</div>
-                        <div class="list-card-count">${countText}</div>
                         ${editBtn}
+                        <div class="list-card-count">${countText}</div>
                         ${chevronSvg}
                     </div>
                     <div class="list-card-items" id="list-items-${list.id}"></div>
@@ -4301,19 +4304,36 @@
         function getTextContext(text) {
             // Determine the likely list context of a piece of text
             const lower = text.toLowerCase();
+            const words = lower.split(/\s+/);
+            const firstWord = words[0]?.replace(/[^a-z]/g, '');
 
-            // Check grocery keywords
+            // Check grocery keywords first (strongest signal)
             if (groceryKeywords.some(k => lower.includes(k))) {
                 return 'grocery';
             }
 
-            // Check list patterns
+            // Check list patterns (explicit keywords and items)
             for (const [listId, patterns] of Object.entries(listPatterns)) {
                 if (patterns.explicit?.some(e => lower.includes(e))) {
                     return listId;
                 }
                 if (patterns.items?.some(i => lower.includes(i))) {
                     return listId;
+                }
+            }
+
+            // Check if the first word is a context-specific verb
+            // This helps detect context even without explicit keywords
+            for (const [listId, verbs] of Object.entries(contextVerbs)) {
+                if (verbs.includes(firstWord)) {
+                    return listId;
+                }
+                // Also check two-word verbs at start
+                if (words.length >= 2) {
+                    const twoWord = firstWord + ' ' + words[1]?.replace(/[^a-z]/g, '');
+                    if (verbs.includes(twoWord)) {
+                        return listId;
+                    }
                 }
             }
 
@@ -4325,7 +4345,8 @@
             const words = transcript.split(/\s+/);
             const items = [];
             let currentItem = [];
-            let currentContext = null;
+            let currentItemVerb = null;      // Track the leading verb of current item
+            let currentItemVerbContexts = [];  // Track contexts of leading verb
 
             for (let i = 0; i < words.length; i++) {
                 const word = words[i].toLowerCase().replace(/[^a-z]/g, '');
@@ -4350,22 +4371,37 @@
 
                 if (matchedVerb && currentItem.length > 0) {
                     // We found an action verb and have existing content
-                    // Check if context is switching
                     const verbContexts = getVerbContext(matchedVerb);
                     const currentItemText = currentItem.join(' ');
                     const itemContext = getTextContext(currentItemText);
 
-                    // If current item has a clear context and verb belongs to different context, split
-                    const contextSwitch = itemContext &&
-                        verbContexts.length > 0 &&
-                        !verbContexts.includes(itemContext);
+                    // Determine if we should split:
+                    // 1. Current item has detected context (from keywords) and new verb is from different context
+                    // 2. OR current item started with a verb from a specific context and new verb is different
+                    let shouldSplit = false;
 
-                    if (contextSwitch) {
+                    if (itemContext && verbContexts.length > 0 && !verbContexts.includes(itemContext)) {
+                        // Clear context from keywords/explicit terms
+                        shouldSplit = true;
+                    } else if (currentItemVerbContexts.length > 0 && verbContexts.length > 0) {
+                        // Check if verb contexts are completely disjoint (no overlap)
+                        const hasOverlap = verbContexts.some(vc => currentItemVerbContexts.includes(vc));
+                        if (!hasOverlap) {
+                            shouldSplit = true;
+                        }
+                    }
+
+                    if (shouldSplit) {
                         // Save current item and start new one
                         items.push(currentItem.join(' '));
                         currentItem = [];
-                        currentContext = verbContexts[0];
+                        currentItemVerb = matchedVerb;
+                        currentItemVerbContexts = verbContexts;
                     }
+                } else if (matchedVerb && currentItem.length === 0) {
+                    // This is the first verb of a new item
+                    currentItemVerb = matchedVerb;
+                    currentItemVerbContexts = getVerbContext(matchedVerb);
                 }
 
                 // Add word(s) to current item
