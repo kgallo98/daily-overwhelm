@@ -978,6 +978,25 @@
             opacity: 0.7;
         }
 
+        /* List card in focus overlay */
+        .focus-card.list-card-focus {
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .focus-list-badge {
+            font-size: 11px;
+            font-weight: 600;
+            color: white;
+            background-color: var(--accent);
+            padding: 3px 10px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         /* ===== TODAY TAB ===== */
         .section-title {
             font-size: 11px;
@@ -2113,6 +2132,25 @@
             font-size: 14px;
             border-top: 1px solid var(--border-color);
             text-align: center;
+        }
+
+        .list-category-header {
+            padding: 10px 16px 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .list-category-header:first-child {
+            border-top: none;
+        }
+
+        .list-category-header.completed-header {
+            color: var(--text-muted);
+            margin-top: 8px;
         }
 
         /* Today tab lists */
@@ -3725,6 +3763,7 @@
         let expandedListDeleteItem = null;
         let pendingDisambiguation = null;
         let todayExpandedLists = new Set();  // Track expanded lists in Today tab
+        let skippedListItems = new Set();    // Track skipped list items in focus overlay (session only)
 
         // Grocery categories (for future auto-sorting within lists)
         const groceryCategories = {
@@ -4132,6 +4171,38 @@
         });
 
         // ===== LIST HELPER FUNCTIONS =====
+
+        // Get grocery category for an item (for auto-sorting)
+        function getGroceryCategory(itemText) {
+            const lower = itemText.toLowerCase();
+            for (const [category, items] of Object.entries(groceryCategories)) {
+                if (items.some(item => lower.includes(item))) {
+                    return category;
+                }
+            }
+            return 'other';
+        }
+
+        // Category display names and order
+        const categoryOrder = ['produce', 'dairy', 'meat', 'seafood', 'bakery', 'pantry', 'frozen', 'beverages', 'snacks', 'household', 'baby', 'pet', 'health', 'personal', 'other'];
+        const categoryNames = {
+            produce: 'Produce',
+            dairy: 'Dairy & Eggs',
+            meat: 'Meat',
+            seafood: 'Seafood',
+            bakery: 'Bakery',
+            pantry: 'Pantry',
+            frozen: 'Frozen',
+            beverages: 'Beverages',
+            snacks: 'Snacks',
+            household: 'Household',
+            baby: 'Baby',
+            pet: 'Pet',
+            health: 'Health',
+            personal: 'Personal Care',
+            other: 'Other'
+        };
+
         function addToList(listId, itemText) {
             const list = lists.find(l => l.id === listId);
             if (!list) return;
@@ -4308,27 +4379,78 @@
                 return;
             }
 
-            // Sort: active items first, then completed
-            const sorted = [...list.items].sort((a, b) => {
-                if (a.completed !== b.completed) return a.completed ? 1 : -1;
-                return b.createdAt - a.createdAt;
-            });
-
             const isEditing = editingListId === list.id;
+            const isGrocery = list.id === 'grocery';
 
-            container.innerHTML = sorted.map(item => {
-                const isDeleteExpanded = expandedListDeleteItem === item.text;
-                return `
-                    <div class="list-item-wrapper${isEditing ? ' edit-mode' : ''}${isDeleteExpanded ? ' delete-expanded' : ''}" data-text="${item.text.replace(/"/g, '&quot;')}">
-                        <button class="list-minus-btn${isDeleteExpanded ? ' rotated' : ''}">${minusSvg}</button>
-                        <div class="list-item${item.completed ? ' completed' : ''}">
-                            <div class="list-item-checkbox" data-text="${item.text.replace(/"/g, '&quot;')}"></div>
-                            <div class="list-item-text">${item.text}</div>
+            // For grocery list, group by category
+            if (isGrocery && !isEditing) {
+                // Group items by category
+                const grouped = {};
+                list.items.forEach(item => {
+                    const category = item.completed ? 'completed' : getGroceryCategory(item.text);
+                    if (!grouped[category]) grouped[category] = [];
+                    grouped[category].push(item);
+                });
+
+                let html = '';
+                // Render active items by category
+                categoryOrder.forEach(category => {
+                    if (grouped[category] && grouped[category].length > 0) {
+                        html += `<div class="list-category-header">${categoryNames[category]}</div>`;
+                        grouped[category].forEach(item => {
+                            html += `
+                                <div class="list-item-wrapper" data-text="${item.text.replace(/"/g, '&quot;')}">
+                                    <button class="list-minus-btn">${minusSvg}</button>
+                                    <div class="list-item">
+                                        <div class="list-item-checkbox" data-text="${item.text.replace(/"/g, '&quot;')}"></div>
+                                        <div class="list-item-text">${item.text}</div>
+                                    </div>
+                                    <button class="list-delete-btn">Delete</button>
+                                </div>
+                            `;
+                        });
+                    }
+                });
+
+                // Render completed items at the end
+                if (grouped['completed'] && grouped['completed'].length > 0) {
+                    html += `<div class="list-category-header completed-header">Completed</div>`;
+                    grouped['completed'].forEach(item => {
+                        html += `
+                            <div class="list-item-wrapper" data-text="${item.text.replace(/"/g, '&quot;')}">
+                                <button class="list-minus-btn">${minusSvg}</button>
+                                <div class="list-item completed">
+                                    <div class="list-item-checkbox" data-text="${item.text.replace(/"/g, '&quot;')}"></div>
+                                    <div class="list-item-text">${item.text}</div>
+                                </div>
+                                <button class="list-delete-btn">Delete</button>
+                            </div>
+                        `;
+                    });
+                }
+
+                container.innerHTML = html;
+            } else {
+                // Standard sort: active items first, then completed
+                const sorted = [...list.items].sort((a, b) => {
+                    if (a.completed !== b.completed) return a.completed ? 1 : -1;
+                    return b.createdAt - a.createdAt;
+                });
+
+                container.innerHTML = sorted.map(item => {
+                    const isDeleteExpanded = expandedListDeleteItem === item.text;
+                    return `
+                        <div class="list-item-wrapper${isEditing ? ' edit-mode' : ''}${isDeleteExpanded ? ' delete-expanded' : ''}" data-text="${item.text.replace(/"/g, '&quot;')}">
+                            <button class="list-minus-btn${isDeleteExpanded ? ' rotated' : ''}">${minusSvg}</button>
+                            <div class="list-item${item.completed ? ' completed' : ''}">
+                                <div class="list-item-checkbox" data-text="${item.text.replace(/"/g, '&quot;')}"></div>
+                                <div class="list-item-text">${item.text}</div>
+                            </div>
+                            <button class="list-delete-btn">Delete</button>
                         </div>
-                        <button class="list-delete-btn">Delete</button>
-                    </div>
-                `;
-            }).join('');
+                    `;
+                }).join('');
+            }
 
             // Add actions row in edit mode
             if (isEditing && list.items.length > 0) {
@@ -4952,6 +5074,7 @@
 
         function openFocusOverlay() {
             focusVisible = true;
+            skippedListItems.clear();  // Reset skipped items on open
             focusOverlay.classList.add('animating');
             focusOverlay.classList.add('visible');
             focusOverlay.style.transform = '';
@@ -4996,7 +5119,28 @@
             const handledTexts = [...laterToday.map(i => i.text), ...completedToday.map(i => i.text)];
             const remaining = todayFocus.filter(item => !handledTexts.includes(item.text));
 
-            if (thoughts.length === 0) {
+            // Get active list items (filter out skipped ones)
+            const listItems = [];
+            lists.forEach(list => {
+                list.items.filter(i => !i.completed).forEach(item => {
+                    const itemKey = `${list.id}:${item.text}`;
+                    if (!skippedListItems.has(itemKey)) {
+                        listItems.push({
+                            text: item.text,
+                            listId: list.id,
+                            listName: list.name,
+                            isListItem: true,
+                            createdAt: item.createdAt
+                        });
+                    }
+                });
+            });
+
+            const hasThoughts = thoughts.length > 0;
+            const hasListItems = listItems.length > 0;
+            const hasSkippedListItems = skippedListItems.size > 0;
+
+            if (!hasThoughts && !hasListItems) {
                 focusContainer.innerHTML = `
                     <div id="focus-message">
                         <div id="focus-message-title">nothing here yet</div>
@@ -5005,7 +5149,7 @@
                 return;
             }
 
-            if (remaining.length === 0) {
+            if (remaining.length === 0 && listItems.length === 0) {
                 const allDone = todayFocus.length > 0 && completedToday.length === todayFocus.length;
                 focusContainer.innerHTML = `
                     <div id="focus-message">
@@ -5015,22 +5159,54 @@
                 return;
             }
 
-            // Show all remaining cards
-            const total = todayFocus.length;
-            const completed = completedToday.length;
-            remaining.forEach((item, index) => {
-                const cardNum = completed + index + 1;
+            // Combine tasks and list items
+            const allCards = [];
+
+            // Add remaining tasks
+            remaining.forEach(item => {
+                allCards.push({ ...item, isListItem: false });
+            });
+
+            // Add list items
+            listItems.forEach(item => {
+                allCards.push(item);
+            });
+
+            // Render all cards
+            const taskTotal = todayFocus.length;
+            const taskCompleted = completedToday.length;
+            let taskIndex = 0;
+
+            allCards.forEach((item) => {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'focus-card-wrapper';
-                wrapper.innerHTML = `
-                    <div class="swipe-bg swipe-bg-left">later</div>
-                    <div class="swipe-bg swipe-bg-right">done</div>
-                    <div class="focus-card">
-                        <div class="focus-progress">${cardNum} of ${total}</div>
-                        <div class="focus-card-text">${item.text}</div>
-                    </div>
-                `;
-                setupCardSwipe(wrapper, item);
+
+                if (item.isListItem) {
+                    // List item card
+                    wrapper.innerHTML = `
+                        <div class="swipe-bg swipe-bg-left">skip</div>
+                        <div class="swipe-bg swipe-bg-right">done</div>
+                        <div class="focus-card list-card-focus">
+                            <div class="focus-list-badge">${item.listName}</div>
+                            <div class="focus-card-text">${item.text}</div>
+                        </div>
+                    `;
+                    setupListCardSwipe(wrapper, item);
+                } else {
+                    // Regular task card
+                    taskIndex++;
+                    const cardNum = taskCompleted + taskIndex;
+                    wrapper.innerHTML = `
+                        <div class="swipe-bg swipe-bg-left">later</div>
+                        <div class="swipe-bg swipe-bg-right">done</div>
+                        <div class="focus-card">
+                            <div class="focus-progress">${cardNum} of ${taskTotal}</div>
+                            <div class="focus-card-text">${item.text}</div>
+                        </div>
+                    `;
+                    setupCardSwipe(wrapper, item);
+                }
+
                 focusContainer.appendChild(wrapper);
             });
         }
@@ -5109,6 +5285,78 @@
                             }
                             refillTodayFocus();
                             saveAll();
+                            renderFocusCards();
+                        }, 300);
+                    }, 200);
+                } else {
+                    // Snap back
+                    card.style.transform = '';
+                    bgLeft.style.opacity = 0;
+                    bgRight.style.opacity = 0;
+                }
+            });
+        }
+
+        function setupListCardSwipe(wrapper, item) {
+            const card = wrapper.querySelector('.focus-card');
+            const bgLeft = wrapper.querySelector('.swipe-bg-left');
+            const bgRight = wrapper.querySelector('.swipe-bg-right');
+            let startX = 0, currentX = 0, swiping = false;
+
+            card.addEventListener('touchstart', e => {
+                startX = e.touches[0].clientX;
+                currentX = startX;
+                swiping = true;
+                card.classList.add('swiping');
+            }, { passive: true });
+
+            card.addEventListener('touchmove', e => {
+                if (!swiping) return;
+                currentX = e.touches[0].clientX;
+                const diff = currentX - startX;
+                card.style.transform = `translateX(${diff}px)`;
+
+                const threshold = 80;
+                if (diff > 0) {
+                    bgRight.style.opacity = Math.min(1, diff / threshold);
+                    bgLeft.style.opacity = 0;
+                } else if (diff < 0) {
+                    bgLeft.style.opacity = Math.min(1, -diff / threshold);
+                    bgRight.style.opacity = 0;
+                } else {
+                    bgLeft.style.opacity = 0;
+                    bgRight.style.opacity = 0;
+                }
+            }, { passive: true });
+
+            card.addEventListener('touchend', e => {
+                if (!swiping) return;
+                swiping = false;
+                card.classList.remove('swiping');
+
+                const diff = currentX - startX;
+
+                if (diff > 80) {
+                    // Swipe right - mark list item as done
+                    card.style.transform = 'translateX(100vw)';
+                    haptic('medium');
+                    setTimeout(() => {
+                        wrapper.classList.add('removing');
+                        setTimeout(() => {
+                            toggleListItemComplete(item.listId, item.text);
+                            renderFocusCards();
+                        }, 300);
+                    }, 200);
+                } else if (diff < -80) {
+                    // Swipe left - skip (add to skipped set, remove from view)
+                    card.style.transform = 'translateX(-100vw)';
+                    haptic('light');
+                    setTimeout(() => {
+                        wrapper.classList.add('removing');
+                        setTimeout(() => {
+                            // Add to skipped set so it doesn't reappear
+                            const itemKey = `${item.listId}:${item.text}`;
+                            skippedListItems.add(itemKey);
                             renderFocusCards();
                         }, 300);
                     }, 200);
