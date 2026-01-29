@@ -3726,50 +3726,220 @@
         let pendingDisambiguation = null;
         let todayExpandedLists = new Set();  // Track expanded lists in Today tab
 
-        // Grocery/food keywords
+        // Grocery categories (for future auto-sorting within lists)
+        const groceryCategories = {
+            produce: [
+                'apple', 'apples', 'banana', 'bananas', 'orange', 'oranges', 'lemon', 'lemons', 'lime', 'limes',
+                'grape', 'grapes', 'grapefruit', 'strawberry', 'strawberries', 'blueberry', 'blueberries',
+                'raspberry', 'raspberries', 'blackberry', 'blackberries', 'cherry', 'cherries', 'peach', 'peaches',
+                'pear', 'pears', 'plum', 'plums', 'mango', 'mangos', 'mangoes', 'pineapple', 'watermelon', 'melon',
+                'cantaloupe', 'honeydew', 'kiwi', 'papaya', 'coconut', 'pomegranate', 'fig', 'figs', 'dates',
+                'tomato', 'tomatoes', 'potato', 'potatoes', 'sweet potato', 'sweet potatoes', 'yam', 'yams',
+                'onion', 'onions', 'garlic', 'shallot', 'shallots', 'leek', 'leeks', 'scallion', 'scallions',
+                'green onion', 'green onions', 'carrot', 'carrots', 'celery', 'broccoli', 'cauliflower',
+                'cabbage', 'brussels sprouts', 'asparagus', 'artichoke', 'lettuce', 'romaine', 'arugula',
+                'spinach', 'kale', 'chard', 'collard greens', 'bok choy', 'avocado', 'avocados',
+                'pepper', 'peppers', 'bell pepper', 'bell peppers', 'jalapeno', 'jalapenos', 'habanero',
+                'cucumber', 'cucumbers', 'zucchini', 'squash', 'butternut squash', 'acorn squash', 'pumpkin',
+                'eggplant', 'mushroom', 'mushrooms', 'corn', 'beans', 'green beans', 'peas', 'snap peas',
+                'edamame', 'beet', 'beets', 'radish', 'radishes', 'turnip', 'turnips', 'parsnip', 'parsnips',
+                'ginger', 'turmeric', 'herbs', 'basil', 'cilantro', 'parsley', 'mint', 'rosemary', 'thyme',
+                'oregano', 'dill', 'chives', 'sage'
+            ],
+            dairy: [
+                'milk', 'whole milk', 'skim milk', '2% milk', 'oat milk', 'almond milk', 'soy milk', 'coconut milk',
+                'cream', 'half and half', 'heavy cream', 'whipping cream', 'sour cream', 'cream cheese',
+                'cheese', 'cheddar', 'mozzarella', 'parmesan', 'swiss', 'provolone', 'brie', 'gouda', 'feta',
+                'goat cheese', 'ricotta', 'cottage cheese', 'american cheese', 'pepper jack', 'colby',
+                'butter', 'margarine', 'yogurt', 'greek yogurt', 'egg', 'eggs', 'egg whites'
+            ],
+            meat: [
+                'chicken', 'chicken breast', 'chicken thigh', 'chicken thighs', 'chicken wings', 'whole chicken',
+                'ground chicken', 'beef', 'ground beef', 'steak', 'steaks', 'ribeye', 'sirloin', 'filet',
+                'roast', 'pot roast', 'brisket', 'pork', 'pork chop', 'pork chops', 'pork loin', 'pork tenderloin',
+                'ground pork', 'ribs', 'pulled pork', 'ham', 'bacon', 'sausage', 'sausages', 'hot dog', 'hot dogs',
+                'turkey', 'ground turkey', 'turkey breast', 'lamb', 'lamb chops', 'veal', 'duck', 'venison',
+                'deli meat', 'lunch meat', 'salami', 'pepperoni', 'prosciutto', 'bologna'
+            ],
+            seafood: [
+                'fish', 'salmon', 'tuna', 'tilapia', 'cod', 'halibut', 'trout', 'catfish', 'mahi mahi', 'snapper',
+                'sea bass', 'swordfish', 'sardines', 'anchovies', 'shrimp', 'prawns', 'lobster', 'crab', 'crab legs',
+                'scallops', 'clams', 'mussels', 'oysters', 'calamari', 'squid', 'octopus', 'crawfish', 'crayfish'
+            ],
+            bakery: [
+                'bread', 'white bread', 'wheat bread', 'sourdough', 'baguette', 'ciabatta', 'focaccia',
+                'rolls', 'dinner rolls', 'hamburger buns', 'hot dog buns', 'bagel', 'bagels', 'croissant', 'croissants',
+                'muffin', 'muffins', 'donut', 'donuts', 'doughnut', 'doughnuts', 'pastry', 'pastries', 'danish',
+                'cake', 'cupcake', 'cupcakes', 'pie', 'cookies', 'cookie', 'brownie', 'brownies', 'tortilla', 'tortillas',
+                'pita', 'naan', 'english muffin', 'english muffins', 'croutons'
+            ],
+            pantry: [
+                'rice', 'white rice', 'brown rice', 'jasmine rice', 'basmati rice', 'quinoa', 'couscous', 'barley',
+                'pasta', 'spaghetti', 'penne', 'fettuccine', 'linguine', 'rigatoni', 'macaroni', 'lasagna', 'noodles',
+                'ramen', 'egg noodles', 'rice noodles', 'cereal', 'oatmeal', 'oats', 'granola', 'muesli',
+                'flour', 'all purpose flour', 'bread flour', 'whole wheat flour', 'almond flour', 'cornmeal', 'cornstarch',
+                'sugar', 'brown sugar', 'powdered sugar', 'honey', 'maple syrup', 'agave', 'molasses',
+                'salt', 'pepper', 'black pepper', 'oil', 'olive oil', 'vegetable oil', 'canola oil', 'coconut oil',
+                'vinegar', 'balsamic vinegar', 'apple cider vinegar', 'red wine vinegar', 'white vinegar',
+                'soy sauce', 'fish sauce', 'worcestershire', 'hot sauce', 'sriracha', 'tabasco',
+                'ketchup', 'mustard', 'dijon mustard', 'mayo', 'mayonnaise', 'relish', 'bbq sauce', 'teriyaki sauce',
+                'salsa', 'pasta sauce', 'marinara', 'alfredo sauce', 'pesto', 'tomato paste', 'tomato sauce',
+                'canned tomatoes', 'diced tomatoes', 'crushed tomatoes', 'tomato puree',
+                'beans', 'black beans', 'kidney beans', 'pinto beans', 'chickpeas', 'garbanzo beans', 'lentils',
+                'canned corn', 'canned peas', 'canned green beans', 'canned tuna', 'canned salmon', 'canned chicken',
+                'broth', 'chicken broth', 'beef broth', 'vegetable broth', 'stock', 'bouillon',
+                'peanut butter', 'almond butter', 'jelly', 'jam', 'preserves', 'nutella',
+                'nuts', 'peanuts', 'almonds', 'cashews', 'walnuts', 'pecans', 'pistachios', 'macadamia',
+                'seeds', 'sunflower seeds', 'pumpkin seeds', 'chia seeds', 'flax seeds', 'sesame seeds',
+                'dried fruit', 'raisins', 'cranberries', 'apricots', 'prunes',
+                'chocolate', 'chocolate chips', 'cocoa', 'cocoa powder', 'baking powder', 'baking soda', 'yeast',
+                'vanilla', 'vanilla extract', 'cinnamon', 'cumin', 'paprika', 'chili powder', 'cayenne',
+                'garlic powder', 'onion powder', 'italian seasoning', 'taco seasoning', 'curry powder', 'turmeric',
+                'bay leaves', 'red pepper flakes', 'nutmeg', 'cloves', 'allspice', 'ginger powder'
+            ],
+            frozen: [
+                'frozen vegetables', 'frozen peas', 'frozen corn', 'frozen broccoli', 'frozen spinach',
+                'frozen fruit', 'frozen berries', 'frozen strawberries', 'frozen blueberries',
+                'ice cream', 'frozen yogurt', 'popsicles', 'frozen pizza', 'frozen dinner', 'frozen dinners',
+                'frozen chicken', 'frozen fish', 'frozen shrimp', 'frozen burgers', 'frozen meatballs',
+                'frozen fries', 'french fries', 'tater tots', 'frozen waffles', 'frozen pancakes',
+                'frozen burritos', 'hot pockets', 'frozen pie', 'frozen dessert'
+            ],
+            beverages: [
+                'water', 'bottled water', 'sparkling water', 'seltzer', 'juice', 'orange juice', 'apple juice',
+                'grape juice', 'cranberry juice', 'lemonade', 'soda', 'coke', 'pepsi', 'sprite', 'ginger ale',
+                'root beer', 'dr pepper', 'energy drink', 'red bull', 'monster', 'gatorade', 'powerade',
+                'coffee', 'ground coffee', 'coffee beans', 'instant coffee', 'k cups', 'cold brew',
+                'tea', 'green tea', 'black tea', 'herbal tea', 'chamomile', 'iced tea',
+                'beer', 'wine', 'red wine', 'white wine', 'champagne', 'prosecco',
+                'liquor', 'vodka', 'rum', 'whiskey', 'tequila', 'gin', 'bourbon',
+                'mixer', 'tonic water', 'club soda', 'bloody mary mix', 'margarita mix'
+            ],
+            snacks: [
+                'chips', 'potato chips', 'tortilla chips', 'doritos', 'cheetos', 'pretzels', 'crackers',
+                'goldfish', 'cheez its', 'popcorn', 'microwave popcorn', 'trail mix', 'granola bar', 'granola bars',
+                'protein bar', 'protein bars', 'candy', 'chocolate bar', 'gummy bears', 'skittles', 'm&ms',
+                'gum', 'mints', 'snack', 'snacks', 'dip', 'hummus', 'guacamole', 'salsa', 'queso', 'french onion dip'
+            ],
+            household: [
+                'paper towels', 'toilet paper', 'tissues', 'kleenex', 'napkins', 'paper plates', 'plastic cups',
+                'trash bags', 'garbage bags', 'ziplock bags', 'ziploc', 'aluminum foil', 'plastic wrap', 'saran wrap',
+                'dish soap', 'dishwasher detergent', 'laundry detergent', 'fabric softener', 'dryer sheets',
+                'bleach', 'all purpose cleaner', 'windex', 'lysol', 'clorox wipes', 'sponge', 'sponges',
+                'light bulb', 'light bulbs', 'batteries'
+            ],
+            baby: [
+                'diapers', 'baby wipes', 'baby food', 'formula', 'baby formula', 'baby cereal', 'baby lotion',
+                'baby shampoo', 'baby powder', 'diaper cream', 'pacifier', 'bottle', 'bottles', 'sippy cup'
+            ],
+            pet: [
+                'dog food', 'cat food', 'pet food', 'cat litter', 'kitty litter', 'dog treats', 'cat treats',
+                'pet treats', 'bird seed', 'fish food'
+            ],
+            health: [
+                'vitamins', 'vitamin', 'multivitamin', 'supplements', 'protein powder', 'collagen',
+                'advil', 'tylenol', 'ibuprofen', 'aspirin', 'medicine', 'cold medicine', 'cough syrup',
+                'band aids', 'bandages', 'first aid', 'thermometer', 'antacid', 'tums', 'pepto bismol'
+            ],
+            personal: [
+                'shampoo', 'conditioner', 'body wash', 'soap', 'bar soap', 'hand soap', 'lotion', 'moisturizer',
+                'deodorant', 'toothpaste', 'toothbrush', 'mouthwash', 'floss', 'dental floss', 'razors', 'shaving cream',
+                'sunscreen', 'chapstick', 'lip balm', 'cotton balls', 'q tips', 'cotton swabs',
+                'tampons', 'pads', 'feminine products', 'makeup', 'face wash', 'face cream'
+            ]
+        };
+
+        // Flatten all grocery categories into keywords array
         const groceryKeywords = [
-            // Produce
-            'apple', 'apples', 'banana', 'bananas', 'orange', 'oranges', 'lemon', 'lemons', 'lime', 'limes',
-            'grape', 'grapes', 'strawberry', 'strawberries', 'blueberry', 'blueberries', 'raspberry', 'raspberries',
-            'tomato', 'tomatoes', 'potato', 'potatoes', 'onion', 'onions', 'garlic', 'carrot', 'carrots',
-            'broccoli', 'lettuce', 'spinach', 'kale', 'avocado', 'avocados', 'pepper', 'peppers',
-            'cucumber', 'cucumbers', 'celery', 'mushroom', 'mushrooms', 'corn', 'beans', 'peas',
-            // Dairy
-            'milk', 'cheese', 'yogurt', 'butter', 'cream', 'egg', 'eggs', 'sour cream',
-            // Meat & Protein
-            'chicken', 'beef', 'pork', 'fish', 'salmon', 'tuna', 'shrimp', 'bacon', 'sausage', 'turkey', 'ham',
-            // Pantry
-            'bread', 'rice', 'pasta', 'noodles', 'cereal', 'oatmeal', 'flour', 'sugar', 'salt', 'pepper',
-            'oil', 'olive oil', 'vinegar', 'sauce', 'ketchup', 'mustard', 'mayo', 'mayonnaise',
-            // Beverages
-            'juice', 'coffee', 'tea', 'water', 'soda', 'beer', 'wine',
-            // Generic food
-            'groceries', 'food', 'snack', 'snacks', 'fruit', 'fruits', 'vegetable', 'vegetables', 'veggies',
-            'meat', 'produce', 'dairy'
+            ...Object.values(groceryCategories).flat(),
+            // Generic food terms
+            'groceries', 'food', 'fruit', 'fruits', 'vegetable', 'vegetables', 'veggies', 'produce', 'dairy', 'meat'
         ];
 
         // List matching patterns
         const listPatterns = {
             grocery: {
-                verbs: ['buy', 'get', 'pick up', 'grab', 'need'],
-                explicit: ['grocery list', 'groceries', 'from the store', 'at the store', 'supermarket', 'market']
+                verbs: ['buy', 'get', 'pick up', 'grab', 'need', 'restock', 'stock up'],
+                explicit: ['grocery list', 'groceries', 'from the store', 'at the store', 'supermarket', 'market',
+                    'trader joe', "trader joe's", 'whole foods', 'costco', 'safeway', 'kroger', 'publix', 'wegmans',
+                    'aldi', 'target groceries', 'walmart groceries']
             },
             shopping: {
-                verbs: ['order', 'buy', 'get', 'need'],
-                explicit: ['shopping list', 'amazon', 'online', 'store'],
-                items: ['shirt', 'shoes', 'pants', 'dress', 'jacket', 'coat', 'hat', 'socks',
-                    'headphones', 'charger', 'cable', 'battery', 'phone', 'laptop', 'tablet',
-                    'gift', 'present', 'book', 'books']
+                verbs: ['order', 'buy', 'get', 'need', 'return', 'exchange', 'pick up'],
+                explicit: ['shopping list', 'amazon', 'online', 'store', 'mall', 'target', 'walmart', 'costco',
+                    'best buy', 'home depot', 'lowes', "lowe's", 'ikea', 'bed bath', 'etsy', 'ebay'],
+                items: [
+                    // Clothing
+                    'shirt', 'shirts', 't-shirt', 'tshirt', 'blouse', 'sweater', 'hoodie', 'sweatshirt',
+                    'pants', 'jeans', 'shorts', 'skirt', 'dress', 'suit', 'blazer', 'jacket', 'coat',
+                    'shoes', 'sneakers', 'boots', 'sandals', 'heels', 'flats', 'slippers',
+                    'hat', 'cap', 'beanie', 'scarf', 'gloves', 'mittens', 'socks', 'underwear', 'bra',
+                    'pajamas', 'pjs', 'robe', 'swimsuit', 'bikini', 'trunks', 'belt', 'tie', 'watch',
+                    // Electronics
+                    'headphones', 'earbuds', 'airpods', 'speaker', 'bluetooth speaker', 'charger', 'cable',
+                    'usb cable', 'lightning cable', 'hdmi cable', 'adapter', 'power bank', 'battery', 'batteries',
+                    'phone', 'iphone', 'android', 'phone case', 'screen protector', 'laptop', 'macbook',
+                    'computer', 'tablet', 'ipad', 'kindle', 'monitor', 'keyboard', 'mouse', 'webcam',
+                    'tv', 'television', 'smart tv', 'roku', 'fire stick', 'apple tv', 'gaming', 'playstation',
+                    'xbox', 'nintendo', 'switch', 'controller', 'video game', 'video games',
+                    // Home goods
+                    'furniture', 'chair', 'desk', 'table', 'couch', 'sofa', 'bed', 'mattress', 'pillow', 'pillows',
+                    'sheets', 'bedding', 'comforter', 'blanket', 'towel', 'towels', 'curtains', 'blinds',
+                    'lamp', 'light', 'rug', 'carpet', 'mirror', 'frame', 'picture frame', 'shelf', 'shelves',
+                    'storage', 'bins', 'basket', 'baskets', 'hangers', 'hooks', 'organizer',
+                    // Kitchen items (non-food)
+                    'pan', 'pot', 'skillet', 'baking sheet', 'cutting board', 'knife', 'knives', 'utensils',
+                    'spatula', 'whisk', 'tongs', 'measuring cups', 'measuring spoons', 'mixing bowl',
+                    'blender', 'mixer', 'toaster', 'coffee maker', 'instant pot', 'air fryer', 'slow cooker',
+                    'plates', 'bowls', 'cups', 'mugs', 'glasses', 'wine glasses', 'silverware', 'tupperware',
+                    // Other
+                    'gift', 'present', 'birthday gift', 'wedding gift', 'card', 'greeting card', 'wrapping paper',
+                    'book', 'books', 'magazine', 'journal', 'notebook', 'planner', 'calendar', 'pen', 'pens',
+                    'backpack', 'bag', 'purse', 'wallet', 'luggage', 'suitcase', 'umbrella', 'sunglasses',
+                    'toys', 'toy', 'game', 'board game', 'puzzle', 'lego', 'craft supplies', 'art supplies',
+                    'workout clothes', 'gym bag', 'yoga mat', 'weights', 'resistance bands', 'fitness tracker',
+                    'plants', 'plant', 'pot', 'planter', 'gardening', 'tools', 'tool'
+                ]
             },
             work: {
-                verbs: ['email', 'call', 'message', 'schedule', 'review', 'prepare', 'send', 'submit', 'finish', 'complete'],
-                explicit: ['work', 'meeting', 'deadline', 'project', 'client', 'boss', 'coworker', 'colleague',
-                    'office', 'presentation', 'report', 'proposal']
+                verbs: ['email', 'call', 'message', 'schedule', 'review', 'prepare', 'send', 'submit', 'finish',
+                    'complete', 'draft', 'write', 'edit', 'proofread', 'approve', 'sign', 'file', 'organize',
+                    'follow up', 'respond', 'reply', 'forward', 'cc', 'book', 'reserve', 'confirm', 'cancel',
+                    'reschedule', 'attend', 'present', 'demo', 'pitch', 'negotiate', 'discuss', 'brainstorm'],
+                explicit: ['work', 'meeting', 'meetings', 'deadline', 'deadlines', 'project', 'projects', 'task', 'tasks',
+                    'client', 'clients', 'customer', 'customers', 'boss', 'manager', 'supervisor', 'director',
+                    'coworker', 'coworkers', 'colleague', 'colleagues', 'team', 'team member', 'employee',
+                    'office', 'cubicle', 'desk', 'conference room', 'conference call', 'zoom', 'teams', 'slack',
+                    'presentation', 'presentations', 'slides', 'powerpoint', 'keynote', 'deck',
+                    'report', 'reports', 'proposal', 'proposals', 'contract', 'contracts', 'agreement',
+                    'invoice', 'invoices', 'budget', 'expense', 'expenses', 'expense report', 'timesheet',
+                    'performance review', '1:1', 'one on one', 'standup', 'stand up', 'sprint', 'retro',
+                    'quarterly', 'q1', 'q2', 'q3', 'q4', 'eoy', 'end of year', 'fiscal', 'fy',
+                    'hr', 'human resources', 'benefits', 'pto', 'vacation', 'sick day', 'time off',
+                    'interview', 'candidate', 'hire', 'hiring', 'onboarding', 'training',
+                    'kpi', 'okr', 'metric', 'metrics', 'analytics', 'data', 'dashboard']
             },
             home: {
-                verbs: ['clean', 'fix', 'repair', 'organize', 'wash', 'vacuum', 'mow', 'water', 'tidy', 'declutter'],
-                explicit: ['house', 'home', 'apartment', 'room', 'kitchen', 'bathroom', 'bedroom', 'garage',
-                    'yard', 'garden', 'laundry', 'dishes', 'trash', 'garbage']
+                verbs: ['clean', 'fix', 'repair', 'organize', 'wash', 'vacuum', 'mow', 'water', 'tidy', 'declutter',
+                    'dust', 'sweep', 'mop', 'scrub', 'wipe', 'sanitize', 'disinfect', 'polish', 'paint',
+                    'hang', 'install', 'assemble', 'build', 'mount', 'replace', 'change', 'unclog', 'plunge',
+                    'rake', 'trim', 'prune', 'weed', 'plant', 'fertilize', 'mulch', 'shovel', 'snow blow',
+                    'sort', 'donate', 'throw out', 'throw away', 'recycle', 'shred', 'file', 'pack', 'unpack'],
+                explicit: ['house', 'home', 'apartment', 'condo', 'room', 'rooms', 'living room', 'family room',
+                    'kitchen', 'bathroom', 'bathrooms', 'bedroom', 'bedrooms', 'master bedroom', 'guest room',
+                    'office', 'home office', 'basement', 'attic', 'garage', 'closet', 'closets', 'pantry',
+                    'yard', 'backyard', 'front yard', 'lawn', 'garden', 'patio', 'deck', 'porch', 'driveway',
+                    'fence', 'gate', 'shed', 'pool', 'hot tub',
+                    'laundry', 'clothes', 'washing', 'dryer', 'iron', 'ironing', 'fold', 'folding',
+                    'dishes', 'dishwasher', 'sink', 'counter', 'counters', 'stove', 'oven', 'fridge', 'refrigerator',
+                    'microwave', 'trash', 'garbage', 'recycling', 'compost', 'litter box', 'pet', 'dog', 'cat',
+                    'bed', 'beds', 'sheets', 'bedding', 'pillows', 'mattress', 'furniture',
+                    'window', 'windows', 'door', 'doors', 'floor', 'floors', 'carpet', 'rug', 'rugs', 'tile',
+                    'wall', 'walls', 'ceiling', 'light', 'lights', 'lightbulb', 'lightbulbs', 'bulb', 'bulbs',
+                    'ac', 'air conditioner', 'heater', 'furnace', 'hvac', 'filter', 'filters', 'air filter',
+                    'smoke detector', 'carbon monoxide', 'thermostat', 'wifi', 'router', 'internet',
+                    'plumber', 'electrician', 'handyman', 'contractor', 'repairman', 'landlord', 'hoa',
+                    'bills', 'rent', 'mortgage', 'utilities', 'electric', 'gas', 'water bill']
             }
         };
 
